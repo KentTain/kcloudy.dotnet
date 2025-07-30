@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.WebApi.Dict</name>
+    </assembly>
+    <members>
+        <member name="M:KC.WebApi.Dict.Controllers.DictionaryApiController.LoadAllProvinces">
+            <summary>
+            获取所有的省份列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Dict.Controllers.DictionaryApiController.LoadAllCities">
+            <summary>
+            获取所有的城市列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Dict.Controllers.DictionaryApiController.LoadCitiesByProvinceId(System.Int32)">
+            <summary>
+            根据省份Id，获取所有的城市列表
+            </summary>
+            <param name="provinceID">省份Id</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Dict.Controllers.DictionaryApiController.LoadRootIndustryClassfications">
+            <summary>
+            获取所有的国民经济分类树结构数据
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Dict.Controllers.DictionaryApiController.GetMobileLocation(System.String)">
+            <summary>
+            根据手机号获取归属地信息
+            </summary>
+            <param name="mobilePhone">手机号</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Dict.Controllers.DictionaryApiController.LoadAllDictValuesByTypeCode(System.String)">
+            <summary>
+            根据字典类型编码，获取其下的所有字典列表数据
+            </summary>
+            <param name="code">字典类型编码，例如：DCT2020010100001</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Dict.Controllers.TestApiController.GetTenant">
+            <summary>
+            获取当前Tenant编码及名称
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Dict.Controllers.TestApiController.GetEnv">
+            <summary>
+            获取当前环境类型
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

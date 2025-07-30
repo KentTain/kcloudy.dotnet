@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.WebApi.CodeGenerate</name>
+    </assembly>
+    <members>
+        <member name="T:KC.WebApi.CodeGenerate.Controllers.ModelDefinitionApiController">
+            <summary>
+            应用信息
+            </summary>
+        </member>
+        <member name="M:KC.WebApi.CodeGenerate.Controllers.ModelDefinitionApiController.LoadAllModelDefinitionsAsync">
+            <summary>
+            获取所有的应用信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.CodeGenerate.Controllers.TestApiController.GetTenant">
+            <summary>
+            获取当前Tenant编码及名称
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.CodeGenerate.Controllers.TestApiController.GetEnv">
+            <summary>
+            获取当前环境类型
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.WebApi.Job</name>
+    </assembly>
+    <members>
+        <member name="M:KC.WebApi.Job.Controllers.JobApiController.LoadPagenatedQueueErrors(System.Int32,System.Int32,System.String)">
+            <summary>
+            获取QueryError数据
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Job.Controllers.JobApiController.RemoveByRowKey(System.String)">
+            <summary>
+            删除QueryError数据
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Job.Controllers.TestApiController.GetTenant">
+            <summary>
+            获取当前Tenant编码及名称
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Job.Controllers.TestApiController.GetEnv">
+            <summary>
+            获取当前环境类型
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

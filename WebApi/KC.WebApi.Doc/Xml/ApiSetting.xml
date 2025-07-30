@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.WebApi.Doc</name>
+    </assembly>
+    <members>
+        <member name="T:KC.WebApi.Doc.Controllers.DocumentApiController">
+            <summary>
+            文档管理
+            </summary>
+        </member>
+        <member name="M:KC.WebApi.Doc.Controllers.DocumentApiController.GetDocumentById(System.Int32)">
+            <summary>
+            根据Id，获取配置对象
+            </summary>
+            <param name="id">配置Id</param>
+            <returns></returns>
+        </member>
+        <member name="T:KC.WebApi.Doc.Controllers.ResourcesController">
+            <summary>
+            文件资源
+            </summary>
+        </member>
+        <member name="M:KC.WebApi.Doc.Controllers.ResourcesController.ShowImage(System.String,System.Boolean,System.String)">
+            <summary>
+            获取图片
+            </summary>
+            <param name="id">图片的BlobId</param>
+            <param name="isTempFile">是否临时文件：默认为false</param>
+            <param name="uId">用户的UserId：可为空</param>
+            <returns>图片流</returns>
+        </member>
+        <member name="M:KC.WebApi.Doc.Controllers.ResourcesController.DownloadFile(System.String,System.Boolean,System.String)">
+            <summary>
+            获取文件
+            </summary>
+            <param name="id">文件的BlobId</param>
+            <param name="isTempFile">是否临时文件：默认为false</param>
+            <param name="uId">用户的UserId：可为空</param>
+            <returns>文件流</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:KC.WebApi.Doc.Controllers.ResourcesController.GetDocumentApiUrl(System.String)" -->
+        <member name="M:KC.WebApi.Doc.Controllers.ResourcesController.UploadFileToTemp">
+            <summary>
+            上传文件至临时文件夹，1天后清除
+            </summary>
+            <returns>文件流</returns>
+        </member>
+        <member name="M:KC.WebApi.Doc.Controllers.ResourcesController.ChunkCheck(System.String,System.Int32,System.Int64)">
+            <summary>
+            分片验证,验证对应分片文件是否存在，大小是否吻合
+            </summary>
+            <param name="name">文件md5</param>
+            <param name="chunkIndex">分片序列</param>
+            <param name="size">分片文件的大小</param>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:KC.WebApi.Doc.Controllers.ResourcesController.ChunksMerge(System.String,System.String,System.Int32,System.String,System.String,System.String,System.String,System.Boolean)" -->
+        <member name="M:KC.WebApi.Doc.Controllers.ResourcesController.GetChunks(System.String)">
+            <summary>
+            获取指定文件的所有分片
+            </summary>
+            <param name="folder">文件夹路径</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Doc.Controllers.ResourcesController.CreateFileFolder(System.String)">
+            <summary>
+            创建存放上传的文件的文件夹
+            </summary>
+            <param name="name">文件夹路径</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Doc.Controllers.TestApiController.GetTenant">
+            <summary>
+            获取当前Tenant编码及名称
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Doc.Controllers.TestApiController.GetEnv">
+            <summary>
+            获取当前环境类型
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.WebApi.Contract</name>
+    </assembly>
+    <members>
+        <member name="T:KC.WebApi.Contract.Controllers.ContractApiController">
+            <summary>
+            文档管理
+            </summary>
+        </member>
+        <member name="M:KC.WebApi.Contract.Controllers.ContractApiController.GetContractTempletById(System.Int32)">
+            <summary>
+            获取合同模板
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="T:KC.WebApi.Contract.Controllers.ElectronicSignApiController">
+            <summary>
+            印章管理
+            </summary>
+        </member>
+        <member name="M:KC.WebApi.Contract.Controllers.ElectronicSignApiController.GetContractTempletById(System.Int32)">
+            <summary>
+            获取合同模板
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Contract.Controllers.TestApiController.GetTenant">
+            <summary>
+            获取当前Tenant编码及名称
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Contract.Controllers.TestApiController.GetEnv">
+            <summary>
+            获取当前环境类型
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
