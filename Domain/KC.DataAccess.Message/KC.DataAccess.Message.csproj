@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\20210803014410_AddNewsBulletin.cs" />
+    <Compile Remove="Migrations\20210803014410_AddNewsBulletin.Designer.cs" />
+    <Compile Remove="Migrations\20210803015259_AddNewsBulletin.cs" />
+    <Compile Remove="Migrations\20210803015259_AddNewsBulletin.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="DataInitial\SchemaUpgrade\SQL_1.sql" />
+    <EmbeddedResource Include="DataInitial\SQL_InitialData.sql" />
+    <EmbeddedResource Include="DataInitial\SQL_Structure.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\KC.Database\KC.Database.csproj" />
+  </ItemGroup>
+</Project>
