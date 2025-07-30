@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="AutoMapper\Converter\" />
+    <Folder Include="AutoMapper\Resolver\" />
+    <Folder Include="ComMapper\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\KC.Service\KC.Service.csproj" />
+    <ProjectReference Include="..\..\Domain\KC.DataAccess.Supplier\KC.DataAccess.Supplier.csproj" />
+  </ItemGroup>
+
+</Project>

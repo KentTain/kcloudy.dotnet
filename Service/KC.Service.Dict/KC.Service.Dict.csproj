@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DTO\CityDTO.cs" />
+    <Compile Remove="DTO\IndustryClassficationDTO.cs" />
+    <Compile Remove="DTO\MobileLocationDTO.cs" />
+    <Compile Remove="DTO\ProvinceDTO.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AutoMapper\Converter\" />
+    <Folder Include="AutoMapper\Resolver\" />
+    <Folder Include="ComMapper\" />
+    <Folder Include="DTO\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\KC.Service\KC.Service.csproj" />
+    <ProjectReference Include="..\..\Domain\KC.DataAccess.Dict\KC.DataAccess.Dict.csproj" />
+  </ItemGroup>
+
+</Project>

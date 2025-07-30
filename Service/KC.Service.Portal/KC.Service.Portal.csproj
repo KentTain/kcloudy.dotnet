@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="FavoriteService.cs" />
+    <Compile Remove="WebApiService\Business\FavoriteApiService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AutoMapper\Converter\" />
+    <Folder Include="AutoMapper\Resolver\" />
+    <Folder Include="ComMapper\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\KC.Service\KC.Service.csproj" />
+    <ProjectReference Include="..\..\Common\KC.Storage\KC.Storage.csproj" />
+    <ProjectReference Include="..\..\Common\KC.ThirdParty\KC.ThirdParty.csproj" />
+    <ProjectReference Include="..\..\Domain\KC.DataAccess.Portal\KC.DataAccess.Portal.csproj" />
+  </ItemGroup>
+
+</Project>

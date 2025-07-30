@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="FinancingCreditService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\KC.Service\KC.Service.csproj" />
+    <ProjectReference Include="..\..\Common\KC.Storage\KC.Storage.csproj" />
+	<ProjectReference Include="..\..\Common\KC.GitLabApiClient\KC.GitLabApiClient.csproj" />
+    <ProjectReference Include="..\..\Domain\KC.DataAccess.Admin\KC.DataAccess.Admin.csproj" />
+    <ProjectReference Include="..\KC.Service.Component\KC.Service.Component.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AutoMapper\Converter\" />
+    <Folder Include="AutoMapper\Resolver\" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DTO\MemberRemindMessageDTO.cs" />
+    <Compile Remove="DTO\MessageCategoryDTO.cs" />
+    <Compile Remove="DTO\MessageClassDTO.cs" />
+    <Compile Remove="DTO\MessageTemplateDTO.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\KC.Service\KC.Service.csproj" />
+    <ProjectReference Include="..\..\Domain\KC.DataAccess.Message\KC.DataAccess.Message.csproj" />
+  </ItemGroup>
+
+</Project>
