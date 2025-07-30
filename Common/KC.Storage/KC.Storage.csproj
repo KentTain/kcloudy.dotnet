@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Authors>tianchangjun</Authors>
+    <Company>KCLoudy</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Util\Config\**" />
+    <Compile Remove="Util\Log\**" />
+    <EmbeddedResource Remove="Util\Config\**" />
+    <EmbeddedResource Remove="Util\Log\**" />
+    <None Remove="Util\Config\**" />
+    <None Remove="Util\Log\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Util\DatabaseSchemaHelper.cs" />
+    <Compile Remove="Util\DiagnosticHelper.cs" />
+    <Compile Remove="Util\NupitchRuntime.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aliyun.OSS.SDK.NetCore" Version="2.13.0" />
+    <PackageReference Include="AWSSDK.Core" Version="3.7.3.3" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.2.3" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KC.Common\KC.Common.csproj" />
+  </ItemGroup>
+
+</Project>

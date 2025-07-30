@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Authors>tianchangjun</Authors>
+    <Company>KCLoudy</Company>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="CacheHelper\**" />
+    <Compile Remove="ConfigHelper\**" />
+    <EmbeddedResource Remove="CacheHelper\**" />
+    <EmbeddedResource Remove="ConfigHelper\**" />
+    <None Remove="CacheHelper\**" />
+    <None Remove="ConfigHelper\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="FileHelper\DirFile.cs" />
+    <Compile Remove="FileHelper\FileOperate.cs" />
+    <Compile Remove="ToolsHelper\IPHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="NLog" Version="4.7.11" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KC.Framework\KC.Framework.csproj" />
+  </ItemGroup>
+
+</Project>

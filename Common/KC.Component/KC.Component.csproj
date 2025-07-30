@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+		<Authors>tianchangjun</Authors>
+		<Company>KCLoudy</Company>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="QueueRepository\KafkaNetQueueRepository.cs" />
+		<Compile Remove="QueueRepository\MsmqQueueRepository.cs" />
+		<Compile Remove="QueueRepository\ServiceBusQueueRepository.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Azure.Data.Tables" Version="12.2.0" />
+		<PackageReference Include="Azure.Storage.Queues" Version="12.11.0" />
+		<!--<PackageReference Include="Azure.Messaging.ServiceBus" Version="7.3.0" />-->
+		<PackageReference Include="Confluent.Kafka" Version="1.7.0" />
+		<PackageReference Include="Microsoft.Azure.ServiceBus" Version="5.1.3" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\KC.Common\KC.Common.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="ServiceStack.Common">
+			<HintPath>..\..\packages\ServiceStack.Redis\ServiceStack.Common.dll</HintPath>
+		</Reference>
+		<Reference Include="ServiceStack.Interfaces">
+			<HintPath>..\..\packages\ServiceStack.Redis\ServiceStack.Interfaces.dll</HintPath>
+		</Reference>
+		<Reference Include="ServiceStack.Redis">
+			<HintPath>..\..\packages\ServiceStack.Redis\ServiceStack.Redis.dll</HintPath>
+		</Reference>
+		<Reference Include="ServiceStack.Text">
+			<HintPath>..\..\packages\ServiceStack.Redis\ServiceStack.Text.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+</Project>

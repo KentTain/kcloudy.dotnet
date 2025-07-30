@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Authors>tianchangjun</Authors>
+    <Company>KCLoudy</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="CallCenter\CallHYCC.cs" />
+    <Compile Remove="EFService\ExcelService.cs" />
+    <Compile Remove="Extension\AutoMapperExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IdentityModel\IdentityModel\KC.IdentityModel.csproj" />
+    <ProjectReference Include="..\KC.Common\KC.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="aliyun-net-sdk-core" Version="1.5.10" />
+    <PackageReference Include="AutoMapper" Version="10.1.1" />
+		<PackageReference Include="AspectCore.Abstractions" Version="2.2.0" />
+		<PackageReference Include="AspectCore.Core" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>
