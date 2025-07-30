@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "KC.UnitTest.Storage": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev"
+      }
+    }
+  }
+}

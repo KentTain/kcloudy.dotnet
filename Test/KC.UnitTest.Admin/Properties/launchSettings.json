@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "KC.UnitTest.Admin": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev"
+      }
+    }
+  }
+}
