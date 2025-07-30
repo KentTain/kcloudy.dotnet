@@ -1,0 +1,469 @@
+﻿@using KC.Web.Contract.Constants
+@model KC.Service.DTO.Contract.ContractGroupDTO
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    Layout = null;
+    var CurrentUserId = ViewBag.TenantName;
+    <!--合同管理-保存合同-->
+    var canEdit = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "473B720E-2E8B-402D-80FF-271C4D3F52FB")).Succeeded)
+    {
+        canEdit = true;
+    }
+}
+
+<style>
+    .list {
+        height: 30px;
+        line-height: 30px;
+        padding: 10px;
+    }
+
+    .required {
+        color: red;
+    }
+
+    label {
+        vertical-align: middle;
+        align-self: flex-end
+    }
+</style>
+
+<form id="_d">
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.GroupId)
+    <table id="datagrid1" class="table table-celled table-structured" style="margin-top:0;">
+        <thead>
+            <tr>
+                <th colspan="4" class="table-title">合同信息</th>
+            </tr>
+        </thead>
+        <tr>
+            <td>合同编号：</td>
+            <td>
+                <input type="text" id="ContractNo" readonly class="easyui-textbox" data-options="width:200,prompt:'注：合同编号唯一'" value="@(null != Model ? Model.ContractNo : "")" />
+            </td>
+        </tr>
+        <tr>
+            <td><label>合同标题：</label></td>
+            <td>
+                <input type="text" id="ContractTitle" class="easyui-validatebox easyui-textbox" data-options="width:200,required:true,validType:['isSpace','maxLength[50]']" value="@(null != Model ? Model.ContractTitle : "")" />
+            </td>
+        </tr>
+        <tr>
+            <td><label>合同类型：</label></td>
+            <td>@(null != Model ? Model.TypeStr : "")</td>
+        </tr>
+    </table>
+
+    <table class="table table-celled table-structured">
+        <thead>
+            <tr>
+                <th colspan="4" class="table-title">合同主体</th>
+            </tr>
+            <tr>
+                <th>合同方</th>
+                <th>公司名称(个体姓名)</th>
+                <th><a class="easyui-linkbutton" data-options="" id="EditUser">选择签署方</a></th>
+            </tr>
+        </thead>
+        <tbody id="signUserTable">
+            @if (Model.UserContract.Any())
+            {
+                foreach (var item in Model.UserContract)
+                {
+                    <tr id="tr-@item.Id">
+                        <td>
+                            <select class="easyui-combobox" editable="false" data-options="width:100">
+                                @if (item.Key.IndexOf("甲方", StringComparison.Ordinal) >= 0)
+                                {
+                                    <option selected="selected" value="甲方">甲方</option>
+                                }
+                                else
+                                {
+                                    <option value="甲方">甲方</option>
+                                }
+                                @if (item.Key.IndexOf("乙方", StringComparison.Ordinal) >= 0)
+                                {
+                                    <option selected="selected" value="乙方">乙方</option>
+                                }
+                                else
+                                {
+                                    <option value="乙方">乙方</option>
+                                }
+                                @if (item.Key.IndexOf("丙方", StringComparison.Ordinal) >= 0)
+                                {
+                                    <option selected="selected" value="丙方">丙方</option>
+                                }
+                                else
+                                {
+                                    <option value="丙方">丙方</option>
+                                }
+                                @if (item.Key.IndexOf("丁方", StringComparison.Ordinal) >= 0)
+                                {
+                                    <option selected="selected" value="丁方">丁方</option>
+                                }
+                                else
+                                {
+                                    <option value="丁方">丁方</option>
+                                }
+                                @if (item.Key.IndexOf("戊方", StringComparison.Ordinal) >= 0)
+                                {
+                                    <option selected="selected" value="戊方">戊方</option>
+                                }
+                                else
+                                {
+                                    <option value="戊方">戊方</option>
+                                }
+                                @if (item.Key.IndexOf("己方", StringComparison.Ordinal) >= 0)
+                                {
+                                    <option selected="selected" value="己方">己方</option>
+                                }
+                                else
+                                {
+                                    <option value="己方">己方</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <label userid="@item.UserId" type="@item.CustomerType">@item.UserName</label>
+                        </td>
+                        <td><a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-remove" onclick="deleteuserkey('@item.Id', this)">删除</a></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                @*<tr id="cen">
+                        <td colspan="3" style="text-align: center;">请选择合同主体，至少两方</td>
+                    </tr>*@
+                <tr>
+                    <td>
+                        <label val="甲方">甲方</label>
+                    </td>
+                    <td>
+                        @*<label>@tenant.TenantDisplayName</label>*@
+                        <label userid="@ViewBag.TenantName" type="2" staffId="undefined">@ViewBag.TenantDisplayName</label>
+                    </td>
+                    <td></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div title="上传合同pdf文件" data-options="refreshable: false">
+        <table class="table table-celled table-structured">
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="alert-warning">
+                            <b>说明：</b>  大小不可超过10M,格式为PDF!
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="easyui-validatebox easyui-textbox" readonly value="@(null != Model ? Model.ContractContent : "")" data-options="required:true,width:200,prompt:'上传合同的标题'" id="PdfName" type="text">
+                        <a id="btnUploadPdf" style="width:94px;height:24px;" class="button-success button-xs l-btn l-btn-small">点击上传合同</a> @*class="easyui-linkbutton button-success button-xs"*@
+                        <a href='@Url.Action("DownLoadPdfTemplate", ControllerName.ContractManager)' target='_blank' class="easyui-linkbutton button-xs"> 下载PDF文档合同模板</a>
+                        <a href="javascript:void(0)" target="_blank" class="downloadPdf easyui-linkbutton button-primary button-xs" style="display:none">点击下载查看</a>
+                        <a href="javascript:void(0)" class="deletePdf easyui-linkbutton button-danger button-xs" style="display:none">删除</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="parent">
+        <canvas id="the-canvas"></canvas>
+        <div id="topparent">
+            <!--page-->
+            <div class="paginationlocal">
+                @*<ul class="pagination pagination-sm"></ul>*@
+                <ul class="pagination_Partial"></ul>
+            </div>
+            <!--page-->
+        </div>
+    </div>
+
+    <div style="text-align:center;margin-top:40px">
+        <button type="button" class="easyui-linkbutton button-primary" onclick="comfirmCreatePDF()"> 提交 </button>
+    </div>
+</form>
+
+<script type="text/javascript">
+    var SigningUrl = '@Url.Action(ActionName.ContractManager.Signing, ControllerName.ContractManager)';
+    var downloadUrl = '@(Url.Action(ActionName.ContractManager.DownloadContract, new { blobId = Model.BlobId, userId = Model.UserId}))';
+    var blobId, pdfurl, filename;
+    var UserId = "@CurrentUserId";
+    var id = '';
+    var groupId = '';
+    var ReferenceId = '';
+
+    function initUploadPdfer() {
+        var count = 0;
+        var uploadPdfer = cfwinUploader({
+            //componentName: 'uploadPdfer',
+            btnAddFile: '#btnUploadPdf',
+            type: 1,
+            fileNumLimit: 1,
+            params: { userId: UserId, blobId: "" },
+            isRegister: true,
+            configure: {
+                fileMaxSize: 10,
+                fileExt: 'pdf'
+            },
+            callback: {
+                uploadProgress: function (file, percentage) {
+                },
+                uploadComplete: function (file) { //不管成功或者失败，文件上传完成时触发
+                    $.easyui.loaded({ topMost: true });
+                },
+                uploadSuccess: function (file, response) {
+                    if (count == 0) {
+                        if (!response.success) {
+                            $.messager.showErrorTopCenter('错误消息', '上传失败', 2000);
+                            return;
+                        }
+                        $('#PdfName').textbox('setValue', file.name);
+                        uploadPdfer.options.formData.blobId = response.id;
+                        $('.downloadPdf').show().attr('href', response.url);
+                        $('.deletePdf').show();
+                        blobId = response.id;
+                        filename = file.name;
+                        pdfurl = response.url;
+                        console.log(pdfurl);
+                        showPdf(1, pdfurl);
+                        uploadPdfer.removeFile(file);
+                    }
+                    count++;
+                },
+                uploadError: function (file, reason) {
+                },
+                onFileQueued: function (file) {
+                    count = 0;
+                    uploadPdfer.upload();
+                    $.easyui.loading({ msg: '正在上传文件，请稍等...', topMost: true });
+                }
+            }
+        });
+    }
+
+    var EditCurrencySignServiceUrl = '@Url.Action(ActionName.ContractManager.SaveContract, ControllerName.ContractManager)';
+    function comfirmCreatePDF() {
+        if (!$form.form("validate")) {
+            return;
+        }
+        var tr = $("#signUserTable").find("tr");
+        if (tr.length < 2) {
+            $.messager.showErrorTopCenter('错误消息', '签署合同必须最少有两方', 2000);
+            return;
+        }
+        var user = [];
+        var key = [];
+        var userkeyList = [];
+        var strkey = "电子签章处";
+        for (var j = 0; j < tr.length; j++) {
+            var userkey = {
+                UserId: "",
+                UserName: "",
+                Key: "",
+                BlobId: id,
+                StaffId: null,
+                CustomerType: undefined,
+            };
+            var $tr = $($(tr[j]).find("td")[1]).find("label");
+            userkey.UserId = $tr.attr("userid");
+            userkey.StaffId = $tr.attr("staffId");
+            userkey.UserName = $tr.text();
+            userkey.CustomerType = $tr.attr('type');
+            if (j > 0) {
+                userkey.Key = $($(tr[j]).find("td")[0]).find("select").combobox('getValue') + strkey;
+            } else {
+                userkey.Key = $($(tr[j]).find("td")[0]).find("label").attr("val") + strkey;
+            }
+            user.push(userkey.UserName);
+            key.push(userkey.Key);
+            userkeyList.push(userkey);
+        }
+        if (isRepeat(user)) {
+            $.messager.showErrorTopCenter('错误消息', '每个用户在每份合同中只能有一个', 2000);
+            return; //每个用户在每份合同中只能有一个
+        }
+        if (isRepeat(key)) {
+            $.messager.showErrorTopCenter('错误消息', '每个签署方在每份合同中只能有一个', 2000);
+            return; //每个用户在每份合同中只能有一个
+        }
+        var contract = {
+            Id: id,
+            GroupId: groupId,
+            BlobId: blobId,
+            UserName: filename,
+            UserContract: userkeyList,
+            ReferenceId: ReferenceId,
+            ContractTitle: $("#ContractTitle").val().trim(),
+            ContractNo: $("#ContractNo").val(),
+        };
+        $.messager.confirm('系统提示', '确认提交？',
+            function (r) {
+                if (r) {
+                    $.ajax({
+                        url: EditCurrencySignServiceUrl,
+                        type: 'post',
+                        data: contract,
+                        beforeSend: function () {
+                            $.easyui.loading({ msg: '正在提交数据，请稍等...', topMost: true });
+                        },
+                        success: function (data1) {
+                            $.easyui.loaded({ topMost: true });
+                            if (data1.success) {
+                                if (data1.Result) {
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功,请耐心等待审核。', 2000);
+                                    setTimeout(function () {
+                                        $dialog.dialog('close');
+                                    }, 2000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data1.message, 2000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data1.message, 2000);
+                            }
+                        }
+                    });
+                }
+            });
+    }
+
+    function isRepeat(arr) {
+        for (var i = 0; i < arr.length; i++) {
+            for (var j = 0; j < arr.length; j++) {
+                if (j != i) {
+                    if (arr[i] == arr[j]) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    @*var downloadUrl = '@(Url.Action("DownloadContract"))?blobId=';*@
+    var page = {
+        rows: 10,
+        page: 1,
+        statu: 5,
+        userName: ""
+    };
+    function showPdf(index, url) {
+        page = index;
+        window.PDFJS.workerSrc = '../../Scripts/pdf.js/pdf.worker.js'; //加载核心库'
+        window.PDFJS.getDocument(url).then(function getPdfHelloWorld(pdf) {
+            $('.pagination_Partial').empty();
+            $("#parent").show();
+            var pagehtml = '<li class="list"> 共有 ' + pdf.numPages + ' 页</li>';
+            var len = pdf.numPages < 10 ? pdf.numPages : 10;
+            var temp = index - 5;
+            temp = temp < 0 ? 0 : temp;
+
+            for (var i = 1; i <= len; i++) {
+                var current = temp > 0 ? temp + i : i;
+                if (current > pdf.numPages) {
+                    break;
+                }
+                if (i == 1) {
+                    if (index - 1 > 0) {
+                        pagehtml += ' <li><a onclick="showPdf(' + (index - 1 > 0 ? index - 1 : 0) + ',\'' + url+'\')" class="pre-page">上一页«</a></li>';
+                    }
+                }
+                if (current == index) {
+                    pagehtml += '<li  class="active"><a onclick="showPdf(' + current + ',\'' + url +'\')" class="pre-page">' + current + '</a></li>';
+                } else {
+                    if (i == 1 && temp > 0) {
+                        pagehtml += '<li><a onclick="showPdf(' + temp + ',\'' + url +'\')">...</a></li>';
+                    }
+                    pagehtml += '<li><a onclick="showPdf(' + current + ',\'' + url +'\')">' + current + '</a></li>';
+                    if (i == len && pdf.numPages > current) {
+                        pagehtml += '<li><a onclick="showPdf(' + (current + 1) + ',\'' + url +'\')">...</a></li>';
+                    }
+                }
+            }
+            if (index < pdf.numPages) {
+                pagehtml += '<li><a onclick="showPdf(' + (index < pdf.numPages ? index + 1 : 0) + ',\'' + url +'\')" class="next-page">下一页»</a></li>';
+            }
+            $(".pagination_Partial").html(pagehtml);
+            pdf.getPage(page).then(function getPageHelloWorld(page) {
+                var scale = 1.5;
+                var viewport = page.getViewport(scale);
+                var canvas = document.getElementById('the-canvas');
+                var context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                $("#parent").css("width", viewport.width);
+                $("#parent").css("margin", '0px auto');
+                $("#parent").css("height", viewport.height);
+                $("#topparent").css("width", viewport.width).css("height", "48px");
+                var renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                page.render(renderContext);
+                canvas.style.border = '2px red dashed';
+            });
+        });
+    }
+
+</script>
+
+<script type="text/javascript">
+
+    //$(function () {
+
+    if ('@(string.IsNullOrWhiteSpace(Model.BlobId))' === 'False') {
+        showPdf(1, downloadUrl);
+        $('.downloadPdf').show().attr('href', downloadUrl);
+        $('.deletePdf').show();
+        blobId = '@Model.BlobId';
+        filename = '@Model.ContractContent';
+        id = '@Model.Id';
+        groupId = '@Model.GroupId';
+        ReferenceId = '@Model.ReferenceId';
+    }
+
+    $(".deletePdf").click(function () {
+        $('.deletePdf').hide();
+        $('.downloadPdf').hide();
+        $('#PdfName').textbox("setValue","");
+        blobId = "";
+        filename = "";
+        $('.pagination_Partial').empty();
+        $("#parent").hide();
+    });
+
+    $("#EditUser").click(function () {
+        var dialog = $('<div></div>').dialog({
+            title: '选择签署方',
+            width: '50%',
+            height: '80%',
+            closed: false,
+            cache: false,
+            href: SigningUrl,
+            modal: true,
+            onClose: function () {
+                dialog.dialog("destroy");
+            }
+        });
+    });
+
+    $.extend($.fn.validatebox.defaults.rules, {
+        isSpace: {
+            validator: function (value) { return $.trim(value); },
+            message: "输入的内容不能是全空格。"
+        }
+    });
+
+    //});
+
+    initUploadPdfer();
+
+</script>

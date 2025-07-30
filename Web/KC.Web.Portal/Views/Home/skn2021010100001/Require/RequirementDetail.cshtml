@@ -1,0 +1,73 @@
+﻿@using KC.Web.Constants;
+@model KC.Service.DTO.Portal.RecommendInfoDTO
+@*@inject Tenant tenant*@
+@{
+    ViewBag.Title = "鑫亚科技-采购详情";
+    Layout = "../_HomeLayout.cshtml";
+    /*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*/
+}
+@section styles{
+    <style>
+.nav-con{font-size:18px;color:#666;}
+.nav-con .mallSearch{float: right; }
+.nav-con .mallSearch input{height: 38px; line-height: 38px; width: 220px; float: left; position: relative; z-index: 2; background: none;border-radius: 0; border: 1px solid #666;}
+.nav-con .mallSearch button{width: 61px; height: 38px; line-height: 38px; float: left; background: #666; border-radius:0;}
+
+.main .banner{padding: 30px 0; }
+.main .banner .content-img img{max-width: 100%;text-align: center;border: 1px solid #e8e8e8;}
+.main .banner .label{color: #666666; font-size: 32px;  margin: 10px 0;}
+.main .banner .descption{font-size: 18px; color: #9D9D9D;margin: 0 0 10px 0;max-height:100px;display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;}
+.main .banner .price{font-size: 20px; color: #666666;margin: 20px 0 10px 0;}
+.main .banner .price span:nth-child(2){margin-left:50px;color: red;}
+.main .banner a{color:#ffffff;background-color:#2277DD;padding:10px 25px;margin:0;font-size:16px;letter-spacing:3px;line-height:38px;border: 1px solid #2277DD;border-radius:3px;cursor:pointer;}
+    
+
+.main .content .detail{font-size: 18px; color: #9D9D9D;padding: 10px 20px;border:1px solid #e8e8e8;}
+    
+    </style>
+}
+@section Scripts {
+
+    <script>
+       
+
+    </script>
+}
+<div class="layui-row nav-con" style="margin:10px auto;height:50px;">
+    <div class="layui-col-md5" style="margin-top:5px;">
+        <a href="/"><span>首页</span></a> >
+        <a href="/Home/Project"><span>工程信息</span></a> >
+        <a href="/Home/RequirementList"><span>推荐信息</span></a> >
+        <a href="javascript:void(0)"><span>@(Model != null ? Model.RecommendName : "")</span></a>
+    </div>
+</div>
+<!-- main部分 -->
+
+<div class="main home main-content" layout:fragment="content">
+    <div class="layui-container">
+        <div class="layui-row banner">
+            @*<div class="layui-col-xs12 layui-col-sm4 layui-col-md5 layui-col-lg5 content-img">
+                    <img src="@(Model != null && Model.Image != null ? Model.Image.ShowImageUrl : "~/images/noPicture.jpg")" width="389" height="280">
+                </div>*@
+            <div class="layui-col-xs12 layui-col-sm6 layui-col-md7 layui-col-lg7 right">
+                <p class="label">
+                    @(Model != null ? Model.RecommendName : "无项目名称")
+                </p>
+                <p class="price">发布时间：<span>@(Model != null ? Model.CreatedDate.ToString("yyyy年MM月dd日") : "")</span></p>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                @*<div><a id="advisory" >产品咨询 >&nbsp;</a></div>*@
+            </div>
+        </div>
+    </div>
+    <div class="layui-container">
+        <div class="layui-row content">
+            <div class="layui-col-xs12 layui-col-sm12 layui-col-md12 layui-col-lg12 detail">
+                @if (Model != null && !string.IsNullOrEmpty(Model.Description))
+                {
+                    @Html.Raw(Model.Description)
+                }
+            </div>
+        </div>
+    </div>
+</div>

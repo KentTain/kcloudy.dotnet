@@ -1,0 +1,122 @@
+.blue_btn {
+    background: #36ab9c;
+    color: white;
+    border-color: #36ab9c;
+}
+
+.blue_btn:hover {
+    background: #36ab9c
+    color: white;
+    border-color: #36ab9c
+}
+
+.theme_title{
+    background-color:#36ab9c
+}
+
+
+.page_theme a:hover, .page_theme a.select {
+    background: #36ab9c;
+    border: 1px solid #36ab9c;
+    color:white;
+}
+.page_span_theme,.page_span_theme span{
+	
+
+    color: #36ab9c !important;
+	
+}
+
+.cat_theme{
+	background-color: #36ab9c;
+}
+
+
+.nav_theme li a:hover{
+	color:#36ab9c !important;
+
+	}
+	
+.nav_theme li a:hover:after{
+	
+		background: #36ab9c;
+}
+	
+	.search_theme{
+border:2px solid#36ab9c
+		
+		
+	}
+ 
+.theme_clear{
+    border: 1px solid#36ab9c
+    color:#36ab9c
+	
+}
+.wrapwrap_theme_banner{
+    background:url(/css/images/home_1/blue_banner.png) no-repeat center;
+}
+
+.hot_theme{
+	color:#36ab9c;
+}
+.hot_theme:before{
+	   background: #36ab9c !important;
+}
+
+.bt_blue_bg_ck{
+    background: #36ab9c;
+
+}
+.bt_blue_bg_ck:hover{
+    background:#36ab9c
+
+}
+
+
+.bt_blue_bg_ck:hover{
+	color:white;
+}
+.tab_head_blue{
+    background: #36ab9c;
+}
+
+.bt_blue_bg:hover {
+    background: #36ab9c;
+    color: white ! important;
+}
+.hover_act:after {
+    background: #36ab9c;
+}
+.hover_act{
+color:#36ab9c;
+
+}
+
+.Consultation{
+    background-color:#36ab9c
+}
+.tab_head_blue {
+    background: #36ab9c
+}
+.bt_blue_bg_ck {
+    background: #36ab9c;
+        border: 1px solid #36ab9c;
+}
+
+.li_active {
+    color: white ! important;
+    background: #36ab9c;
+}
+.toggle_div {
+
+    border-top: 3px solid #36ab9c;
+}
+.ctx_price i {
+    color: #36ab9c;
+    font-style: normal;
+}
+.ctx_price i {
+    color: #36ab9c;
+    font-style: normal;
+}

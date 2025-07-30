@@ -1,0 +1,77 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+@section styles
+    {
+    <style>
+        .webuploader-pick {
+            margin-left: 0px !important;
+        }
+    </style>
+}
+<div class="easyui-layout" style="height: 100%;">
+    <div data-options="region:'west',collapsible:false" title="列表" style="width:300px;padding:1px">
+        <ul id="selectType" class="easyui-datalist">
+            <li value="0">Demo Column</li>
+            <li value="1">Heap Column</li>
+            <li value="2">Standard Bar</li>
+        </ul>
+    </div>
+    <div data-options="region:'center'">
+        <div style="padding:1px; height:98%;" data-options="title:'图表',refreshable:false">
+            <div id="divChart" style="height:100%"></div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/echarts/echarts.js"></script>
+    <script>
+        var myChart = echarts.init(document.getElementById('divChart'));
+        $(function () {
+            $('#selectType').datalist({
+                onSelect: function (index, row) {
+                    debugger;
+                    let selectType = row.value;
+                    LoadLineDataByType(selectType);
+                }
+            });
+
+            LoadLineDataByType('0');
+        });
+
+        function LoadLineDataByType(type) {
+            let url = '';
+            switch (type) {
+                case '0':
+                    url = '/EchartBarDemo/GetColumnData';
+                    break;
+                case '1':
+                    url = '/EchartBarDemo/GetHeapColumnData';
+                    break;
+                case '2':
+                    url = '/EchartBarDemo/GetStdBarData';
+                    break;
+            }
+
+            $.ajax({
+                async: false,
+                type: "GET",
+                dataType: "json",
+                url: url,
+                success: function (data) {
+                    var option = eval('(' + data + ')'); 
+                    console.log(option);
+                    // 为echarts对象加载数据
+                    myChart.setOption(option);
+                },
+                complete: function () {
+                    //$.easyui.loaded();
+                }
+            });
+        }
+    </script>
+}

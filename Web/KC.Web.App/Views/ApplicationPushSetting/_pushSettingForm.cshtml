@@ -1,0 +1,39 @@
+﻿@using KC.Web.App.Constants
+@model KC.Service.DTO.App.AppApiPushSettingDTO
+
+@using (Html.BeginForm(ActionName.ApplicationSetting.SavePushSetting, ControllerName.ApplicationSetting, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+@Html.AntiForgeryToken()
+@Html.HiddenFor(model => model.BusinessId)
+@Html.HiddenFor(model => model.IsDeleted)
+@Html.HiddenFor(model => model.CreatedBy)
+@Html.HiddenFor(model => model.CreatedDate)
+@Html.HiddenFor(model => model.ModifiedBy)
+@Html.HiddenFor(model => model.ModifiedDate)
+<table class="dialog-form-table">
+    <tbody>
+        <tr>
+            <td><label class="required">*</label><label for="PushSettingId">业务节点代码：</label></td>
+            <td>
+                <input id="PushSettingId" name="PushSettingId" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200" disable="disabled" value="@Model.PushSettingId" />
+            </td>
+        </tr>
+        <tr>
+            <td><label for="BusinessCode">业务节点代码：</label></td>
+            <td><input id="BusinessCode" name="BusinessCode" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200" disable="disabled" value="@Model.BusinessCode" /></td>
+        </tr>
+        <tr>
+            <td><label for="BusinessName">业务节点名称：</label></td>
+            <td><input id="BusinessName" name="BusinessName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200" disable="disabled" value="@Model.BusinessName" /></td>
+        </tr>
+
+        <tr>
+            <td><label for="PushObjectNameSpace">设置推送对象命名空间：</label></td>
+            <td><input id="PushObjectNameSpace" name="PushObjectNameSpace" class="easyui-validatebox easyui-textbox" data-options="width:200" value="@Model.PushObjectNameSpace" /></td>
+        </tr>
+
+    </tbody>
+</table>
+
+}
+

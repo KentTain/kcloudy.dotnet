@@ -1,0 +1,314 @@
+﻿@using KC.Web.App.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "Git仓库管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--开发配置管理-新增/编辑Git仓库-->
+    var canEdit = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "9A5A6421-CC76-47DA-89F5-C61E8D8F0DCC")).Succeeded)
+    {
+        canEdit = true;
+    }
+    <!--开发配置管理-启用/禁用Git仓库-->
+    var canEnable = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "A0CCDE54-0095-4270-91F3-91E43B134A29")).Succeeded)
+    {
+        canEnable = true;
+    }
+}
+
+<div class="easyui-layout" data-options="fit:true" style="width: 360px;padding:2px;">
+    <div data-options="region:'west',collapsible:false">
+        <div id="appToolbar">
+            <div>
+            </div>
+            <div>
+                <input id="txtName" class="easyui-textbox" style="width: 140px;height:26px;"
+                       data-options="prompt:'请输入名称'" />
+                <a href="javascript:void(0)" onclick="reloadApplication()" class="easyui-linkbutton"
+                   data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshApplication()" class="easyui-linkbutton ListToolEndBtn"
+                   data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="appDataList"></table>
+    </div>
+    <div data-options="region:'center'">
+        <div id="toolbar">
+            <div>
+                <!--开发配置管理-新增/编辑Git仓库-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "9A5A6421-CC76-47DA-89F5-C61E8D8F0DCC")).Succeeded)
+                {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="openAppGitForm(0)">新增</a>
+                }
+            </div>
+
+            <div>
+                <input id="txtGitAddress" class="easyui-textbox" data-options="prompt:'请输入Git地址'">
+                <a href="#" onclick="reloadDataGrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="#" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="datagrid"></table>
+    </div>
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <!--组件初始化-->
+    <script type="text/javascript">
+        $.extend($.fn.validatebox.defaults.rules, {
+            existAppSetPropName: {
+                validator: function (value, param) {
+                    if ($.string.isNullOrWhiteSpace(value))
+                        return true;
+
+                    let flag = true;
+                    let postData = {};
+                    postData.id = param[1];
+                    postData.settingId = param[2];
+                    postData.isEditMode = param[3];
+                    postData.orginalName = param[4];
+                    postData.name = value;
+                    $.ajax({
+                        async: false,
+                        type: 'POST',
+                        dataType: 'json',
+                        url: param[0],
+                        data: postData,
+                        success: function (data) {
+                            if (data.success) {
+                                flag = !data.result;
+                            } else {
+                                flag = false;
+                            }
+                        }
+                    });
+                    return flag;
+                },
+                message: '该配置已存在该配置属性名称'
+            }
+        });
+
+        $(function () {
+            InitDataList();
+
+            InitDataGrid();
+        });
+    </script>
+    <!--应用（左侧）-->
+    <script type="text/javascript">
+    let $dataList = $('#appDataList');
+    let selectApplicationId;
+
+    const loadAppDataUrl = '@Url.Action(ActionName.Application.LoadAllApplications, ControllerName.Application)';
+    function InitDataList() {
+        $dataList.datagrid({
+            url: loadAppDataUrl,
+            toolbar: '#appToolbar',
+            method: 'get',
+            idField: 'applicationId',
+            valueField: 'applicationId',
+            textField: 'applicationName',
+            queryParams: {
+                hasAll: true,
+                name: $("#txtName").textbox("getValue"),
+            },
+            striped: true,
+            fit: true,
+            fitColumns: true,
+            rowNumbers: true,
+            singleSelect: true,
+            nowrap: false,
+            lines: true,
+            showFooter: false,
+            checkbox: false,
+            checkOnSelect: false,
+            cascadeCheck: true,
+            cache: true,
+            pagination: false,
+            columns: [
+                [
+                    { field: 'applicationId', title: 'Id', hidden: true },
+                    { field: 'applicationName', title: '应用名称', width: 200 },
+                ]
+            ],
+            onBeforeLoad: function (param) {
+            },
+            onLoadSuccess: function (data) {
+                CommonUtil.buttonStyle();
+                $dataList.datagrid('unselectAll');
+                $dataList.datagrid("fixRowHeight");
+
+                //默认选中第一个节点
+                if (data.rows && data.rows.length > 0) {
+                    selectApplicationId = data.rows[0].applicationId;
+                    $dataList.datagrid("selectRow", 0);
+                }
+            },
+            onLoadError: function () {
+            },
+            onSelect: function (index, row) {
+                if (selectApplicationId === row.applicationId) return;
+                //点击左侧消息类型，显示右侧列表信息
+                selectApplicationId = row.applicationId;
+
+                reloadDataGrid();
+            }
+        });
+    }
+
+    let refreshApplication = function () {
+        $dataList.datagrid('unselectAll');
+        $("#txtName").textbox('setValue', '');
+        reloadApplication();
+    };
+    let reloadApplication = function () {
+        $dataList.datagrid('unselectAll');
+        $dataList.datagrid("reload", {
+            hasAll: true,
+            name: $("#txtName").textbox("getValue"),
+        });
+    };
+    </script>
+    <!--Git仓库（右侧）-->
+    <script type="text/javascript">
+    const canEdit = @Json.Serialize(canEdit);
+    const canEnable = @Json.Serialize(canEnable);
+
+    let $dataGrid = $('#datagrid');
+    const loadDataUrl = '@Url.Action(ActionName.DevSetting.LoadAppGitList, ControllerName.DevSetting)';
+    const loadGitAppUserDataUrl = '@Url.Action(ActionName.DevSetting.LoadAllAppGitUserList, ControllerName.DevSetting)';
+    function InitDataGrid() {
+        $dataGrid.datagrid({
+            view: detailview,
+            url: loadDataUrl,
+            method: 'get',
+            idField: 'id',
+            toolbar: '#toolbar',
+            striped: true,
+            fitColumns: true,
+            rowNumbers: true,
+            singleSelect: true,
+            nowrap: false,
+            fit: true,
+            pagination: true,
+            pageSize: 20,
+            pageList: [20, 40, 60, 100],
+            showFooter: false,
+            columns: [[
+                { field: 'id', title: 'Git仓库Id', width: 80, align: 'left', hidden: true },
+                { field: 'gitAddress', title: 'Git仓库地址', width: 200, align: 'left' },
+                { field: 'gitMainBranch', title: '主开发分支名称', width: 120, align: 'left' },
+                { field: 'isSystem', title: '是否系统分配', width: 60, align: 'center', formatter: FormatterUtil.BoolFormatter },
+                { field: 'isActived', title: '是否启用', width: 60, align: 'center', formatter: FormatterUtil.BoolFormatter },
+                {
+                    field: 'operator', title: '操作', width: 220, align: 'center',
+                    formatter: function (value, row, index) {
+                        let id = row.id;
+                        var tdContext = '';
+                        if (canEdit)
+                            tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openAppGitForm(\'' + id + '\')">编辑</a>';
+                        if (canEnable) {
+                            if (row.isActived)
+                                tdContext += '<a href="##" class="btnClose" style="cursor:pointer" onclick="enableAppGit(\'' + id + '\', false)">禁用</a>';
+                            else
+                                tdContext += '<a href="##" class="btnOpen" style="cursor:pointer" onclick="enableAppGit(\'' + id + '\', true)">启用</a>';
+
+                        }
+
+                        return tdContext;
+                    }
+                }
+            ]],
+            onBeforeLoad: function (param) {
+                /*var bId = $("#txtBId").val();
+                var AllSearchKey = $("#txtAllSearchKey").val();
+                param.bId = bId;
+                param.AllSearchKey = AllSearchKey;*/
+            },
+            onLoadSuccess: function (data) {
+                CommonUtil.buttonStyle();
+                $dataGrid.datagrid("fixRowHeight");
+            },
+            onLoadError: function () {
+            },
+            detailFormatter: function (index, row) {
+                return '<div style="padding:2px;"><table class="ddv"></table></div>';
+            },
+            onExpandRow: function (index, row) {
+                var ddv = $(this).datagrid('getRowDetail', index).find('table.ddv');
+                ddv.datagrid({
+                    url: loadGitAppUserDataUrl + '?gitId=' + row.id,
+                    fitColumns: true,
+                    singleSelect: true,
+                    rowNumbers: true,
+                    loadMsg: '',
+                    height: 'auto',
+                    columns: [[
+                        { field: 'id', title: 'Id', width: 80, align: 'left', hidden: true },
+                        { field: 'userAccount', title: 'Git用户账号', width: 100, align: 'left' },
+                        { field: 'isAdmin', title: '是否管理员', width: 140, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                        { field: 'isUseToken', title: '使用Token登录', width: 120, align: 'center', formatter: FormatterUtil.BoolFormatter},
+                    ]],
+                    onResize: function () {
+                        $dataGrid.datagrid('fixDetailRowHeight', index);
+                    },
+                    onLoadSuccess: function () {
+                        CommonUtil.buttonStyle();
+                        $(ddv).datagrid('fixRowHeight');
+
+                        setTimeout(function () {
+                            $dataGrid.datagrid('fixDetailRowHeight', index);
+
+                        }, 0);
+                    }
+                });
+            }
+        });
+    }
+
+    let refreshSearch = function () {
+        $("#txtGitAddress").textbox('setValue', '');
+        reloadDataGrid();
+    };
+    let reloadDataGrid = function () {
+        $dataGrid.datagrid("load", {
+            appId: selectApplicationId,
+            name: $("#txtGitAddress").textbox("getValue"),
+        });
+    };
+
+    const getSettingFormUrl = '@Url.Action(ActionName.DevSetting.AppGitDetail, ControllerName.DevSetting)';
+    let openAppGitForm = function (id) {
+        let queryString = "id=" + id + "&appId=" + selectApplicationId;
+        MainPage_PostMessage("openSubPage", getSettingFormUrl, queryString);
+    };
+
+    const enableUrl = '@Url.Action(ActionName.DevSetting.EnableAppGit, ControllerName.DevSetting)';
+    let enableAppGit = function (enabled) {
+        var row = $('#datagrid').datagrid('getSelected');
+        if (row) {
+            $.messager.confirm('系统提示', '是否确定删除该条记录?', function (r) {
+                if (r) {
+                    $.post(enableUrl, { id: row.id, enabled: enabled }, function (result) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+    };
+    </script>
+}

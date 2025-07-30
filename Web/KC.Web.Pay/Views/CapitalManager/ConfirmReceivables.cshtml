@@ -1,0 +1,298 @@
+﻿@using KC.Web.Pay.Constants
+@model KC.Service.DTO.Pay.ReceivableDTO
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section styles{
+    <style>
+        .table-bordered > tbody > tr > td {
+            text-align: center
+        }
+    </style>
+}
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>应收类型</th>
+            <th>应收来源</th>
+            <th>订单号</th>
+            <th>应收金额</th>
+            <th>对方名称</th>
+            <th>备注</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                @Model.TypeName
+            </td>
+            <td>
+                @Model.SourceName
+            </td>
+            <td>
+                @Model.OrderId
+            </td>
+            <td>
+                @((Model.ReceivableAmount - Model.AlreadyPayAmount).ToString("C"))
+            </td>
+            <td>
+                @Model.Customer
+            </td>
+            <td>
+                @Model.Remark
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="panel panel-default panel-boot bill">
+    <div class="panel-heading">线下开票</div>
+    <div class="panel-body">
+        <table class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th style="width: 10%">类型</th>
+                    <th style="width: 20%">票号</th>
+                    <th style="width: 15%">金额(元)</th>
+                    <th style="width: 9%">时间</th>
+                    <th style="width: 8%">状态</th>
+                    <th style="width: 7%">附件</th>
+                    <th>备注</th>
+                    <th style="width: 8%">操作</th>
+                </tr>
+            </thead>
+            <tbody class="offlineBillRecords"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="panel panel-default panel-boot payment">
+    <div class="panel-heading">线下支付</div>
+    <div class="panel-body">
+        <table class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th style="width: 4%;"></th>
+                    <th style="width: 15%;">支付金额(元)</th>
+                    <th style="width: 15%;">提交时间</th>
+                    <th style="width: 15%;">状态</th>
+                    <th style="width: 10%;">附件</th>
+                    <th>备注</th>
+                    <th style="width: 15%;">操作</th>
+                </tr>
+            </thead>
+            <tbody class="offlineRecords"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="returnForm" style="display:none">
+    <input class="returnRemark" data-options="multiline:true,prompt:'请输入退回原因'" />
+</div>
+
+@section scripts{
+    <script>
+        var payableNumber = '@Model.PayableNumber';
+        $(function () {
+            loadOfflineBillRecords();
+            loadOfflinePaymentRecord();
+        });
+
+        var loadOfflineUsageBillsUrl = '@Url.Action(ActionName.Payment.LoadOfflineUsageBills, ControllerName.Payment)';
+        function loadOfflineBillRecords() {
+            var $billRecords = $('.offlineBillRecords');
+            ShowMask($billRecords);
+            $.get(loadOfflineUsageBillsUrl,
+                { payableNumber: payableNumber },
+                function (data) {
+                    HideMask($billRecords);
+                    if (data && data.success && data.result) {
+                        $billRecords.empty();
+                        var returnBill = '<a href="javascript:returnOfflineUsageBill(\'{0}\',\'{1}\')">退回</a>';
+                        var confirm = '<a href="javascript:confirmOfflineUsageBill(\'{0}\',\'{1}\')">确认</a>';
+                        for (var i = 0; i < data.result.length; i++) {
+                            var row = data.result[i];
+                            $billRecords.append('<tr><td>' +
+                                (row.BankBill ? '银行承兑汇票' : '商业承兑汇票') +
+                                '</td><td>' +
+                                (row.BillNumber) +
+                                '</td><td>' +
+                                fmoney(row.AmountOfMoney) +
+                                '</td><td>' +
+                                row.PayDateTimeStr +
+                                '</td><td style = "' + (row.Status === 1 ? 'color:green' : 'color:#999') + '" >' +
+                                row.StatusStr +
+                                '</td><td>' +
+                                '<a target="_blank" href="' + row.Attachments.Url + '">附件</a>' +
+                                '</td><td>' +
+                                (row.Remark === null ?'':row.Remark) + (row.Status === 2 ? ' 取消理由:' + row.SupplementRemark : '') + (row.Status === 3 ? '/退回理由:' + row.SupplementRemark : '') +
+                                '</td>' +
+                                '<td>' + (row.Status === 0 ? confirm.format(row.OrderId,row.BusinessNumber) + ' ' + returnBill.format(row.OrderId,row.BusinessNumber) : '') + '</td>' +
+                                '</tr> ');
+                        }
+                    } else {
+                        $('.bill').hide();
+                    }
+            });
+        }
+
+        var loadOfflinePaymentsUrl = '@Url.Action(ActionName.Payment.LoadOfflinePayments, ControllerName.Payment)';
+        function loadOfflinePaymentRecord() {
+            var $record = $('.offlineRecords');
+            ShowMask($record);
+            $.post(loadOfflinePaymentsUrl,
+                { payableNumber: payableNumber},
+                function(data) {
+                    HideMask($record);
+                    $record.empty();
+                    if (data && data.result && data.result.length) {
+                        var returnBill = '<a href="javascript:returnOfflinePayment(\'{0}\',\'{1}\')">退回</a>';
+                        var confirm = '<a href="javascript:confirmOfflinePayment(\'{0}\',\'{1}\')">确认</a>';
+                        for (var i = 0; i < data.result.length; i++) {
+                            var row = data.result[i];
+                            $record.append('<tr><td>' + (i + 1) + '</td><td>' + fmoney(row.AmountOfMoney, 2) + '</td>' +
+                                '<td>' + row.PayDateTimeStr + '</td>'
+                                + '<td style = "' + (row.Status === 1 ? 'color:green' : 'color:#999') + '" > ' + row.StatusStr + '</td>' +
+                                '<td><a  target="_blank" href="' + row.Attachments[0].Url + '">附件</a></td>' +
+                                '<td>' + (row.Remark === null ?'':row.Remark) + (row.Status === 2 ? ' 取消理由:' + row.SupplementRemark : '') + (row.Status === 3 ? '/退回理由:' + row.SupplementRemark : '') + '</td>' +
+                                '<td>' + (row.Status === 0 ? confirm.format(row.OrderId,row.BusinessNumber) + ' ' + returnBill.format(row.OrderId,row.BusinessNumber) : '') + '</td></tr>');
+                        }
+                    } else {
+                        $('.payment').show();
+                    }
+                });
+        }
+
+        var returnOfflinePaymentsUrl = '@Url.Action(ActionName.Payment.ReturnOfflinePayment, ControllerName.Payment)';
+        function returnOfflineUsageBill(orderId, businessNumber) {
+            var $content = $('.returnForm').clone().show();
+            $('.returnRemark', $content).textbox({required: true,width:'395px',height:'120px'});
+            $.easyui.showDialog({
+                title: '确定退回吗？',
+                width: 405,
+                height: 210,
+                modal: true,
+                topMost: false,
+                content: $content,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                saveButtonText: '确认',
+                onSave: function(d) {
+                    var validate = $('.returnRemark', $content).textbox('isValid');
+                    var localeObj = d.parent('.window');
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在提交，请稍等...', locale: localeObj });
+                        $.post(returnOfflineUsageBillsUrl,
+                            { orderId: orderId,businessNumber:businessNumber, remark: $('.returnRemark', $content).val() },
+                            function(data) {
+                                $.easyui.loaded({ locale: localeObj });
+                                if (data) {
+                                    if (data.result) {
+                                        d.window('close');
+                                        loadOfflineBillRecords();
+                                        $.easyui.messager.showInfoTopCenter('退回成功');
+                                    } else {
+                                        $.easyui.messager.showErrorTopCenter(data.message);
+                                    }
+                                } else {
+                                    $.easyui.messager.showInfoTopCenter('系统异常');
+                                }
+                            });
+                    }
+                    return false;
+                }
+            });
+        }
+
+        var confirmOfflinePaymentsUrl = '@Url.Action(ActionName.Payment.ConfirmOfflinePayment, ControllerName.Payment)';
+        function confirmOfflineUsageBill(orderId, businessNumber) {
+            $.messager.confirm('确认已收到该票据吗？', function (flag) {
+                if (flag) {
+                    $.easyui.loading({ msg: '正在提交，请稍等...'});
+                        $.post(confirmOfflineUsageBillsUrl,
+                            { orderId: orderId,businessNumber:businessNumber },
+                            function(data) {
+                                $.easyui.loaded();
+                                if (data) {
+                                    if (data.result) {
+                                        loadOfflineBillRecords();
+                                        $.easyui.messager.showInfoTopCenter('确认成功');
+                                    } else {
+                                        $.easyui.messager.showErrorTopCenter(data.message);
+                                    }
+                                } else {
+                                    $.easyui.messager.showInfoTopCenter('系统异常');
+                                }
+                            });
+                }
+            });
+        }
+
+        var returnOfflineUsageBillsUrl = '@Url.Action(ActionName.Payment.ReturnOfflineUsageBill, ControllerName.Payment)';
+        function returnOfflinePayment(orderId, businessNumber) {
+            var $content = $('.returnForm').clone().show();
+            $('.returnRemark', $content).textbox({required: true,width:'395px',height:'120px'});
+            $.easyui.showDialog({
+                title: '确定退回吗？',
+                width: 405,
+                height: 210,
+                modal: true,
+                topMost: false,
+                content: $content,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                saveButtonText: '确认',
+                onSave: function(d) {
+                    var validate = $('.returnRemark', $content).textbox('isValid');
+                    var localeObj = d.parent('.window');
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在提交，请稍等...', locale: localeObj });
+                        $.post(returnOfflinePaymentsUrl,
+                            { orderId: orderId,businessNumber:businessNumber, remark: $('.returnRemark', $content).val() },
+                            function(data) {
+                                $.easyui.loaded({ locale: localeObj });
+                                if (data) {
+                                    if (data.result) {
+                                        d.window('close');
+                                        loadOfflinePaymentRecord();
+                                        $.easyui.messager.showInfoTopCenter('退回成功');
+                                    } else {
+                                        $.easyui.messager.showErrorTopCenter(data.message);
+                                    }
+                                } else {
+                                    $.easyui.messager.showInfoTopCenter('系统异常');
+                                }
+                            });
+                    }
+                    return false;
+                }
+            });
+        }
+
+        var confirmOfflineUsageBillsUrl = '@Url.Action(ActionName.Payment.ConfirmOfflineUsageBill, ControllerName.Payment)';
+        function confirmOfflinePayment(orderId, businessNumber) {
+            $.messager.confirm('确认已收到该款项吗？', function (flag) {
+                if (flag) {
+                    $.easyui.loading({ msg: '正在提交，请稍等...'});
+                    $.post(confirmOfflinePaymentsUrl,
+                        { orderId: orderId,businessNumber:businessNumber },
+                        function(data) {
+                            $.easyui.loaded();
+                            if (data) {
+                                if (data.result) {
+                                    loadOfflinePaymentRecord();
+                                    $.easyui.messager.showInfoTopCenter('确认成功');
+                                } else {
+                                    $.easyui.messager.showErrorTopCenter(data.message);
+                                }
+                            } else {
+                                $.easyui.messager.showInfoTopCenter('系统异常');
+                            }
+                        });
+                }
+            });
+        }
+
+    </script>
+}

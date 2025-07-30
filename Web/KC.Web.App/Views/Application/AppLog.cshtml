@@ -1,0 +1,77 @@
+﻿@using KC.Web.App.Constants
+@{
+    ViewBag.Title = "应用日志";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+<div id="toolbar">
+    <div>
+        <label>操作人:</label> 
+        <input id="txtName" class="easyui-textbox" style="width: 200px" data-options="prompt:'请输入操作人'" />
+        <a href="javascript:void(0)" onclick="searchData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+{
+    <script type="text/javascript">
+        $(function() {
+            InitDataGrid();
+        });
+
+        var loadDataUrl = '@Url.Action(ActionName.Application.LoadApplicationLogList, ControllerName.Application)';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                toolbar: "#toolbar",
+                idField: 'processLogId',
+                fit: true,
+                fitColumns: true,
+                striped: true,
+                nowrap: false,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [
+                    [
+                        { field: 'processLogId', title: '操作人Id', width: 100, align: 'left', hidden: true },
+                        { field: 'appLogTypeString', title: '日志类型', width: 120, align: 'left' },
+                        { field: 'applicationName', title: '应用名称', width: 120, align: 'left' },
+                        { field: 'operator', title: '操作人', width: 80, align: 'left' },
+                        { field: 'operateDate', title: '操作日期', width: 120, align: 'left', formatter: FormatterUtil.DateTimeFormatter },
+                        { field: 'remark', title: '内容', width: 400, align: 'left' }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    $(".btnRemoveModule").linkbutton({ plain: true, iconCls: 'fa fa-trash' });
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                }
+            });
+
+            $("#toolbar").keydown(function() {
+                if (event.keyCode == "13") {
+                    searchData();
+                }
+
+            });
+        }
+
+        function refreshSearch() {
+            $("#txtName").searchbox('setValue', '');
+            searchData('', '');
+        }
+        function searchData() {
+            $('#datagrid').datagrid('unselectAll');
+            $("#datagrid").datagrid('load', { name: $("#txtName").searchbox("getValue") });
+        }
+
+    </script>
+}

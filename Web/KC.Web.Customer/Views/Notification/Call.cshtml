@@ -1,0 +1,424 @@
+﻿@using KC.Enums.CRM
+@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@using KC.Web.Util
+
+@{
+    Layout = null;
+}
+@await Html.PartialAsync("_CustomerManagerInfo")
+
+<div id="callTab" class="easyui-tabs" data-options="fit:true,plain:true" style="height: 100%">
+    <div title="通讯录"  data-options="refreshable:false" style="padding: 5px; height: auto">
+        <div id="toolbarPhoneList" style="padding: 8px 8px 8px 15px;">
+            <div style="padding: 5px;">
+                <div id="divSearchMenu" class="easyui-menu" style="width: 120px;">
+                    <div data-options="name:'ContactName',selected:true">联系人姓名</div>
+                    <div data-options="name:'ContactPhoneNumber'">联系人手机</div>
+                    <div data-options="name:'ContactEmail'">联系人邮箱</div>
+                    <div data-options="name:'AffiliatedCompany'">所属单位</div>
+                    <div data-options="name:'CustomerManagerName'">跟进人</div>
+                    <div data-options="name:'OrganizationName'">跟进人部门</div>
+                </div>
+                <input id="txtSearchbox" class="easyui-searchbox" style="width: 300px; height: 25px;" />
+            </div>
+            <div style="padding: 5px; text-align:right">
+                <span style="margin-right: 20px;">
+                    <!--配置管理-座机拨号-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+                    {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-mobile
+" onclick="CallContact(0)">座机拨号</a>
+                    }
+                    <!--配置管理-手机拨号-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+                    {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-phone" onclick="CallContact('\'' + row.ContactPhoneNumber + '\',\'' + row.ContactName + '\',\'' + row.CustomerId + '\', 1)">手机拨号</a>
+                    }
+                </span>
+            </div>
+        </div>
+        <table id="datagridPhoneList" data-options="iconCls: 'icon-standard-text-list-bullets'"></table>
+    </div>
+
+    <div title="通话记录" data-options="refreshable:false" style="padding: 5px; height: auto">
+        <div id="toolbarCallLogList" style="padding: 8px 8px 8px 15px;">
+            <span id="sp_dropDownList" style="margin-top: 12px;">
+                <span style="margin-right: 10px">
+                    通话状态：
+                    @Html.DropDownList("CallState", (IEnumerable<SelectListItem>)ViewBag.CallStateList, new { @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+                </span>
+                <span style="margin-right: 10px">
+                    通话日期：
+                    <input class="easyui-datebox" id="startTime" name="startTime" style="cursor: pointer; width: 150px; height: 26px;">
+                    至
+                    <input class="easyui-datebox" id="endTime" name="endTime" style="cursor: pointer; width: 150px; height: 26px;">
+                </span>
+            </span>
+            <div style="margin-top: 10px; display:inline;">
+                <div id="divSearchMenu1" class="easyui-menu" style="width: 120px">
+                    <div data-options="name:'callerPhone',selected:true">主叫号码</div>
+                    <div data-options="name:'calleePhone'">被叫号码</div>
+                    <div data-options="name:'customerManagerName'">跟进人</div>
+                </div>
+                <input id="txtSearchbox1" class="easyui-searchbox" style="width: 200px" />
+            </div>
+        </div>
+        <table id="datagridCallLogList" data-options="iconCls: 'icon-standard-text-list-bullets'"></table>
+    </div>
+</div>
+<script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+<script type="text/javascript">
+    //通讯录
+    $(function () {
+        $(".btnMobile").linkbutton({ plain: true, iconCls: 'fa fa-mobile' });
+        $(".btnTelephone").linkbutton({ plain: true, iconCls: 'fa fa-phone' });
+        $('#callTab').tabs({
+            onSelect: function (title, index) {
+                if (index === 1) {
+                    InitCallLogListGrid();
+                }
+            }
+        });
+    });
+    var loadCustomerContact = '@Url.Action(ActionName.Notification.LoadCustomerContactInfos, ControllerName.Notification)';
+
+    function InitPhoneListGrid() {
+        var phoneListGrid = $('#datagridPhoneList').datagrid({
+            url: loadCustomerContact,
+            method: 'get',
+            idField: 'customerId',
+            toolbar: '#toolbarPhoneList',
+            striped: true,
+            fitColumns: true,
+            singleSelect: true,
+            rowNumbers: true,
+            pagination: true,
+            nowrap: false,
+            fit: true,
+            pageSize: 10,
+            pageList: [10, 20, 30, 50, 100],
+            showFooter: false,
+            checkOnSelect: true,
+            selectOnCheck: true,
+            columns: [
+                [
+                    { field: 'checker', title: '选中', checkbox: true, width: 10, align: 'left' },
+                    { field: 'customerId', title: '客户Id', width: 10, align: 'left', hidden: true },
+                    { field: 'customerName', title: '客户名称', width: 90, align: 'left', hidden: true },
+                    { field: 'customerContactId', title: '联系人Id', width: 10, align: 'left', hidden: true },
+                    { field: 'customerTypeStr', title: '客户类型', width: 50, align: 'left' },
+                    { field: 'contactName', title: '联系人姓名', width: 60, align: 'left' },
+                    { field: 'contactPhoneNumber', title: '联系人手机', width: 90, align: 'left' },
+                    { field: 'contactEmail', title: '联系人邮箱', width: 90, align: 'left' },
+                    { field: 'affiliatedCompany', title: '所属单位', width: 90, align: 'left' },
+                    { field: 'positionName', title: '职位', width: 90, align: 'left' },
+                    { field: 'operator', title: '操作', width: 200, align: 'left', formatter: operateButton }
+                ]
+            ],
+            onBeforeLoad: function (param) {
+            },
+            onLoadSuccess: function (data) {
+                $('#datagridPhoneList').datagrid('unselectAll');
+                $('#datagridPhoneList').datagrid('uncheckAll');
+                $(".btnSendSMS").linkbutton({ plain: true, iconCls: 'icon-standard-page-white-text' });
+                $(".btnSendEmail").linkbutton({ plain: true, iconCls: 'icon-standard-email' });
+                $(".btnMoveToSeas").linkbutton({ plain: true });
+                $(".btnTracinglog").linkbutton({ plain: true, iconCls: 'icon-standard-page-white-text' });
+
+                $('#datagridPhoneList').datagrid("fixRowHeight"); //固定行高
+            },
+            onLoadError: function () {
+            },
+            view: detailview,
+            detailFormatter: function (index, row) {
+                return '<div style="padding:2px;"><table id="ddv"></table></div>';
+            },
+            onExpandRow: function (index, row) {
+                loadCustomerManagers(index, row, '#datagridPhoneList');
+            }
+        });
+
+        $('#txtSearchbox').searchbox({
+            menu: '#divSearchMenu',
+            prompt: '请输入查询值',
+            searcher: searchData
+        });
+    }
+
+    function searchData(value, name) {
+        $('#datagridPhoneList').datagrid('unselectAll');
+        $('#datagridPhoneList').datagrid('load', {
+            "searchKey": name,
+            "searchValue": value,
+            "onlyShowClientSerivce": true
+        });
+    }
+
+    var sendSms = '@Url.Action(ActionName.Notification.Sms, ControllerName.Notification)';
+    var sendEmail = '@Url.Action(ActionName.Notification.Email, ControllerName.Notification)';
+    var tracingLog = '@Url.Action(ActionName.Notification.CustomerTracingLogList, ControllerName.Notification)';
+    function operateButton(value, row, index) {
+        var tdContext = '';
+        if (row.contactPhoneNumber != null && row.contactPhoneNumber != '') {
+            tdContext = '<a href="##" class="btnSendSMS" onclick="selectTab(\'' + row.customerContactId + '\',1)">短信</a>';
+        }
+        if (row.contactEmail != null && row.contactEmail != '') {
+            tdContext += '<a href="##" class="btnSendEmail" onclick="selectTab(\'' + row.customerContactId + '\',2)">邮件</a>';
+        }
+        tdContext += '<a href="##" class="btnMoveToSeas" style="padding-left: 4px" onclick="transferCustomerToSeas(\'' + row.customerId + '\');">移至部门公海</a>';
+        //tdContext += '<a href="##" class="btnTracinglog" style="padding-left: 4px" onclick="opentModuleForm(\'' + row.customerContactId + '\',\'' + row.contactName + '\',\'' + tracingLog + '\',\'跟踪日志\')">跟踪日志</a>';
+        tdContext += '<a href="##" class="btnTracinglog" onclick="selectTab(\'' + row.customerContactId + '\',3)">跟踪日志</a>';
+
+        return tdContext;
+    }
+
+    function opentModuleForm(id, name, url, str) {
+        OpenTab(isCsc, (name == null ? "" : name + "的") + str, url , "customerContactId=" + id + "&isoperate=1");
+        //parent.window.mainpage.mainTabs.addModule((name == null ? "" : name + "的") + str, url + "?customerContactId=" + id + "&isoperate=1", null, true, true, false, true);
+    }
+
+    //移至部门公海
+    function transferCustomerToSeas(customerId) {
+        var transferUrl = "@Url.Action(ActionName.CustomerSea.TransferCutomerToSeas, ControllerName.CustomerSea)";
+        var customerIds = [];
+        customerIds.push(customerId);
+
+        if (customerIds.length > 0) {
+            $.messager.confirm('系统提示', '是否转移选择的客户至公海?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(transferUrl, { customerIds: customerIds }, function (result) {
+                        if (result.success) {
+                            $('#datagridPhoneList').datagrid('clearSelections');
+                            $('#datagridPhoneList').datagrid('reload');
+                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', result.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        } else {
+            $.messager.showErrorTopCenter('错误消息', "请选择要转移的客户", 1000);
+        }
+    }
+
+    //拨号
+    var currTelphone = '@ViewBag.CurrentUserTelphone';
+    var callCustomerUrl = '@Url.Action(ActionName.Notification.CallCustomer, ControllerName.Notification)';
+
+    function CallContact(type) {
+
+        var row = $('#datagridPhoneList').datagrid('getChecked');
+
+        if (row.length === 0) {
+            $.messager.showErrorTopCenter('错误消息', '请选择一个联系人！', 1000);
+            return;
+        }
+        if (type === 0 && currTelphone === '') {
+            $.messager.showErrorTopCenter('错误消息', '当前登录用户未设置座机及其分机号，请补充个人联系方式！。', 1000);
+            return;
+        }
+
+        $.messager.confirm('确认', '是否拨打电话' + row[0].contactPhoneNumber + '?', function (r) {
+            if (r) {
+                $.easyui.loading({ msg: '正在为您呼叫，请稍等...' });
+                $.ajax({
+                    type: "get",
+                    dataType: "json",
+                    url: callCustomerUrl,
+                    data: {
+                        "customerContactId": row[0].customerContactId,
+                        "contactName": row[0].contactName,
+                        "customerId": row[0].customerId,
+                        "customerName": row[0].customerName,
+                        "customerPhoneNumber": row[0].contactPhoneNumber,
+                        "phoneType": type
+                    },
+                    success: function (result) {
+                        if (result.success) {
+                            $.messager.showInfoTopCenter('系统提示', '拨打电话成功，请等待....', 500);
+                            if (result.message.length > 0)
+                                popCustomerForm(row[0], result.message);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', result.message, 2000);
+                        }
+                    },
+                    error: function () {
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+            }
+        });
+    }
+
+    var customerFormUrl = '@Url.Action(ActionName.Notification.PopCustomerForm, ControllerName.Notification)';
+    var saveCustomerUrl = '@Url.Action(ActionName.Notification.SavePopCustomerInfo, ControllerName.Notification)';
+    function popCustomerForm(row, referenceId) {
+        var result = false;
+        var dialog = $.easyui.showDialog({
+            title: "正在呼叫（" + row.contactName + "）",
+            width: 550,
+            height: 400,
+            modal: true,
+            topMost: false,
+            href: customerFormUrl + "?customerContactId=" + row.customerContactId,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onSave: function (d) {
+                var validate = d.form("enableValidation").form("validate");
+                var data = d.form("getData");
+                if (validate) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: saveCustomerUrl + "?referenceId=" + referenceId,
+                        data: AddAntiForgeryToken(data),
+                        success: function (data) {
+                            if (data.success) {
+                                result = true;
+                                d.window('close');
+                                if (data.result) {
+                                    $('#datagridPhoneList').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                    return false;
+                } else {
+                    return false;
+                }
+            },
+            onBeforeClose: function () {
+                if (!result) {
+                    $.messager.confirm("系统提示", "你确定要关闭窗口吗?",
+                        function (r) {
+                            if (r) {
+                                result = true;
+                                dialog.dialog("close", true);
+                            }
+                        });
+                }
+                return result;
+            }
+        });
+    }
+</script>
+<script>
+    //通话记录
+    $(function () {
+        //发送状态
+        $('#CallState').combobox(
+        {
+            editable: false,
+            onSelect: function () {
+                searchCallLogList();
+            }
+        });
+        //开始时间
+        $('#startTime').bind('keydown', function (e) {
+            if (e.keyCode === 13)
+                searchCallLogList();
+        });
+
+        //结束时间
+        $('#endTime').bind('keydown', function (e) {
+            if (e.keyCode === 13)
+                searchCallLogList();
+        });
+    });
+
+    var loadCallLogDataUrl = '@Url.Action(ActionName.Notification.GetCustomerTracingLogList, ControllerName.Notification)';
+    var type = '@((int) TracingType.CallNotify)';
+    function InitCallLogListGrid() {
+        var callLogListGrid = $('#datagridCallLogList').datagrid({
+            url: loadCallLogDataUrl + "?type=" + type,
+            method: 'get',
+            idField: 'processLogId',
+            singleSelect: true,
+            striped: true,
+            fitColumns: true,
+            rowNumbers: true,
+            pagination: true,
+            nowrap: false,
+            fit: true,
+            pageSize: 10,
+            pageList: [10, 20, 30, 50, 100],
+            showFooter: false,
+            checkOnSelect: true,
+            selectOnCheck: true,
+            columns: [
+                [
+                    { field: 'customerId', title: 'Id', width: 10, align: 'left', hidden: true },
+                    { field: 'contactName', title: '联系人姓名', width: 50, align: 'left' },
+                    { field: 'callerPhone', title: '主叫号码', width: 60, align: 'left' },
+                    { field: 'calleePhone', title: '被叫号码', width: 60, align: 'left' },
+                    { field: 'operateDate', title: '通话日期', width: 60, align: 'left', formatter: FormatterUtil.DateFormatter },
+                    { field: 'startTime', title: '开始时间', width: 90, align: 'left', formatter: FormatterUtil.DateTimeSecondFormatter },
+                    { field: 'endTime', title: '结束时间', width: 90, align: 'left', formatter: FormatterUtil.DateTimeSecondFormatter },
+                    { field: 'callTime', title: '通话时长', width: 50, align: 'left' },
+                    { field: 'callStateName', title: '通话状态', width: 50, align: 'left' },
+                    { field: 'remark', title: '通话备注', width: 100, align: 'left' },
+                    { field: 'z', title: '下载', width: 90, align: 'center', formatter: dowloadAudio },
+                    { field: 'p', title: '监听', width: 160, align: 'center', formatter: listenAudio }
+                ]
+            ],
+            toolbar: '#toolbarCallLogList',
+            onLoadSuccess: function (data) {
+                $(".btnLogs").linkbutton({ plain: true, iconCls: 'icon-standard-user-suit' });
+                $('#datagridCallLogList').datagrid('unselectAll');
+            }
+        });
+        $('#txtSearchbox1').searchbox({
+            menu: '#divSearchMenu1',
+            prompt: '请输入查询值',
+            searcher: searchCallLogList
+        });
+    }
+
+    function searchCallLogList(value, name) {
+        var callState = $("#CallState").combobox("getValue");
+        var start = $("#startTime").val();
+        var end = $("#endTime").val();
+        $('#datagridCallLogList').datagrid('load', {
+            "searchKey": name,
+            "searchValue": value,
+            "startTime": start,
+            "endTime": end,
+            "callState": callState
+        });
+    }
+
+    var CustomerTracingLogListUrl = '@Url.Action(ActionName.Download, ControllerName.Report)';
+    function dowloadAudio(value, row, index) {
+        if (row.recordURL) {
+            var blobId = getQueryString(row.recordURL, "id");
+            var tdContext = '<a target="_blank" class="btnLogs" href="' + CustomerTracingLogListUrl + '?blobId=' + blobId + '">下载音频</a>';
+            return tdContext;
+        }
+        return "";
+    }
+
+    function listenAudio(value, row, index) {
+        if (row.recordURL) {
+            var tdContext = '<audio src="' + row.recordURL + '"  controls="controls">您的浏览器不支持音频播放</audio>';
+            return tdContext;
+        }
+        return "";
+    }
+</script>
+

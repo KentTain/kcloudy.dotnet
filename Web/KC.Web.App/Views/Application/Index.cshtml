@@ -1,0 +1,231 @@
+﻿@using KC.Web.App.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "应用管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--应用管理-添加应用-->
+    var canEdit = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "9C65146A-A0BE-4E15-A6C7-C3FDCF897121")).Succeeded)
+    {
+        canEdit = true;
+    }
+    <!--应用管理-删除应用-->
+    var canDelete = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "0E86F5D6-F93B-47FD-BBC1-39CBBAF17178")).Succeeded)
+    {
+        canDelete = true;
+    }
+    <!--应用管理-应用设置-->
+    var canSetting = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "C8EEF01F-8EE6-4BDB-8750-3D87BB66BDC7")).Succeeded)
+    {
+        canSetting = true;
+    }
+
+}
+
+<div id="toolbar">
+    <div>
+        <!--应用管理-添加应用-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "9C65146A-A0BE-4E15-A6C7-C3FDCF897121")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="openForm(0)">添加</a>
+        }
+    </div>
+
+    <div>
+        <input id="txtName" class="easyui-textbox" data-options="prompt:'请输入应用程序名称'">
+        <a href="#" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="#" onclick="refreshSearch()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript">
+        const canEdit = @Json.Serialize(canEdit);
+        const canDelete = @Json.Serialize(canDelete);
+        const canSetting = @Json.Serialize(canSetting);
+        let $dataGrid = $('#datagrid');
+        $(function () {
+            InitDataGrid();
+        });
+
+        const loadDataUrl = '@Url.Action(ActionName.Application.LoadApplicationList, ControllerName.Application)';
+        function InitDataGrid() {
+            $dataGrid.datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'applicationId',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [
+                [
+                    {
+                        field: 'iconCls', title: '图标', width: 26, align: 'center', formatter: function (value, row, index) {
+                            var tdContext = '<i class="' + value + '" aria-hidden="true"></i>';
+
+                            return tdContext;
+                        }
+                    },
+                    { field: 'applicationCode', title: '应用编码', width: 80, align: 'left' },
+                    { field: 'applicationName', title: '应用名称', width: 100, align: 'left' },
+                    { field: 'domainName', title: '域名', width: 140, align: 'left' },
+                    { field: 'assemblyName', title: '设置涉及程序集', width: 160, align: 'left' },
+                    { field: 'isEnabledWorkFlow', title: '是否启用工作流', width: 70, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    {
+                        field: 'operator', title: '操作', width: 160, align: 'center', formatter: function (value, row, index) {
+                            var tdContext = '';
+                            if (canEdit)
+                                tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openForm(\'' + row.applicationId + '\')">编辑</a>';
+                            if (canDelete)
+                                tdContext += '<a href="##" class="btnDelete" style="cursor:pointer" onclick="removeApplication(\'' + row.applicationId + '\')">删除</a>';
+                            if (canSetting)
+                                tdContext += '<a href="##" class="btnSetting" style="cursor:pointer" onclick="openSettingForm(\'' + row.applicationId + '\')">设置</a>';
+
+                            //if (row.isEnabledWorkFlow) {
+                            //    tdContext += '<a href="##" class="btnClose" onclick="enabledWorkFlow(\'' + row.applicationId + '\',\'' + row.applicationName + '\',false)">关闭工作流</a>';
+                            //} else {
+                            //    tdContext += '<a href="##" class="btnSubmit" onclick="enabledWorkFlow(\'' + row.applicationId + '\',\'' + row.applicationName + '\',true)">启用工作流</a>';
+                            //}
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                    /*var bId = $("#txtBId").val();
+                    var AllSearchKey = $("#txtAllSearchKey").val();
+                    param.bId = bId;
+                    param.AllSearchKey = AllSearchKey;*/
+                },
+                onLoadSuccess: function (data) {
+                    $(".btnSetting").linkbutton({ iconCls: 'fa fa-cog' });    //搜索
+                    CommonUtil.buttonStyle();
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+
+        let refreshSearch = function () {
+            $("#txtName").textbox('setValue', '');
+            reloadDatagrid();
+        }
+        let reloadDatagrid = function () {
+            $("#datagrid").datagrid("load", {
+                name: $("#txtName").textbox("getValue"),
+            });
+        }
+
+        const getFormUrl = '@Url.Action(ActionName.Application.GetApplicationForm, ControllerName.Application)';
+        const saveFormUrl = '@Url.Action(ActionName.Application.SaveApplication, ControllerName.Application)';
+        let openForm = function (id) {
+            var dialog = $.easyui.showDialog({
+                title: "保存数据",
+                width: 540,
+                height: 480,
+                href: getFormUrl + "?id=" + id,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data:AddAntiForgeryToken(d.form("getData")),
+                            success: function (data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#datagrid').datagrid('clearSelections');
+                                        $('#datagrid').datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message);
+                                }
+                            },
+                            complete: function () {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function () {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        const removeUrl = '@Url.Action(ActionName.Application.RemoveApplication, ControllerName.Application)';
+        let removeApplication = function (id) {
+            if (id) {
+                $.messager.confirm('系统提示', '是否确定删除该条记录?', function (r) {
+                    if (r) {
+                        $.post(removeUrl, { id: id }, function (result) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload'); // reload the user data
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                                }
+                            } else {
+                                $.data.showErrorTopCenter('错误消息', data.message);
+                            }
+                        }, 'json');
+                    }
+                });
+            }
+
+        }
+
+        const getSettingFormUrl = '@Url.Action(ActionName.Application.AppSettingForm, ControllerName.Application)';
+        let openSettingForm = function (id) {
+            let queryString = "appId=" + id;
+            MainPage_PostMessage("openSubPage", getSettingFormUrl, queryString);
+        };
+
+        var enabledWorkFlowUrl = '@Url.Action(ActionName.Application.enableWorkFlow, ControllerName.Application)';
+        let enabledWorkFlow = function (id, title, type) {
+            $.messager.confirm("系统提示", "" + title + "是否执行此操作！",
+              function (r) {
+                  if (r) {
+                      $.post(enabledWorkFlowUrl, { id: id, type: type }, function (d) {
+                          if (d.Result) {
+                              $.messager.showInfoTopCenter('系统提示', '执行成功。', 1000);
+                              $dataGrid.datagrid('reload');
+                          } else {
+                              $.messager.showErrorTopCenter('错误消息', '失败。' + d.message, 1000);
+                          }
+                      });
+                  }
+              });
+        }
+    </script>
+}

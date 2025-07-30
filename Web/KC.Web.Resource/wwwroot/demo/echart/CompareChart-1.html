@@ -1,0 +1,245 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="../../lib/jquery/dist/jquery.js"></script>
+    <script src="../../lib/echarts/echarts.js"></script>
+    <!--项目任务图表-->
+    <script>
+        $(function () {
+            InitChart();
+        });
+
+        var legendData = [{
+            name: "项目进行个数",
+            unit: "个"
+
+        }, {
+            name: "项目关闭个数",
+            unit: "个"
+        }, {
+            name: "项目结案个数",
+            unit: "个"
+        }]
+        var xData = ["2020-08-07", "2020-08-08", "2020-08-09", "2020-08-10", "2020-08-11", "2020-08-12", "2020-08-13", "2020-08-14", "2020-08-15"];
+        var yData = [
+            [400, 400, 300, 300, 300, 400, 400, 400, 350],
+            [400, 500, 500, 500, 500, 400, 400, 500, 500],
+            [400, 600, 700, 700, 1000, 400, 400, 600, 700]
+        ];
+        function InitChart() {
+            let option = {
+                backgroundColor: '#FFFFFF',
+                grid: {
+                    left: '10%',
+                    top: '8%',
+                    right: '5%',
+                    bottom: '19%',
+                },
+                legend: {
+                    show: true,
+                    //icon: 'circle',
+                    //orient: 'horizontal',
+                    top: '0.5%',
+                    right: '8%',
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'none',
+                    padding: 5,
+                    formatter: function (param) {
+                        //console.log(param);
+                        var resultTooltip = "<div style='background:#F2F5FB;border:1px solid rgba(255,255,255,.2);padding:5px;border-radius:3px;'>" +
+                            "<div style='text-align:center;'>" + param[0].name + "</div>" +
+                            "<div style='padding-top:5px;'>";
+                        for (var i = 0; i < param.length; i++) {
+                            resultTooltip +=
+                                "<span style='display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:" + param[i].color.colorStops[0].color + ";'></span>" +
+                                "<span style=''> " + param[i].seriesName + ": </span>" +
+                                "<span style='color:" + param[i].color + "'>" + param[i].value + "</span></span><span>" + legendData[i].unit + "</span></br>"
+
+                        }
+                        resultTooltip += "</div>";
+
+                        return resultTooltip
+                    }
+                },
+                dataZoom: [{
+                    type: 'slider',
+                    filterMode: 'weakFilter',
+                    showDataShadow: false,
+                    //top: 400,
+                    height: 15,
+                    handleIcon: 'path://M306.1,413c0,2.2-1.8,4-4,4h-59.8c-2.2,0-4-1.8-4-4V200.8c0-2.2,1.8-4,4-4h59.8c2.2,0,4,1.8,4,4V413z',
+                    handleSize: 20,
+                    labelFormatter: '',
+                    handleStyle: {
+                        color: "#fff",
+                        shadowColor: "#B1B5B9",
+                        shadowBlur: 5,
+                    },
+                    backgroundColor: "#DEE3F4",
+                    fillerColor: "#18D383",
+                }, {
+                    type: 'inside',
+                    filterMode: 'weakFilter'
+                }],
+                xAxis: [{
+                    type: 'category',
+                    color: '#272456',
+                    data: xData,
+                    axisLabel: {
+                        show: true,
+                        color: '#272456',
+                        textStyle: {
+                            color: "#272456",
+                            fontSize: 14,
+                            fontWeight: 200
+                        },
+                        formatter: function (value) {
+                            var str = "";
+                            str += value.substring(0, 4) + "\n";
+                            str += value.substring(5, 10);
+                            return str;
+                        }
+                    },
+                    axisLine: {
+                        show: false //不显示x轴
+                    },
+                    axisTick: {
+                        show: false //不显示刻度
+                    },
+                    // boundaryGap: false,
+                    splitLine: {
+                        show: true,
+                        width: 0.08,
+                        lineStyle: {
+                            type: "solid",
+                            color: "#03202E"
+                        }
+                    },
+                    axisPointer: { //轴指示器
+                        type: 'shadow',
+                        z: 1,
+                        shadowStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: 'rgba(18,155,249,0)' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: 'rgba(18,155,249,1)' // 100% 处的颜色
+                                }],
+                                global: false // 缺省为 false
+                            },
+                            shadowColor: 'rgba(0, 0, 0, 0.2)',
+                            shadowBlur: 5
+                        }
+                    },
+
+                }],
+                yAxis: [{
+                    type: 'value',
+                    // scale: true, //坐标轴起点不限制0
+                    axisLabel: {
+                        show: true,
+                        textStyle: {
+                            color: "#272456",
+                            fontSize: 14,
+                            fontWeight: 200
+                        }
+                    },
+                    splitLine: {
+                        show: false,
+
+                    },
+                    axisTick: {
+                        show: false, //不显示刻度
+                    },
+                    axisLine: {
+                        show: false,
+                    },
+                    //nameTextStyle: {
+                    //    color: "#FFFFFF"
+                    //},
+                    splitArea: {
+                        show: false
+                    }
+                }],
+
+                series: [
+                    {
+                        name: legendData[0].name,
+                        type: 'bar',
+                        barWidth: '15%',
+                        itemStyle: {
+                            normal: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                    offset: 0,
+                                    color: '#A35AE0'
+                                }, {
+                                    offset: 1,
+                                    color: '#6830E7'
+                                }]),
+                                barBorderRadius: 2,
+                            }
+                        },
+                        data: yData[0]
+                    },
+                    {
+                        name: legendData[1].name,
+                        type: 'bar',
+                        barWidth: '15%',
+                        itemStyle: {
+                            normal: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                    offset: 0,
+                                    color: '#66FF66'
+                                }, {
+                                    offset: 1,
+                                    color: '#00CA98'
+                                }]),
+                                barBorderRadius: 2,
+                            }
+
+                        },
+                        data: yData[1]
+                    }, {
+                        name: legendData[2].name,
+                        type: 'bar',
+                        barWidth: '15%',
+                        itemStyle: {
+                            normal: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                    offset: 0,
+                                    color: '#0CEBEA'
+                                }, {
+                                    offset: 1,
+                                    color: '#368BFF'
+                                }]),
+                                barBorderRadius: 2,
+                            },
+                        },
+                        data: yData[2]
+                    }
+                ]
+            };
+
+            echarts.init(document.getElementById('divChart')).setOption(option);
+        }
+
+        
+    </script>
+</head>
+<body>
+    <div id="divChart" style="width:100%;height:700px;">
+
+    </div>
+</body>
+</html>

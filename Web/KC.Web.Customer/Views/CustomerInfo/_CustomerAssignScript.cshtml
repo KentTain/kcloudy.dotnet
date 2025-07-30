@@ -1,0 +1,300 @@
+﻿@using KC.Enums.CRM
+@using KC.Web.Customer.Constants
+@using KC.Framework.Tenant
+
+@model int
+@{
+    var model = (CompanyType)Model;
+}
+
+<script type="text/javascript">
+
+    var roleId = '@RoleConstants.SaleRoleId';
+    var roleId2 = '@RoleConstants.PurchaseManagerRoleId';
+    var selectUserUrl = '@Url.Action(ActionName.GetRootOrganizationsWithUsers, ControllerName.Home)';
+
+    //自动分配客服
+    var shareManagerUrl = '@Url.Action(ActionName.CustomerInfo.ShareCustomerWithManager, ControllerName.CustomerInfo)';
+    function shareManager_@(model)() {
+        var roleIds = [];
+        roleIds.push(roleId);
+        roleIds.push(roleId2);
+        organization.InitializeData(
+            selectUserUrl,
+            roleIds,
+            false,
+            function (selectedUsers) {
+                if (selectedUsers.length == 0) return;
+                var arr = [];
+                for (var i = 0; i < selectedUsers.length; i++) {
+                    arr[i] = selectedUsers[i].UserId;
+                }
+                $.messager.confirm('确认', '是否自动分配客户给所选中的客服?',
+                    function (r) {
+                        if (r) {
+                            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                            $.post(
+                                shareManagerUrl,
+                                { selectedUsers: arr },
+                                function (data) {
+                                    $.easyui.loaded();
+                                    organization.HideDialog();
+                                    if (data.success) {
+                                        if (data.result) {
+                                            $('#datagrid_@(model)').datagrid('unselectAll');
+                                            $('#datagrid_@(model)').datagrid('uncheckAll');
+                                            $('#datagrid_@(model)').datagrid('reload');
+                                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                        } else {
+                                            $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                        }
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                    }
+
+                                }, 'json');
+                        }
+                    });
+            });
+    };
+
+    //重新分配客服
+    var reassignToClientService = '@Url.Action(ActionName.CustomerInfo.ReassignCustomerToManager, ControllerName.CustomerInfo)';
+    function selectUserForm_@(model)(o) {
+        this.ids = new Array();
+        var rows = $('#datagrid_@(model)').datagrid('getChecked');
+        for (var i = 0; i < rows.length; i++) {
+            ids.push(rows[i].CustomerId);
+        }
+        if (ids.length <= 0) {
+            $.messager.showErrorTopCenter('错误消息', '请选择客户后再进行分配！', 1000);
+            return;
+        }
+
+        var roleIds = [];
+        roleIds.push(roleId);
+        roleIds.push(roleId2);
+        organization.InitializeData(
+            selectUserUrl,
+            roleIds,
+            false,
+            function (selectedUsers) {
+                if (selectedUsers.length == 0) return;
+
+                var arr = [];
+                for (var i = 0; i < selectedUsers.length; i++) {
+                    arr[i] = selectedUsers[i].UserId;
+                }
+                $.messager.confirm('确认', '是否重新分配客户给所选客服?',
+                    function (r) {
+                        if (r) {
+                            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                            $.post(
+                                reassignToClientService,
+                                { selectedUserIds: arr, customerIds: ids },
+                                function (data) {
+                                    $.easyui.loaded();
+                                    organization.HideDialog();
+                                    if (data.success) {
+                                        if (data.result) {
+                                            $('#datagrid_@(model)').datagrid('unselectAll');
+                                            $('#datagrid_@(model)').datagrid('uncheckAll');
+                                            $('#datagrid_@(model)').datagrid('reload');
+                                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                        } else {
+                                            $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                        }
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                    }
+
+                                }, 'json');
+                        }
+                    });
+            });
+    }
+
+        //转移客户
+    var transforManagerUrl = '@Url.Action(ActionName.CustomerInfo.TransferCustomerToOtherManager,ControllerName.CustomerInfo)';
+    function transforUserForm_@(model)(o) {
+            var ids = new Array();
+            var rows = $('#datagrid_@(model)').datagrid('getChecked');
+            for (var i = 0; i < rows.length; i++) {
+                ids.push(rows[i].CustomerId);
+            }
+            if (ids.length <= 0) {
+                $.messager.showErrorTopCenter('错误消息', '请选择客户后再进行转移！', 1000);
+                return;
+            }
+
+            var roleIds = [];
+            roleIds.push(roleId);
+            roleIds.push(roleId2);
+        organization.InitializeData(
+            selectUserUrl,
+            roleIds,
+            true,
+            function (selectedUsers) {
+                if (selectedUsers.length == 0) return;
+
+                $.messager.confirm('确认', '是否转移选中的客户?',
+                    function (r) {
+                        if (r) {
+                            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                            $.post(
+                                transforManagerUrl,
+                                { selectdUserId: selectedUsers[0].UserId, customerIds: ids },
+                                function (data) {
+                                    $.easyui.loaded();
+                                    organization.HideDialog();
+                                    if (data.success) {
+                                        if (data.result) {
+                                            $('#datagrid_@(model)').datagrid('unselectAll');
+                                            $('#datagrid_@(model)').datagrid('uncheckAll');
+                                            $('#datagrid_@(model)').datagrid('reload');
+                                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                        } else {
+                                            $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                        }
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                    }
+                                }, 'json');
+                        }
+                    });
+            });
+        }
+
+        //推送客户
+    var getTenantSendingFormUrl = '@Url.Action(ActionName.CustomerInfo.GetTenantSendingForm, ControllerName.CustomerInfo)';
+    var sendingUrl = '@Url.Action(ActionName.CustomerInfo.SendUserToTenant, ControllerName.CustomerInfo)';
+
+    function sendUserToTenantForm_@(model)() {
+        var ids = new Array();
+        var rows = $('#datagrid_@(model)').datagrid('getSelections');
+        for (var i = 0; i < rows.length; i++) {
+            ids.push(rows[i].CustomerId);
+        }
+        if (ids.length <= 0) {
+            $.messager.showErrorTopCenter('错误消息', '请选择客户后再进行推送！', 1000);
+            return;
+        }
+
+        var result = false;
+        var dialog = $.easyui.showDialog({
+            title: '推送用户给相关企业',
+            width: 650, //400,
+            height: 500, //220,
+            modal: true,
+            topMost: false,
+            href: getTenantSendingFormUrl,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onLoad: function () {
+                InitialDataGridF(ids);
+            },
+            onBeforeClose: function () {
+                if (!result) {
+                    $.messager.confirm("系统提示", "你确定要关闭窗口吗?",
+                        function (r) {
+                            if (r) {
+                                result = true;
+                                dialog.dialog("close", true);
+                            }
+                        });
+                }
+                return result;
+            },
+            onClose: function () {
+            },
+            onSave: function (d) {
+                result = true;
+                var tenantIds = new Array();
+                var rowTenants = $('#datagridF').datagrid('getSelections');
+                for (var j = 0; j < rowTenants.length; j++) {
+                    tenantIds.push(rowTenants[j].TenantName);
+                }
+                if (tenantIds.length <= 0) {
+                    $.messager.showErrorTopCenter('错误消息', '请选择企业后再进行分配！', 1000);
+                    return;
+                }
+
+                $.easyui.loading({ msg: '正在发送，请稍等...' });
+                $.ajax({
+                    async: true,
+                    type: "get",
+                    dataType: "json",
+                    url: sendingUrl + "?idList=" + ids + "&tenantNames=" + tenantIds,
+                    success: function (data) {
+                        //d.window('close');
+                        $.easyui.loaded();
+                        if (data.success) {
+                            if (data.result) {
+                                $.messager.showInfoTopCenter('系统提示', '推送用户成功！');
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '推送用户失败！');
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', '推送用户失败！');
+                        }
+
+                        $('#datagrid_@(model)').datagrid('unselectAll');
+                        $('#datagrid_@(model)').datagrid('uncheckAll');
+                        $('#datagrid_@(model)').datagrid('reload');
+
+                        $('#datagridF').datagrid('clearSelections');
+                        $('#datagridF').datagrid('reload');
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+            }
+        });
+        }
+
+        var loadSelectedListUrl = '@Url.Action(ActionName.CustomerInfo.LoadTenantUserList, ControllerName.CustomerInfo)';
+
+        function InitialDataGridF(idList) {
+            var $dataGrid = $('#datagridF').datagrid({
+                title: '已选推送企业列表（已选中' + idList.length + '人）',
+                url: loadSelectedListUrl,
+                method: 'get',
+                width: 600,
+                height: 400,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                idField: 'TenantId',
+                toolbar: '#toolbarF',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                columns: [
+                    [
+                        { field: 'TenantId', title: '客户Id', width: 50, align: 'left' },
+                        { field: 'TenantName', title: '客户实例名', width: 100, align: 'left' },
+                        { field: 'TenantDisplayName', title: '客户名', width: 100, align: 'left' }
+                    ]
+                ],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $('#datagridF').datagrid('clearSelections');
+                },
+                onLoadError: function () {
+                }
+            });
+            $('#txtSearchboxF').searchbox({
+                menu: '#divSearchMenuF',
+                prompt: '请输入查询值',
+                searcher: searchDataF
+            });
+        }
+        function searchDataF(value, name) {
+            $('#datagridF').datagrid('load', { "searchKey": name, "searchValue": value });
+        }
+</script>

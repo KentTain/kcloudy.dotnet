@@ -1,0 +1,97 @@
+﻿<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="Keywords" content="鑫亚（深圳）企业管理咨询有限公司,鑫亚科技科,众筑云,数字化转型,企业管理系统,企业管理信息化,企业管理互联网应用,管理数字化云平台" />
+    <meta name="description" content="鑫亚（深圳）企业管理咨询有限公司是通过将产业线上化便捷流程办公系统研发、云计算、大数据、物联网、移动互联网等新技术与EPC模式建筑行业业务深度融合，开展“互联网+”建设，搭建的建筑产业云平台。该平台依托其中字头工程局、大型地产公司等战略合作伙伴庞大稳定的设计、采购、施工、培训、金融等需求、优质可靠的供应商资源和高效便捷的金融支持，致力于开创建筑行业线上管理，运营一体化的综合产业云平台。" />
+    <meta name="author" content="tianchangjun@outlook.com" />
+    <title>EPC平台：@ViewBag.Title</title>
+    <link href="~/lib/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <style>
+        
+.nav-content{position:fixed;width:100%;height:126px;left:0;top:0;background:rgba(230,230,230,.8);box-shadow:0 0 0 0 rgba(0,0,0,.05);z-index:999;overflow:hidden;transition:.3s}
+.nav-content.scroll{background:#fff;box-shadow:0 3px 3px 0 rgba(0,0,0,.05);transition:.3s}
+
+.main-content{margin-top:126px;}
+.main-content .header .title{display: flex;vertical-align:middle;align-items: center;text-align:left;padding-left:30px;}
+.main-content .header .title p span:first-child{font-size:22px;color:#00aae5; }
+
+
+    </style>
+    @*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*@
+
+    @RenderSection("styles", required: false)
+</head>
+<body style="margin:0px;">
+    <partial name="_CookieConsentPartial" />
+
+    <!-- nav部分 -->
+    <div class="nav-content">
+        <!-- header部分 -->
+        @await Html.PartialAsync("_HeaderPartial.cshtml")
+    </div>
+
+    <!-- main部分 -->
+    <div class="main-content">
+        @RenderBody()
+    </div>
+    <div style="clear: both;"></div>
+
+    <!-- footer部分 -->
+    <footer class="footer-content">
+        @await Html.PartialAsync("_FooterPartial.cshtml")
+    </footer>
+
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/layui/layui.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/dialog.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.common.js"></script>
+    <script>
+
+        layui.config({
+            base: "/js/"
+        });
+
+        layui.use('layer', function () {
+            var $ = layui.jquery, layer = layui.layer; //独立版的layer无需执行这一句
+
+            HeaderContact();
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+    <script>
+        $(function () {
+            //function footerPosition() {
+            //    $("footer").removeClass("fixed-bottom");
+            //    var contentHeight = document.body.scrollHeight, winHeight = window.innerHeight;
+            //    if (!(contentHeight > winHeight)) {
+            //        $("footer").addClass("fixed-bottom");
+            //    } else {
+            //        $("footer").removeClass("fixed-bottom");
+            //    }
+            //}
+            //footerPosition();
+            //$(window).resize(footerPosition);
+
+            $('#qcode').click(function () {
+                layer.open({
+                    type: 1,
+                    title: false,
+                    closeBtn: 0,
+                    shade: 0.1,
+                    area: [260, 264],
+                    skin: 'layui-layer-nobg', //没有背景色
+                    shadeClose: true,
+                    content: $('#t'),
+                    offset: 'auto',
+                });
+            })
+
+        });
+    </script>
+</body>
+</html>

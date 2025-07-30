@@ -1,0 +1,40 @@
+﻿<!-- footer部分 -->
+<div class="layui-container" style="height:60px;">
+    <div class="layui-row footer-web">
+        <div class="layui-col-xs3 layui-col-sm3 layui-col-md3 layui-col-lg3">
+            <dl>
+                <dd class="text-center"><a href="#">操作流程</a></dd>
+                <dd><a href="/Home/CompanyInfo?selectType=4">法律声明</a></dd>
+            </dl>
+        </div>
+        <div class="layui-col-xs3 layui-col-sm3 layui-col-md3 layui-col-lg3">
+            <dl>
+                <dd><a href="/Home/CompanyInfo?selectType=0">公司介绍</a></dd>
+                <dd><a href="/Home/CompanyInfo?selectType=1">联系我们</a></dd>
+            </dl>
+
+        </div>
+        <div class="layui-col-xs3 layui-col-sm3 layui-col-md3 layui-col-lg3">
+            <dl>
+                <dd><a href="/Home/CompanyInfo?selectType=2">企业地址</a></dd>
+                <dd><a href="/Home/CompanyInfo?selectType=3">企业账号</a></dd>
+            </dl>
+        </div>
+        <div class="layui-col-xs3 layui-col-sm3 layui-col-md3 layui-col-lg3">
+            <p style="text-align:center">
+                <a href="javascript:void(0)"><img src="@(ViewBag.WebSiteInfo==null?"/images/image_no.jpg":ViewBag.WebSiteInfo.LogoImageBlob?.ShowImageUrl)" style="width: 50px; transform: scale(1.25,1.25);" /></a>
+            </p>
+        </div>
+
+    </div>
+</div>
+<div class="layui-row footer-address">
+    <div class="layui-col-sm12">
+        <a href="https://beian.miit.gov.cn/" target="_blank">
+            <span>©&nbsp;2020&nbsp; 鑫亚（深圳）企业管理咨询有限公司</span>
+            <span>&nbsp;版权所有&nbsp;|&nbsp;&nbsp;</span>
+            <span>粤ICP备2021043258号</span>
+        </a>
+    </div>
+</div>
+

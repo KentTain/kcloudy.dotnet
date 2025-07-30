@@ -1,0 +1,26 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://cTest.localhost:8001",
+      "sslPort": 8011
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev"
+      }
+    },
+    "KC.Web.Pay": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev"
+      },
+      "applicationUrl": "http://cTest.localhost:8001;https://cTest.localhost:8011"
+    }
+  }
+}

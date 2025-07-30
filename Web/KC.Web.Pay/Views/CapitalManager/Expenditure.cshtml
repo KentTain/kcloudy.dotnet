@@ -1,0 +1,128 @@
+﻿@using KC.Web.Pay.Constants
+@{
+    ViewBag.Title = "资金管理-支出管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+<style type="text/css">
+</style>
+<div class="easyui-tabs" data-options="fit:true,plain:true, border: true">
+    <div title="现金支出流水" data-options="refreshable: false">
+        <div id="toolbar" style="padding:5px;height:auto">
+            <div>
+                <label>时间范围：</label>
+                <input class="easyui-datetimebox" name="startDate" style="width:180px;height:26px">
+                <label>-</label>
+                <input class="easyui-datetimebox" name="endDate" style="width:180px;height:26px">
+                <a href="javascript:void(0)" class="textbox-icon searchbox-button" icon-index="0" tabindex="-1" style="width: 18px; height: 24px;" onclick="searchData()"></a>
+                <label style="margin-left: 10px;">总计金额(元)：</label><label id="countMoney" style="color: #ff0000">0</label>
+            </div>
+        </div>
+        <table id="datagrid" title="现金支出流水" data-options=" iconCls: 'icon-standard-text-list-bullets'"></table>
+    </div>
+    <div title="信用额度收入流水" data-options="refreshable: false">
+        <div id="toolbarCreditExpenditure" style="padding:5px;height:auto">
+            <div>
+                <label>时间范围：</label>
+                <input class="easyui-datetimebox" name="startDateCreditExpenditure" style="width:180px;height:26px">
+                <label>-</label>
+                <input class="easyui-datetimebox" name="endDateCreditExpenditure" style="width:180px;height:26px">
+                <a href="javascript:void(0)" class="textbox-icon searchbox-button" icon-index="0" tabindex="-1" style="width: 18px; height: 24px;" onclick="searchCreditExpenditureData()"></a>
+                <label style="margin-left: 10px;">总计金额(元)：</label><label id="countMoneyCreditExpenditure" style="color: #ff0000">0</label>
+            </div>
+        </div>
+        <table id="datagridCreditExpenditure" title="信用额度支出流水" data-options=" iconCls: 'icon-standard-text-list-bullets'"></table>
+    </div>
+</div>
+
+@section scripts
+    {
+
+    <script type="text/javascript">
+        $(function () {
+            InitCashDataGrid();
+            InitCreditExpenditureDataGrid();
+        });
+        ///现金支出流水
+        var loadDataUrl = '@Url.Action(ActionName.CapitalManager.GetCashExpenditureData, ControllerName.CapitalManager)';
+        function InitCashDataGrid() {
+            $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'Id',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                showFooter: false,
+                columns: [[
+                        { field: 'ReferenceId', title: '订单号', width: '19%', align: 'center' },
+                        { field: 'ConsumptionMoneyStr', title: '金额（元）', width: '19%', align: 'center' },
+                        { field: 'ConsumptionDate', title: '支付时间', width: '17%', align: 'center',formatter:Common.DateTimeSecondFormatter },
+                        { field: 'PayeeCustomerDisplayName', title: '收款方', width: '19%', align: 'center' },
+                        { field: 'OfferingName', title: '产品', width: '19%', align: 'center' }
+                ]
+                ],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $("#countMoney").html(data.countMoney);
+                },
+                onLoadError: function () {
+                },
+                toolbar: '#toolbar'
+            }
+            );
+        }
+
+        function searchData() {
+            $('#datagrid').datagrid('load', {
+                "startDate": $("[name='startDate']").val(),
+                "endDate": $("[name='endDate']").val()
+        });
+        }
+        ///信用额度支出流水
+        var loadCreditExpenditureDataUrl = '@Url.Action(ActionName.CapitalManager.GetCreditExpenditureData, ControllerName.CapitalManager)';
+        function InitCreditExpenditureDataGrid() {
+            $('#datagridCreditExpenditure').datagrid({
+                url: loadCreditExpenditureDataUrl,
+                method: 'get',
+                idField: 'Id',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                showFooter: false,
+                columns: [[
+                        { field: 'OrderId', title: '订单号', width: '19%', align: 'center' },
+                        { field: 'ConsumptionMoneyStr', title: '金额（元）', width: '19%', align: 'center' },
+                        { field: 'ConsumptionDate', title: '支付时间', width: '17%', align: 'center', formatter: FormatterUtil.DateTimeSecondFormatter },
+                        { field: 'PayeeCustomerDisplayName', title: '收款方', width: '19%', align: 'center' },
+                        { field: 'OfferingName', title: '产品', width: '19%', align: 'center' }
+                ]
+                ],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $("#countMoneyCreditExpenditure").html(data.countMoney);
+                },
+                onLoadError: function () {
+                },
+                toolbar: '#toolbarCreditExpenditure'
+            }
+            );
+        }
+
+        function searchCreditExpenditureData() {
+            $('#datagridCreditExpenditure').datagrid('load', {
+                "startDate": $("[name='startDateCreditExpenditure']").val(),
+                "endDate": $("[name='endDateCreditExpenditure']").val()
+            });
+        }
+    </script>
+}

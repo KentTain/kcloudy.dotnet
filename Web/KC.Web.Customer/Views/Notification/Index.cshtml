@@ -1,0 +1,162 @@
+﻿@using KC.Enums.CRM
+@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@using KC.Web.Util
+
+@{
+    ViewBag.Title = "营销";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+<div id="yingxiao_tab" class="easyui-tabs" data-options="fit:true,plain:true" style="padding: 1px;">
+    <div id="tab_email" title="邮    件" data-options="refreshable:false" style="padding: 5px; height: auto"></div>
+    <div id="tab_sms" title="短    信" data-options="refreshable:false" style="padding: 5px; height: auto"></div>
+    <div id="tab_call" title="话     务" data-options="refreshable:false" style="padding: 5px; height: auto;"> </div>
+    <div id="tab_tracinglog" title="跟踪信息" data-options="refreshable:false" style="padding: 5px; height: auto">
+    </div>
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.config.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.all.min.js"></script>
+    <script>
+        $(function() {
+            loadEmailView(0);
+            initSelectTab();
+        });
+
+        function initSelectTab() {
+            $('#yingxiao_tab').tabs({
+                onSelect: function (title, index) {
+                    if (index === 0) {
+                        loadEmailView(0);
+                    }
+                    if (index === 1) {
+                        loadSmsView(0);
+                    }
+                    if (index === 2) {
+                        loadCallView();
+                    }
+                    if (index === 3) {
+                        loadTracingLogView(0);
+                    }
+                }
+            });
+        }
+
+        var selectedCustomerContactId = 0;
+        function selectTab(selectedCustomerContactId, selectedIndex) {
+            $('#yingxiao_tab').tabs({
+                onSelect: function(title, index) {
+                    if (index === 0) {
+                        loadEmailView(selectedCustomerContactId);
+                    }
+                    if (index === 1) {
+                        loadSmsView(selectedCustomerContactId);
+                    }
+                    if (index === 2) {
+                        loadCallView();
+                    }
+                    if (index === 3) {
+                        loadTracingLogView(selectedCustomerContactId);
+                    }
+                }
+            });
+            $('#yingxiao_tab').tabs('select', selectedIndex);
+            setTimeout(initSelectTab(), 1000);
+        }
+
+        var emailUrl = "@Url.Action("EmailAsync", "Notification")";
+        function loadEmailView(id) {
+            $.easyui.loading({ msg: '正在处理，请稍候。。。' });
+            $.ajax({
+                url: emailUrl,
+                dataType: "html",
+                data: { customerContactId: id },
+                success: function (data) {
+                    $.easyui.loaded();
+                    if (data) {
+                            emptydata();
+                            $('#tab_email').append(data);
+                            //初始化ueditor
+                            UE.delEditor('Contents');
+                            ueditorContent = UE.getEditor('Contents', {
+                                serverUrl: '/Notification/Upload',
+                                initialFrameWidth: '100%'
+                            });
+                            initCustomerContact();
+                        }
+                },
+                error: function () {
+                    $.easyui.loaded();
+                }
+            });
+        }
+
+        var smsUrl = "@Url.Action("SmsAsync", "Notification")";
+        function loadSmsView(id) {
+            $.easyui.loading({ msg: '正在处理，请稍候。。。' });
+            $.ajax({
+                url: smsUrl,
+                dataType: "html",
+                data: { customerContactId: id },
+                success: function (data) {
+                    $.easyui.loaded();
+                    if (data) {
+                            emptydata();
+                            $('#tab_sms').append(data);
+                            initCustomerContact();
+                    }
+                },
+                error:function() {
+                    $.easyui.loaded();
+                }
+            });
+        }
+
+        var callUrl = "@Url.Action("Call", "Notification")";
+        function loadCallView() {
+            $.ajax({
+                url: callUrl,
+                dataType: "html",
+                success: function (data) {
+                    if (data) {
+                        emptydata();
+                        $('#tab_call').append(data);
+                        InitPhoneListGrid();
+                    }
+                }
+            });
+        }
+        
+        var traceLogUrl = "@Url.Action("CustomerTracingLogListAsync", "Notification")";
+        function loadTracingLogView(id) {
+            $.easyui.loading({ msg: '正在处理，请稍候。。。' });
+            $.ajax({
+                url: traceLogUrl,
+                dataType: "html",
+                data: { customerContactId: id },
+                success: function(data) {
+                    $.easyui.loaded();
+                    if (data) {
+                        emptydata();
+                        $('#tab_tracinglog').append(data);
+                        InitDataGrid();
+                    }
+                },
+                error: function() {
+                    $.easyui.loaded();
+                }
+            });
+        }
+
+        function emptydata() {
+            $('#tab_call').empty();
+            $('#tab_sms').empty();
+            $('#tab_email').empty();
+            $('#tab_tracinglog').empty();
+        }
+    </script>
+
+}

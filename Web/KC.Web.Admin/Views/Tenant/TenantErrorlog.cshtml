@@ -1,0 +1,169 @@
+﻿
+@using KC.Web.Admin.Constants
+@{
+    ViewBag.Title = "开通应用错误日志";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+<div id="addDialog" data-options="close:true">
+</div>
+<div id="toolbar">
+    <div>
+        错误类型：
+        @Html.DropDownList("OpenServerType", (IEnumerable<SelectListItem>)ViewBag.OpenServerTypeList, new { @id = "OpenServerType", @class = "easyui-combobox", @style = "width: 200px;height:26px;" })
+        租户名称：
+        <input id="searchText" class="easyui-textbox" name="searchText" data-options="prompt: '请输入租户名称'" />
+        <a href="javascript:void(0)" onclick="searchData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid" style=" height:408px;"></table>
+@section scripts
+    {
+    <script type="text/javascript">
+        function searchData() {
+            var openServerType = $("#OpenServerType").combobox("getValue");
+            $("#datagrid").datagrid("load", {
+                tenantDisplayName: $("#searchText").searchbox("getValue"),
+                openServerType: openServerType,
+            });
+        };
+        function refreshData() {
+            $('#searchText').searchbox("setValue", '');
+            $("#OpenServerType").combobox("setValue","");
+            searchData();
+        }
+
+        $(function () {
+            //资源类型
+            $('#OpenServerType').combobox(
+            {
+                editable: false,
+                onSelect: function () {
+                }
+            });
+
+            $("#datagrid").datagrid({
+                url: 'LoadTenantErrorlog',
+                method: 'get',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                showFooter: false,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                columns: [[
+                    { field: "tenantName", title: "租户代码", width: 65 },
+                    { field: "tenantDisplayName", title: "租户名称", width: 67 },
+                    { field: "openServerTypeName", title: "错误类型", width: 70 },
+                    { field: "typeName", title: "日志类型", width: 30 },
+                    { field: "operateDate", title: "日期", sortable: true, formatter: FormatterUtil.DateFormatter, width: 50 },
+                    {
+                        field: '操作', title: '操作', width: 100, sorter: function numberSort(a, b) { return a.localeCompare(b); },
+                        formatter: function (value, row, index) {
+                            var tdContext = '';
+                            tdContext += '<button onclick="Detailed (\'' + row.processLogId + '\',\'' + row.fid + '\' )">详情</button>';
+
+                            if (row.isShowUpgradeDbBtn)
+                                tdContext += '<button onclick="UpgradeTenantDatabase (\'' + row.tenantId + '\',\'' + row.processLogId + '\' )">更新数据库</button>';
+                            //if (row.isShowRollbackDbBtn)
+                            //tdContext += '<button onclick="RollBackTenantDataBaseUrl (\'' + row.tenantId+ '\',\'' + row.processLogId + '\' )">回滚数据库</button>';
+                            if (row.isShowResendOpenAppEmailBtn)
+                                tdContext += '<button onclick="ResendOpenEmail (\'' + row.tenantId + '\',\'' + row.processLogId + '\' )">重新发送开通邮件</button>';
+                            return tdContext;
+                        },
+                    }]]
+            });
+        });
+
+        function Detailed(id) {
+            var dialog = $.easyui.showDialog({
+                title: "查看详情",
+                width: 500,
+                height: 460,
+                href: 'GetTenantErrorlogForm' + "?id=" + id,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onLoad: function () {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        var UpgradeTenantDatabaseUrl = '@Url.Action(ActionName.Tenant.UpgradeTenantDatabase, ControllerName.Tenant)';
+        function UpgradeTenantDatabase(tenantId, id) {
+            $.messager.confirm('系统提示', '是否确定重新更新该租户的数据库?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(UpgradeTenantDatabaseUrl, { tenantId: tenantId, id: id }, function (data) {
+                        $.easyui.loaded();
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '更新该租户的数据库成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '更新该租户的数据库失败。', 5000);
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message, 5000);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+        var RollBackTenantDataBaseUrl = '@Url.Action(ActionName.Tenant.RollBackTenantDataBase, ControllerName.Tenant)';
+        function RollBackTenantDataBase(tenantId, id) {
+            $.messager.confirm('确认', '是否确定重新回滚该租户的数据库?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(RollBackTenantDataBaseUrl, { tenantId: tenantId, id: id }, function (data) {
+                        $.easyui.loaded();
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '回滚该租户的数据库成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '回滚该租户的数据库失败。', 5000);
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message, 5000);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+        var ResendOpenEmailUrl = '@Url.Action(ActionName.Tenant.ReSendOpenAppEmail, ControllerName.Tenant)';
+        function ResendOpenEmail(tenantId, id) {
+            $.messager.confirm('确认', '是否确定要重新发送开通应用的邮件?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(ResendOpenEmailUrl, { tenantId: tenantId, id: id }, function (data) {
+                        $.easyui.loaded();
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '重新发送开通应用的邮件成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '重新发送开通应用的邮件失败。', 5000);
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message, 5000);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+    </script>
+}
+
+

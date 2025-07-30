@@ -1,0 +1,51 @@
+﻿@using KC.Web.App.Constants
+@model KC.Service.DTO.App.AppSettingDTO
+
+@using (Html.BeginForm(ActionName.DevSetting.SaveAppGit, ControllerName.DevSetting, FormMethod.Post,
+   new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.PropertyId)
+    @Html.HiddenFor(model => model.ApplicationId)
+    @Html.HiddenFor(model => model.ApplicationName)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    @Html.HiddenFor(model => model.CanEdit)
+    @Html.HiddenFor(model => model.IsRequire)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="Code">应用设置编码：</label></td>
+                <td>
+                    <input id="Code" name="Code" class="easyui-validatebox easyui-textbox" data-options="required:true,readonly:@Json.Serialize(Model.IsEditMode),width:200" disable="disabled" value="@Model.Code" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Name">应用设置名称：</label></td>
+                <td><input id="Name" name="Name" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[3,50]'" value="@Model.Name" /></td>
+            </tr>
+            <tr>
+                <td><label for="index">排序：</label></td>
+                <td>
+                    <input id="index" name="index" class="easyui-numberspinner easyui-textbox" data-options="required:true,width:200,min:1,max:100" value="@Model.Index" />
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Description">描述：</label></td>
+                <td><textarea id="Description" name="Description" class="textarea easyui-validatebox" style="height: 60px;width: 195px;">@(null != Model ? Model.Description : "")</textarea></td>
+            </tr>
+        </tbody>
+    </table>
+
+}
+@section scripts
+    {
+    <script type="text/javascript">
+
+        
+    </script>
+}

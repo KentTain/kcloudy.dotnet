@@ -1,0 +1,49 @@
+# 使用官方.NET 6.0运行时镜像
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine
+
+# 设置时区、语言环境和编码
+ENV LANG=zh_CN.UTF-8 \
+    LC_ALL=zh_CN.UTF-8 \
+    TZ=Asia/Shanghai \
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+
+# 配置APT源为阿里云镜像并安装必要的依赖
+RUN set -eux; \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com\/alpine/g' /etc/apk/repositories && \
+    apk add --no-cache \
+        icu-libs \
+        libgdiplus \
+        fontconfig \
+        ttf-dejavu \
+        wqy-zenhei \
+        tzdata \
+        musl-locales \
+        musl-locales-lang && \
+    ln -sf /usr/lib/libgdiplus.so /usr/lib/gdiplus.dll && \
+    echo "export LANG=zh_CN.UTF-8" > /etc/profile.d/zh.sh && \
+    chmod +x /etc/profile.d/zh.sh
+
+# 创建字体目录并复制字体
+RUN mkdir -p /usr/share/fonts/truetype/custom/
+COPY ./Fonts/ /usr/share/fonts/truetype/custom/
+RUN fc-cache -fv
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制发布文件到容器
+COPY . .
+
+# 设置容器入口点
+ENTRYPOINT ["dotnet", "KC.Web.Resource.dll"]
+
+# 设置默认环境变量
+ARG ENVIRONMENT=Production
+ENV ASPNETCORE_ENVIRONMENT=${ENVIRONMENT}
+
+# 暴露端口
+EXPOSE ${port}
+
+# 健康检查
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#     CMD curl -f http://localhost/health || exit 1

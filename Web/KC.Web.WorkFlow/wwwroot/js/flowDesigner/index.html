@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>鑫亚科技流程设计器</title>
+
+    <link href="css/node.css" rel="stylesheet" />
+    <link href="css/web.contextmenu.css" rel="stylesheet" />
+    <link href="../../lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <link href="../../lib/jquery-easyui/themes/icon.css" rel="stylesheet" />
+    <link href="../../lib/jquery-easyui/themes/metro/easyui.css" rel="stylesheet" />
+
+    <style>
+        body,html{height:100%;margin:0;padding:0}
+        .header{clear:both;height:60px;z-index:1000}
+        .header .panel.panel-htop{float:right;width:620px;margin:10px}
+        .logo{padding:15px;float:left}
+        .logo img{margin-right:20px;height:40px}
+        .logo span{font-size:20px;padding-left:10px;font-weight:bolder;}
+        .fa-2x{font-size:1.2em}
+        .middle{height:90%}
+        .middle #toolsBurId{float:left;width:15%;height:100%;margin-right:3px;}
+        .middle #canvasId{float:left;width:64%;height:100%;border:1px solid #ddd;background-image:url(../../images/grid.jpeg);background-repeat:repeat;overflow:scroll;z-index:-1}
+        .middle #attrPanelId{float:right;width:20%;height:100%;margin-right:10px}
+        #Container{height:200%;width:200%;position:relative}
+        #enableDraggableDiv,#unableDraggableDiv{margin:5px;float:left;width:40%;cursor:pointer}
+        .controler{cursor:move;height:50px;text-align:center}
+        .controler>div{margin-left:50px;margin-top:8px}
+        .controler .descTxt{padding:15px}
+        .nodeTextCla{display:table-cell;vertical-align:middle;line-height:20px}
+        .datagrid-body{overflow:hidden;}
+    </style>
+
+    <script src="component/sugar.min.js"></script>
+    <script src="component/jquery-1.11.0.min.js"></script>
+    <script src="component/jquerymy-1.2.14.min.js"></script>
+    <script src="component/web.contextmenu.js"></script>
+    <script src="component/graphlib.min.js"></script>
+    <script src="component/html2canvas.min.js"></script>
+    <script src="component/canvg.js"></script>
+    <script src="../../lib/JsPlumb/dist/js/jsplumb.min.js"></script>
+    <script src="../../lib/jquery/dist/jquery.extension.js"></script>
+    <script src="../../lib/jquery-easyui/jquery.easyui.min.js"></script>
+    <script src="../../lib/jquery-easyui/jquery.easyui.extension.js"></script>
+
+    <script src="config/config.js"></script>
+    <script src="main/RightMenu.js"></script>
+    <script src="main/zfsn.js"></script>
+    <script src="main/zfsn-flow.js"></script>
+    <script src="main/zfsn-flow-render.js"></script>
+    <script src="main/util/zfsn-util-str.js"></script>
+    <script src="main/util/zfsn-util-layui.js"></script>
+    <script src="main/util/zfsn-util-plumb.js"></script>
+    <script src="main/util/zfsn-util-graph.js"></script>
+    <script src="main/util/zfsn-util-idpool.js"></script>
+    <script src="main/util/zfsn-util-color.js"></script>
+    <script src="main/util/zfsn-util-attr-cfg.js"></script>
+
+</head>
+
+<body class="easyui-layout">
+    <!--页头-->
+    <div class="header">
+        <!-- logo -->
+        <div class="logo">
+            <!--<img src="../../images/logo-icon.png" />-->
+            <span>鑫亚科技流程设计器</span>
+        </div>
+        <!-- 右侧头部区域 -->
+        <div id="divTopMenu" class="easyui-panel" style="padding:5px;float:right;width:620px;">
+            <a href="javascript: FLOW.save();" class="easyui-linkbutton" iconcls=" fa fa-check fa-2x" id="saveStatus" data-options="plain:true">保存流程</a>
+            <a href="javascript: FLOW.save2Photo();" class="easyui-linkbutton" iconcls=" fa fa-file-image-o fa-2x" data-options="plain:true">保存为图片</a>
+            <a href="javascript: FLOW.undo();" class="easyui-linkbutton" iconcls=" fa fa-reply fa-2x" data-options="plain:true">撤销</a>
+            <a href="javascript: FLOW.redo();" class="easyui-linkbutton" iconcls=" fa fa-share fa-2x" data-options="plain:true">重做</a>
+            <a href="javascript: FLOW.clearCanvas();" class="easyui-linkbutton" iconcls=" fa fa-refresh fa-2x fa-fw" data-options="plain:true">重新绘制</a>
+            <a href="javascript: FLOW.changeGrid();" class="easyui-linkbutton" iconcls=" fa fa-eye fa-2x" data-options="plain:true">隐藏网格</a>
+            <a href="javascript: FLOW.setting();" class="easyui-linkbutton" iconcls=" fa fa-cog fa-2x fa-fw" data-options="plain:true">设置</a>
+        </div>
+    </div>
+
+    <!--页中-->
+    <div class="middle">
+        <!-- 左侧导航区域 -->
+        <div id="toolsBurId">
+            <div class="easyui-panel" title="工具箱">
+                <div id="unableDraggableDiv" align="center">
+                    <i id="mouseToolsBtn" class="fa fa-mouse-pointer fa-2x showItemTxt" aria-hidden="true" type="3"></i>
+                    <span class="nodeSpan" style="display: none;">鼠标工具</span>
+                </div>
+                <div id="enableDraggableDiv" align="center">
+                    <i id="connectionToolsBtn" class="fa fa-exchange fa-2x showItemTxt" aria-hidden="true" type="3"></i>
+                    <span class="nodeSpan" style="display: none;">连线工具</span>
+                </div>
+            </div>
+            <div class="easyui-accordion">
+                <div title="节点" data-options="iconCls:'icon-ok'" style="overflow:auto;">
+                    <div class="controler">
+                        <div id="start" class="startNode"></div>
+                        <div class="descTxt">
+                            <span class="nodeSpan">开始</span>
+                        </div>
+                    </div>
+                    <div class="controler">
+                        <div id="end" class="endNode"></div>
+                        <div class="descTxt">
+                            <span class="nodeSpan">结束</span>
+                        </div>
+                    </div>
+                    <div class="controler">
+                        <div id="gateWay" class="gateWayNode" style="margin-left: 65px; margin-top: 15px;"></div>
+                        <div class="descTxt">
+                            <span class="nodeSpan">网关</span>
+                        </div>
+                    </div>
+                    <div class="controler">
+                        <div id="event" class="eventNode"></div>
+                        <div class="descTxt">
+                            <span class="nodeSpan">事件</span>
+                        </div>
+                    </div>
+                    <div class="controler">
+                        <div id="comm" class="commNode" style="width: 30px;"></div>
+                        <div class="descTxt">
+                            <span class="nodeSpan">人工节点</span>
+                        </div>
+                    </div>
+                    <div class="controler">
+                        <div id="freedom" class="commNode" style="width: 30px;"></div>
+                        <div class="descTxt">
+                            <span class="nodeSpan">自动节点</span>
+                        </div>
+                    </div>
+                </div>
+                <div title="子流程" data-options="iconCls:'icon-help'" style="padding:10px;">
+                    <div class="controler ui-draggable ui-draggable-handle" style="background-color: rgb(238, 238, 238);">
+                        <div id="innerChildFlow" class="innerChildFlowNode" style="width: 30px;"></div>
+                        <div class="descTxt">
+                            <span class="nodeSpan">内部子流程</span>
+                        </div>
+                    </div>
+                    <div class="controler ui-draggable ui-draggable-handle" style="background-color: rgb(238, 238, 238);">
+                        <div id="outerChildFlow" class="outerChildFlowNode" style="width: 30px;"></div>
+                        <div class="descTxt">
+                            <span class="nodeSpan">外部子流程</span>
+                        </div>
+                    </div>
+                </div>
+                <div title="泳道" data-options="iconCls:'icon-help'" style="padding:10px;">
+                    <div class="controler ui-draggable ui-draggable-handle" style="background-color: rgb(238, 238, 238); font-weight: normal;">
+                        <div id="broadwiseLane" class="broadwiseLaneNode" style="width: 30px; height: 30px;"></div>
+                        <div class="descTxt">
+                            <span class="nodeSpan">横向泳道</span>
+                        </div>
+                    </div>
+                    <div class="controler ui-draggable ui-draggable-handle" style="background-color: rgb(238, 238, 238); font-weight: normal;">
+                        <div id="directionLane" class="directionLaneNode" style="width: 30px; height: 30px;"></div>
+                        <div class="descTxt">
+                            <span class="nodeSpan">纵向泳道</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--中间绘制区域-->
+        <div id="canvasId">
+            <div id="Container"></div>
+        </div>
+        <!--右侧属性区域-->
+        <div id="attrPanelId">
+            <table id="attrForm" class="easyui-propertygrid"
+                   data-options="
+                    url:'/js/flowDesigner/json/property-data.json',
+                    method:'get',
+                    showGroup:true,
+                    scrollbarSize:0">
+            </table>
+        </div>
+    </div>
+
+</body>
+
+<!-- 注意load.js要放在最后面 -->
+
+<script src="json/demoData.js"></script>
+<script src="load.js"></script>
+
+</html>

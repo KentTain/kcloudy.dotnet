@@ -1,0 +1,710 @@
+﻿@using KC.Web.SSO.Constants
+@model KC.Web.SSO.AccountViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "注册";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+}
+
+@section styles{
+    <style>
+    .bgLogin img{height:180px}
+    .layui-form-item .layui-inline{width:460px;margin:0;padding:0;}
+    .layui-inline .layui-input-inline{margin: 0; display: inline-block; float: left;}
+    .layui-inline .layui-input-inline .layui-input{width:300px}
+    .layui-form-item .layui-form-checkbox[lay-skin=primary]{margin-top:0}
+    .layui-form-checkbox span{height:18px}
+    .layui-form-checked[lay-skin=primary] i{border-color:#009add!important;background-color:#009add!important}
+    .layui-form-checkbox[lay-skin=primary]:hover i{border-color:#009add!important}
+    .layui-form-item.error{margin:-10px 0 10px 0}
+    .layui-form-item.error .layui-input-inline{width:460px;margin:0}
+    .layui-form-item.error span{color:red;display:none;height:10px}
+    .layui-btn{background-color:#009add;color:#fff}
+    .layui-btn-disabled{background-color:#fff;color:#c9c9c9}
+    .layui-form-radio *{font-size:18px;}
+    </style>
+}
+
+<div class="main" layout:fragment="content">
+    <div class="layui-container" style="padding-top: 30px;">
+        <div class="layui-row">
+            <div class="layui-col-sm12 text-center">
+                <div class="layui-form layui-form-pane">
+                    @using (Html.BeginForm(ActionName.Account.Register, ControllerName.Account, FormMethod.Post, new { id = "RegisterForm", @class = "form-horizontal" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(model => model.ReturnUrl)
+                        @Html.HiddenFor(model => model.ShowCarousel)
+                        @*<div class="layui-form-item">
+                            <div class="layui-inline title">
+                                请如实填写注册信息！
+                            </div>
+                        </div>*@
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <div class="layui-input-block" style="margin-left:0px;">
+                                    <input type="radio" name="UserType" value="1" title="个人" checked>
+                                    <input type="radio" name="UserType" value="2" title="组织">
+                                    <input type="radio" name="UserType" value="4" title="企业员工">
+                                </div>
+                            </div>
+                        </div>
+                        @*<div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="TenantName" class="layui-form-label">企业名称</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input"
+                                           data-val="true"
+                                           data-val-required="企业名称必填"
+                                           id="TenantName" name="TenantName"
+                                           placeholder="请输入企业名称"
+                                           type="text" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item error">
+                            <div class="layui-inline">
+                                <span id="tenantTip" style="float: left;"></span>
+                            </div>
+                        </div>
+                        *@
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="DisplayName" class="layui-form-label">用户名称</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input"
+                                           data-val="true"
+                                           data-val-required="用户名称必填"
+                                           id="DisplayName" name="DisplayName"
+                                           placeholder="请输入用户名称"
+                                           type="text" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item error">
+                            <div class="layui-inline">
+                                <span id="displayNameTip" style="float: left;"></span>
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="Email" class="layui-form-label">用户邮箱</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input"
+                                           data-val="true"
+                                           data-val-required="用户邮箱必填"
+                                           id="Email" name="Email"
+                                           placeholder="请输入用户邮箱"
+                                           type="text" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item error">
+                            <div class="layui-inline">
+                                <span id="emailTip" style="float: left;"></span>
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="PhoneNumber" class="layui-form-label">手机号</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input"
+                                           data-val="true"
+                                           data-val-phone="手机 字段不是有效的电话号码。"
+                                           data-val-regex="手机号码格式不正确"
+                                           data-val-regex-pattern="1[0-9]{10}$"
+                                           data-val-required="手机必填"
+                                           id="PhoneNumber" name="PhoneNumber"
+                                           placeholder="请输入手机号"
+                                           type="text" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item error">
+                            <div class="layui-inline">
+                                <span id="phoneTip" style="float: left;"></span>
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="imgCode" class="layui-form-label">图形验证码</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input " style="width: 180px;"
+                                           data-val="true"
+                                           data-val-length="字段 图形验证码 必须是最大长度为 6 的字符串。"
+                                           data-val-length-max="6"
+                                           data-val-required="图形验证码必填"
+                                           id="imgCode" name="imgCode" placeholder="请输入图形验证码"
+                                           type="text"
+                                           value="" />
+
+                                </div>
+                                <input type="hidden" name="mvcCaptchaGuid"
+                                       id="mvcCaptchaGuid"
+                                       value="caa862a95f994f329a6098fe6155572a" />
+
+                                <img id="imgCaptcha" style="cursor: pointer;" src="/Home/GetCaptchaImage" alt="验证码" />
+
+                                <a href="javascript:_reloadMvcCaptchaImage()">换一张</a>
+                            </div>
+                        </div>
+                        <div class="layui-form-item error">
+                            <div class="layui-inline">
+                                <span class="field-validation-valid" style="float: left;" data-valmsg-for="imgCode"
+                                      data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="Code" class="layui-form-label">手机验证码</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input " style="width: 180px;"
+                                           data-val="true"
+                                           data-val-maxlength="请输入6位验证码"
+                                           data-val-maxlength-max="6"
+                                           data-val-required="手机验证码必填"
+                                           id="Code" name="Code" placeholder="请输入接收到的验证码"
+                                           type="text"
+                                           value="" />
+
+                                </div>
+                                <a id="btnSendPhoneCode" onclick="generateVerfiyPhoneCode()" style="cursor: pointer" class="layui-btn">获取短信验证码</a>
+                            </div>
+                        </div>
+                        <div class="layui-form-item error">
+                            <div class="layui-inline">
+                                <span id="sendPhoneTip" style="color: #3c763d;display: none; float: left;">验证码已发送至您的手机，请查收！</span>
+                                <span id="codeTip" style="float: left;"></span>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="Password" class="layui-form-label">登录密码</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input"
+                                           data-val="true"
+                                           data-val-length="密码长度必须在6位与16位之间。"
+                                           data-val-length-max="16"
+                                           data-val-length-min="6"
+                                           data-val-required="密码必填"
+                                           id="Password" name="Password"
+                                           placeholder="区分大小写 必须包含字母与数字" type="password" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item error">
+                            <div class="layui-inline">
+                                <span id="passwordTip" style="float: left;"></span>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="ConfirmPassword" class="layui-form-label">确定密码</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input"
+                                           data-val="true"
+                                           data-val-length="确定密码长度必须在6位与16位之间。"
+                                           data-val-length-max="16"
+                                           data-val-length-min="6"
+                                           data-val-required="确定密码必填"
+                                           id="ConfirmPassword" name="ConfirmPassword"
+                                           placeholder="区分大小写 必须包含字母与数字" type="password" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item error">
+                            <div class="layui-inline">
+                                <span id="confirmPasswordTip" style="float: left;"></span>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="Recommended" class="layui-form-label">推荐码</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input"
+                                           data-val="true"
+                                           data-val-maxlength="推荐人最多只能输入20个字符"
+                                           data-val-maxlength-max="20"
+                                           id="Recommended" name="Recommended"
+                                           placeholder="请输入推荐码"
+                                           type="text" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item error">
+                            <div class="layui-inline">
+                                <span class="field-validation-valid" style="float: left;" data-valmsg-for="Recommended"
+                                      data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <span id="chkAgreement">
+                                    <label class="" style="cursor: pointer">
+                                        <input id="agreementCheck" name="agreementCheck" type="checkbox"
+                                               lay-skin="primary" checked="checked">
+                                        创建账号并同意
+                                        <a class="agree_a" onclick="popAgreement();">《鑫亚科技会员注册条款》</a>
+                                    </label>
+                                </span>
+                                <div id="agreement" style="color: red; display: none;">
+                                    请阅读并同意《鑫亚科技会员注册条款》
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <a id="submit_register" class="layui-btn layui-btn-normal">同意协议并立即注册</a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript">
+        //注意：选项卡 依赖 element 模块，否则无法进行功能性操作
+        layui.use('element', function () {
+            var element = layui.element;
+        });
+        layui.use('form', function () {
+            var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+
+            form.render();
+        });
+    </script>
+    <!--表单验证-->
+    <script type="text/javascript">
+        $(function () {
+            //formValidate();
+        });
+
+        //表单验证
+        function formValidate() {
+            $("#RegisterForm").validate({
+                //验证提示时，鼠标光标指向提示的input
+                focusInvalid: true,
+                //自定义校验规则及提示语等
+                rules: {
+                    TenantName: 'required',
+                    Password: 'required',
+                    ConfirmPassword: {
+                        required: true,
+                        equalTo: "#Password"
+                    }
+                },
+                //自定义提示信息
+                messages: {
+                    TenantName: {
+                        required: '用户名必填'
+                    },
+                    Password: {
+                        required: '密码必填'
+                    },
+                    ConfirmPassword: {
+                        required: '确认密码必填',
+                        equalTo: "确认密码与密码不同"
+                    }
+                }
+            });
+        }
+
+        var $tenant = $('#DisplayName');
+        var $tenantTip = $('#displayNameTip');
+        function validTenant() {
+            var isValid = $tenant.val() != undefined && $tenant.val() != null && $tenant.val() != '';
+            if (isValid) {
+                $tenantTip.hide();
+            } else {
+                $tenantTip.show();
+                $tenantTip.text("请输入用户名").show();
+                return isValid;
+            }
+            return isValid;
+        }
+
+        var $email = $('#Email');
+        var $emailTip = $('#emailTip');
+        const verfiyEmail = '/Account/VerfiyEmail';
+        function validEmail() {
+            var value = $email.val();
+            var isValid = $.string.isEmail(value);
+            if (isValid) {
+                $emailTip.hide();
+
+                $.ajax({
+                    url: verfiyEmail,
+                    dataType: 'json',
+                    async: true,
+                    data: {
+                        email: value
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            if (!response.result) {
+                                isValid = true;
+                                $emailTip.hide();
+                            } else {
+                                $emailTip.hide();
+                                $emailTip.text("邮箱已经注册，请更换邮箱").show();
+                            }
+                        } else {
+                            isValid = false;
+                            $phoneTip.hide();
+                            $phoneTip.text(response.message).show();
+                        }
+                    }
+                });
+            } else {
+                $emailTip.show();
+                $emailTip.text("请输正确的邮箱").show();
+            }
+
+            return isValid;
+        }
+
+        var $phone = $('#PhoneNumber');
+        var $phoneTip = $('#phoneTip');
+        const verfiyPhone = '/Account/VerfiyPhone';
+        function validPhone() {
+            var value = $phone.val();
+            var isValid = $.string.isMobile(value);
+            if (isValid) {
+                changeBtnSendCode(false);
+                $phoneTip.hide();
+
+                $.ajax({
+                    url: verfiyPhone,
+                    dataType: 'json',
+                    async: true,
+                    data: {
+                        phone: $phone.val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            if (!response.result) {
+                                isValid = true;
+                                $phoneTip.hide();
+                            } else {
+                                $phoneTip.hide();
+                                $phoneTip.text("手机号已经注册，请更换手机号").show();
+                            }
+                        } else {
+                            isValid = false;
+                            $phoneTip.hide();
+                            $phoneTip.text(response.message).show();
+                        }
+                    }
+                });
+            } else {
+                changeBtnSendCode(true);
+                $phoneTip.show();
+                $phoneTip.text("请输11位的手机号").show();
+            }
+
+            return isValid;
+        }
+
+        var $password = $('#Password');
+        var $confirmPwd = $('#ConfirmPassword');
+        var $confirmPwdTip = $('#confirmPasswordTip');
+        function validConfirmPwd() {
+            var value = $confirmPwd.val();
+            var isValid = $password.val() === value;
+            if (isValid) {
+                $confirmPwdTip.hide();
+            } else {
+                $confirmPwdTip.show();
+                $confirmPwdTip.text("确认密码与密码不相同").show();
+            }
+
+            return isValid;
+        }
+
+        var $code = $('#Code');
+        var $codeTip = $('#codeTip');
+        const verfiyPhoneCode = '/Account/VerfiyPhoneCode';
+        function validCode(isCheckCode) {
+            var value = $code.val();
+            var regExp = /^\d{6}$/;
+
+            var isValid = regExp.test(value);
+            if (isValid) {
+                $codeTip.hide();
+            } else {
+                $codeTip.show();
+                $codeTip.text("请输入6位手机验证码").show();
+                return isValid;
+            }
+
+            if (isCheckCode && isValid && validPhone()) {
+                $.ajax({
+                    url: verfiyPhoneCode,
+                    dataType: 'json',
+                    async: false,
+                    data: {
+                        phone: $phone.val(),
+                        code: $code.val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            isValid = true;
+                            $codeTip.hide();
+                        } else {
+                            isValid = false;
+                            $sendPhoneTip.hide();
+                            $codeTip.text(response.message).show();
+                        }
+                    }
+                });
+            } else {
+                $codeTip.hide();
+            }
+
+            return isValid;
+        }
+
+        //提交前验证
+        function validForm() {
+            var isAgreement = $agreementCheck.attr('checked') === 'checked';
+            !isAgreement ? $agreement.show() : $agreement.hide();
+
+            var isFormValid = validTenant && validConfirmPwd() && validEmail() && validPhone() && validCode(true);
+
+            return isFormValid && isAgreement;
+        }
+    </script>
+    <!--注册-->
+    <script type="text/javascript">
+        $(function () {
+            // $('#DisplayName').hide();
+
+            $("#slide_p").click(function () {
+                $("#slide_div").slideUp();
+            });
+
+            $agreementCheck.click(function () {
+                if ($(this).attr('checked') === 'checked') {
+                    $(this).removeAttr('checked');
+                    $(this).siblings(".layui-form-checkbox").removeClass("layui-form-checked");
+                } else {
+                    $(this).attr('checked', 'checked');
+                    $(this).siblings(".layui-form-checkbox").addClass("layui-form-checked");
+                    $agreement.hide();
+                }
+            });
+
+            $tenant.on('blur', function () {
+                validTenant();
+            }).keyup(function () {
+                validTenant();
+            });
+
+            $email.on('blur', function () {
+                validEmail();
+            }).keyup(function () {
+                validEmail();
+            });
+
+            $phone.on('blur', function () {
+                validPhone();
+            }).keyup(function () {
+                validPhone();
+            });
+
+            $confirmPwd.on('blur', function () {
+                validConfirmPwd();
+            }).keyup(function () {
+                validConfirmPwd();
+            });
+
+            $code.on('blur', function () {
+                validCode(false);
+            }).keyup(function () {
+                validCode(false);
+            });
+
+            changeBtnSendCode(true);
+        });
+
+        function _reloadMvcCaptchaImage() {
+            var ci = document.getElementById('imgCaptcha');
+            var sl = ci.src.length;
+            if (ci.src.indexOf("&") > -1)
+                sl = ci.src.indexOf("&");
+            if (ci.src.indexOf("?") < 0)
+                ci.src = ci.src.substr(0, sl) + "?" + (new Date().valueOf());
+            else
+                ci.src = ci.src.substr(0, sl) + "&" + (new Date().valueOf());
+        }
+
+        function getCookie() {
+            //获取Cookie值
+            var strCookie = document.cookie;
+            var arrCookie = strCookie.split("; ");
+            for (var i = 0; i < arrCookie.length; i++) {
+                var arr = arrCookie[i].split("=");
+                if (arr[0] === 'kcloudy-captchacode') {
+                    //console.info('----kcloudy-captchacode: ' + arr[1])
+                    return arr[1];
+                }
+            }
+            return "";
+        }
+
+        //发送手机验证码
+        var $btnSendCode = $('#btnSendPhoneCode');
+        var $sendPhoneTip = $('#sendPhoneTip');
+        const sendCode = '/Account/GenerateVerfiyPhoneCode';
+        function generateVerfiyPhoneCode() {
+            if (validPhone() && $btnSendCode.attr('disabled') !== 'disabled') {
+                changeBtnSendCode(true);
+                $code.val(''); //清空验证码
+
+                //调用验证码校验方法
+                var data = {
+                    phone: $phone.val(),
+                    answer: encodeURIComponent($("#imgCode").val()),
+                    captcha: decodeURIComponent(getCookie()),
+                    captchaId: $('#mvcCaptchaGuid').val(),
+                };
+                let jsonData = JSON.stringify(data);
+                $.ajax({
+                    async: true,
+                    cache: false,
+                    url: sendCode,
+                    headers: { 'RequestVerificationToken': $('[name=__RequestVerificationToken]').val() },
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json;charset=UTF-8",
+                    data: jsonData,
+                    //contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                    //data: data,
+                    success: function (response) {
+                        _reloadMvcCaptchaImage();
+                        if (response.success) {
+                            $sendPhoneTip.show();
+                            $codeTip.hide();
+                            sendVerifyCode(30, "获取短信验证码");
+                        } else {
+                            changeBtnSendCode(false);
+                            $codeTip.html(response.message).show().fadeOut(5000);
+                        }
+                    },
+                    error: function () {
+                        changeBtnSendCode(false);
+                        $sendPhoneTip.hide();
+                        $.get('/Account/RefreshToken', function (newToken) {
+                            $("input[name='__RequestVerificationToken']").val(newToken);
+                        });
+                    }
+                });
+            }
+        }
+
+        var $agreement = $('#agreement');
+        var $agreementCheck = $('#agreementCheck');
+        function popAgreement() {
+            setTimeout(function () {
+                layer.open({
+                    type: 2,
+                    title: '请阅读鑫亚科技会员注册条款，阅读完之后点击"同意协议"',
+                    shadeClose: false,
+                    closeBtn: 1,
+                    shade: 0.8,
+                    area: ['60%', '60%'],
+                    offset: '30px',
+                    content: '/Account/Provision'
+                    //cancel: function (index, layero) {
+                    //    location.href = '/Account/Signin';
+                    //}
+                });
+            }, 100);
+        }
+
+        function agreeAgreement() {
+            debugger;
+            $agreementCheck.attr('checked', 'checked');
+            $agreementCheck.siblings(".layui-form-checkbox").addClass("layui-form-checked");
+            layer.closeAll();
+        }
+
+        function changeBtnSendCode(disabled) {
+            if (disabled) {
+                $btnSendCode.attr('disabled', true).css("pointer-events", "none");
+                $btnSendCode.addClass("layui-btn-disabled").attr("disabled", true);
+            } else {
+                $btnSendCode.removeAttr('disabled').css("pointer-events", "auto");
+                $btnSendCode.removeClass("layui-btn-disabled").attr("disabled", false);
+            }
+        }
+
+        //发送验证码读秒
+        var timer = null;
+        var leftTime = 120;
+        function minusTime(text) {
+            if (leftTime > 0) {
+                leftTime--;
+                changeBtnSendCode(true);
+                $btnSendCode.text(leftTime + '秒后重新获取');
+            } else {
+                changeBtnSendCode(false);
+                $btnSendCode.text(text);
+                $sendPhoneTip.hide();
+                clearInterval(timer);
+            }
+        }
+
+        function sendVerifyCode(time, text) {
+            leftTime = time;
+            timer = window.setInterval(function () {
+                minusTime(text);
+            }, 1000);
+        }
+
+    </script>
+    <!--注册提交-->
+    <script type="text/javascript">
+
+        const registerUrl = '/Account/Register';
+        var hadSubmit = false;
+        $('#submit_register').on('click', function () {
+            if (!hadSubmit && validForm()) {
+                hadSubmit = true;
+                let formData = CommonUtil.getFormData('#RegisterForm');
+                let postData = AddAntiForgeryToken(formData);
+                $(this).text('注册中......');
+                $(this).addClass("layui-btn-disabled").attr("disabled", true);
+                $.ajax({
+                    url: registerUrl,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: postData,
+                    success: function (result) {
+                        if (result.success) {
+                            $('#submit_register').text('注册成功！');
+                            layer.msg('恭喜您，已注册成功！');
+                            setTimeout(function () {
+                                window.location.href = "@(KC.Framework.Base.GlobalConfig.GetTenantWebDomain(KC.Framework.Base.GlobalConfig.AccWebDomain, ViewBag.TenantName))Main/Index";
+                            }, 2000);
+                        } else {
+                            layer.msg(result.message);
+                            hadSubmit = false;
+                            $('#submit_register').text('同意协议并立即注册');
+                        }
+                    },
+                    error: function () {
+                        layer.msg('注册失败,请联系客服！');
+                        hadSubmit = false;
+                        $('#submit_register').text('同意协议并立即注册');
+                        $('#submit_register').removeClass("layui-btn-disabled").attr("disabled", false);
+                    }
+                });
+            }
+        });
+    </script>
+}

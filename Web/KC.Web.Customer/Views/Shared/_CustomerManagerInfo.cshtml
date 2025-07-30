@@ -1,0 +1,30 @@
+﻿
+<script type="text/javascript">
+    function loadCustomerManagers(index, row, grid) {
+        var ddv = $(grid).datagrid('getRowDetail', index).find('#ddv');
+        ddv.datagrid({
+            url: '/CustomerInfo/GetCustomerManagersByCustomerId',
+            queryParams: { customerId: row.CustomerId },
+            fitColumns: true,
+            singleSelect: true,
+            height: 'auto',
+            rowNumbers: true,
+            loadMsg: '正在加载跟进人...',
+            columns: [
+                [
+                    { field: 'CustomerManagerName', title: '跟进人', width: 100 },
+                    { field: 'OrganizationName', title: '跟进人部门', width: 100 }
+                ]
+            ],
+            onResize: function() {
+                $(grid).datagrid('fixDetailRowHeight', index);
+            },
+            onLoadSuccess: function() {
+                setTimeout(function() {
+                    $(grid).datagrid('fixDetailRowHeight', index);
+                }, 0);
+            }
+        });
+        $(grid).datagrid('fixDetailRowHeight', index);
+    }
+</script>

@@ -1,0 +1,89 @@
+﻿@using KC.Web.Admin.Constants
+@model KC.Service.DTO.Admin.ServiceBusPoolDTO
+@{
+    Layout = null;
+}
+
+@using (Html.BeginForm(ActionName.ServiceBusPool.SaveserviceBusPoolForm, ControllerName.ServiceBusPool, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.ServiceBusPoolId)
+    @Html.HiddenFor(model => model.TenantCount)
+    @Html.HiddenFor(model => model.CanEdit)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            @if (Model.IsEditMode)
+            {
+                <tr>
+                    <td><label class="required">*</label><label for="CloudType">云服务：</label></td>
+                    <td>
+                        <select id="CloudType" name="CloudType" class="easyui-combobox"
+                                data-options="width:220,editable: false, required:true,"
+                                asp-items="ViewBag.CloudTypeList" panelHeight="auto"></select>
+                    </td>
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td><label class="required">*</label><label for="StoragePoolId">云服务：</label></td>
+                    <td>
+                        <select id="CloudType" name="CloudType" class="easyui-combobox"
+                                data-options="width:220,editable: false, "
+                                asp-items="ViewBag.CloudTypeList" panelHeight="auto"></select>
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td><label class="required">*</label><label for="ServiceBusType">类型:</label></td>
+                <td>
+                    <select id="ServiceBusType" name="ServiceBusType" class="easyui-combobox"
+                            data-options="width:220,editable: false, "
+                            asp-items="ViewBag.ServiceBusTypeList" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Endpoint">访问地址：</label></td>
+                <td><input id="Endpoint" name="Endpoint" class="easyui-validatebox easyui-textbox" data-options="required:true,width:220,validType:'length[3,200]'" value="@Model.Endpoint" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="AccessName">访问名称：</label></td>
+                <td><input id="AccessName" name="AccessName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:220,validType:'length[3,200]'" value="@Model.AccessName" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="AccessKeyPassword">访问秘钥：</label></td>
+                <td>
+                    <input id="AccessKeyPassword" name="AccessKeyPassword" class="easyui-validatebox easyui-textbox" data-options="required:true,width:220,validType:'length[3,100]'" value="@(null != Model ? Model.AccessKeyPassword : "")" />
+                </td>
+            </tr>
+            <tr>
+                <td><a id="btnGeneratePwd" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus-square" plain="true" onclick="generatePasswordHash()">生成加密秘钥</a></td>
+                <td>
+                    <input id="AccessKeyPasswordHash" name="AccessKeyPasswordHash" class="easyui-validatebox easyui-textbox"
+                           data-options="multiline:true,width:220,height:100,validType:'length[3,500]'"
+                           value="@(null != Model ? Model.AccessKeyPasswordHash : "")" />
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><a id="btnTestConnect" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-link" plain="true" onclick="testConnection()">测试连接</a></td>
+            </tr>
+        </tbody>
+    </table>
+}
+<script type="text/javascript">
+    $("#ServiceBusType").combobox({
+        required: true,
+        editable: false
+    })
+    $("#CloudType").combobox({
+        required: true,
+        editable: false
+    })
+</script>

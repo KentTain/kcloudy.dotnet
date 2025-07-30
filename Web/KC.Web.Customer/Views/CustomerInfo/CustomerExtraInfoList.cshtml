@@ -1,0 +1,450 @@
+﻿@using KC.Web.Customer.Constants
+@using KC.Web.Extension
+
+@{
+    ViewBag.Title = "客户附加信息列表";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var id = ViewBag.CustomerId;
+}
+@*客户附加信息列表*@
+<div id="toolbar" style="padding:5px;height:auto">
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="append()">添加</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removeit()">去除</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" onclick="accept()">保存</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="reject()">撤销</a>
+    @*<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true" onclick="getChanges()">GetChanges</a>*@
+</div>
+<table id="datagrid" class="easyui-datagrid" title="客户附加信息列表" data-options="iconCls: 'icon-edit'"></table>
+@section scripts
+    {
+    <script type="text/javascript">
+        var customerId = @id;
+        var defaultGuid = 0;
+        //move to com.common.js
+        $(function() {
+            InitDataGrid();
+            queryGenerateEditorData();
+        });
+
+        $.extend($.fn.datagrid.methods, {
+            addEditor: function(jq, param) {
+                if (param instanceof Array) {
+                    $.each(param, function(index, item) {
+                        var e = $(jq).datagrid('getColumnOption', item.field);
+                        e.editor = item.editor;
+                    });
+                } else {
+                    var e = $(jq).datagrid('getColumnOption', param.field);
+                    e.editor = param.editor;
+                }
+            },
+            removeEditor: function(jq, param) {
+                if (param instanceof Array) {
+                    $.each(param, function(index, item) {
+                        var e = $(jq).datagrid('getColumnOption', item);
+                        e.editor = {};
+                    });
+                } else {
+                    var e = $(jq).datagrid('getColumnOption', param);
+                    e.editor = {};
+                }
+            }
+        });
+
+        var loadDataUrl = '@Url.Action(ActionName.CustomerInfo.LoadCustomerExtraInfoListByCustomerId, ControllerName.CustomerInfo)';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl + '?customerId=' + customerId,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                columns: [[
+                    { field: 'propertyAttributeId', title: 'Id', width: 100, align: 'left', hidden: 'true' },
+                    { field: 'customerId', title: '客户Id', width: 100, align: 'left', hidden: 'true' },
+                    { field: 'name', title: '附加信息名称', width: 80, align: 'left' },
+                    { field: 'dataType', title: '数据类型', width: 100, align: 'left', formatter: TransTypetoString },
+                    { field: 'value', title: '附加信息内容', width: 100, align: 'left' },
+                    { field: 'isProviderAttrStr', title: '是否必填', width: 30, align: 'left' },
+                    { field: 'createdBy', title: '创建人', width: 100, align: 'left' },
+                    { field: 'modifiedDate', title: '最后修改时间', width: 100, align: 'left', formatter: FormatterUtil.DateFormatter },
+                    //{ field: 'operator', title: '操作', width: 100, align: 'left', formatter: FormatterUtil.DateFormatter }
+                ]],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                },
+                onClickCell: onClickCell,
+                onEndEdit: onEndEdit,
+                //onBeforeEdit:onBeforeEdit
+
+            });
+        }
+
+        function onBeforeEdit(rowIndex, rowData)
+        {
+            //任务完成100%， 并且已审核通过，不能编辑
+            //if(rowData && rowData.status && (rowData.status=='TASK_ASSIGNER_AUDITED' || rowData.status=='TASK_MONITOR_AUDITED') && rowData.finishRate == 100)
+            //{
+            //    return false;
+            //}
+
+            // 重要! 重新设置百分比填报范围
+            var columnOption = $('#datagrid').datagrid('getColumnOption',"workRate");
+            columnOption.editor.options.min = rowData.minRate;
+            columnOption.editor.options.max = rowData.maxRate;
+
+            // 解决单击一行会自动设置最小值的问题
+            if(rowData.workRate == 0)
+            {
+                rowData.workRate = "";
+            }
+        }
+
+        var editIndex = undefined;
+        var isAppend = false;
+
+        function TransTypetoString(data) {
+            switch (data) {
+                case 0:
+                    return '字符串';
+                case 1:
+                    return '布尔型';
+                case 2:
+                    return '整型';
+                case 3:
+                    return '数值型';
+                case 4:
+                    return '金额';
+                case 5:
+                    return '日期型';
+                case 6:
+                    return '文本型';
+                default:
+                    return '其他';
+            }
+        }
+
+        function onClickCell(index) {
+            if (editIndex != index) {
+                if (endEditing()) {
+                    $('#datagrid').datagrid('removeEditor', 'dataType');
+                    $('#datagrid').datagrid('removeEditor', 'name');
+                    addEditors(isAppend, index);
+                } else {
+                    setTimeout(function() {
+                        $('#datagrid').datagrid('selectRow', editIndex);
+                    }, 0);
+                }
+            } else {
+                isAppend = true;
+                addEditors(isAppend, index);
+            }
+        }
+
+        function endEditing() {
+            if (editIndex == undefined) {
+                return true;
+            }
+            if ($('#datagrid').datagrid('validateRow', editIndex)) {
+                $('#datagrid').datagrid('endEdit', editIndex);
+                editIndex = undefined;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function onEndEdit(index, row) {
+            var ed = $(this).datagrid('getEditor', { index: index, field: 'value' });
+            if (ed) {
+                switch (ed.type) {
+                    case 'combobox':
+                        row.Value = $(ed.target).combobox('getText');
+                        break;
+                    case 'numberbox':
+                        row.Value = $(ed.target).numberbox('getValue');
+                        break;
+                    case 'datebox':
+                        row.Value = $(ed.target).datebox('getValue');
+                        break;
+                    default:
+                        row.Value = $(ed.target).val();
+                        break;
+                }
+                return;
+            }
+            return;
+            //row.Value = $(ed.target).combobox('getText');
+            //row.Value = $(ed.target).val();
+        }
+
+        function SwitchEditorType(dataType) {
+            switch (dataType) {
+                case 1:
+                    return 'combobox';
+                case 2:
+                    return 'validatebox';
+                case 3, 4:
+                    return 'numberbox';
+                case 5:
+                    return 'datebox';
+                case 6:
+                    return 'textarea';
+                default:
+                    return 'textbox';
+            }
+        }
+
+        function getEditor(dataType) {
+            var typeInt = parseInt(dataType);
+            switch (typeInt) {
+                case 0:
+                    return { type: 'textbox', options: { required: true } };
+                case 1:
+                    return {
+                        type: 'combobox',
+                        options: {
+                            data: [{ 'id': '0', 'text': '否' }, { 'id': '1', 'text': '是' }],
+                            valueField: 'id',
+                            textField: 'text',
+                            required: true
+                        }
+                    };
+                case 2:
+                    return { type: 'numberbox', options: { precision: 0, required: true } };
+                case 3:
+                    return { type: 'numberbox', options: { precision: 4, required: true } };
+                case 4:
+                    return { type: 'numberbox', options: { precision: 2, required: true } };
+                case 5:
+                    return { type: 'datebox', options: { required: true } };
+                case 6:
+                    return { type: 'textarea', options: { required: true } };
+                default:
+                    return { type: 'textbox', options: { required: true } };
+            }
+        }
+
+        function addEditors(isAppend, index) {
+            //if (endEditing()) {
+            //获取选中行
+            var selectRow = $('#datagrid').datagrid('selectRow', index);
+            var valueType = null;
+            //获取选中行数据类型
+            if (isAppend == false) {
+                valueType = $('#datagrid').datagrid('getSelected').DataType;
+            } else {
+                var edr = $('#datagrid').datagrid('getEditor', { index: index, field: 'dataType' });
+                valueType = $(edr.target).combobox('getValue');
+            }
+            //动态添加editor
+            $('#datagrid').datagrid('addEditor', {
+                field: 'value',
+                editor: getEditor(valueType)
+            });
+
+            //启动editor
+            selectRow.datagrid('beginEdit', index);
+
+            var ed = $('#datagrid').datagrid('getEditor', { index: index, field: 'value' });
+            if (ed) {
+                ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
+            }
+            editIndex = index;
+            //} else {
+            //    setTimeout(function() {
+            //        $('#datagrid').datagrid('selectRow', editIndex);
+            //    }, 0);
+            //}
+        }
+
+        var dataArryUrl = '@Url.Action(ActionName.CustomerInfo.GenerateEditorData, ControllerName.CustomerInfo)';
+        var dataArry = [];
+
+        function queryGenerateEditorData() {
+            $.post(dataArryUrl, function(data) {
+                dataArry = data;
+            });
+        }
+
+        function dataAppend() {
+            if (dataArryUrl.length != 0) {
+                return {
+                    type: 'combobox',
+                    options: {
+                        data: dataArry,
+                        valueField: 'value',
+                        textField: 'text',
+                        required: true
+                    }
+                };
+            }
+            return null;
+        }
+
+        function append() {
+            if (endEditing()) {
+                $('#datagrid').datagrid('appendRow', { PropertyAttributeId: 0, CustomerId: customerId });
+                editIndex = $('#datagrid').datagrid('getRows').length - 1;
+
+                //var appendRow = $('#datagrid').datagrid('selectRow', editIndex);
+                $('#datagrid').datagrid('addEditor', {
+                    field: 'dataType',
+                    editor: dataAppend()
+                });
+                $('#datagrid').datagrid('addEditor', {
+                    field: 'name',
+                    editor: {
+                        type: 'textbox',
+                        options: {
+                            required: true
+                        }
+                    }
+                });
+                $('#datagrid').datagrid('addEditor', {
+                    field: 'value',
+                    editor: {
+                        type: 'validatebox',
+                        options: {
+                            required: true,
+                            //valisateType:num
+                        }
+                    }
+                });
+                $('#datagrid').datagrid('selectRow', editIndex).datagrid('beginEdit', editIndex);
+            }
+            isAppend = false;
+            //editIndex = undefined;
+        }
+
+        var removeUrl = '@Url.Action(ActionName.CustomerInfo.RemoveCustomerExtInfo, ControllerName.CustomerInfo)';
+        function removeit() {
+            if (editIndex == undefined) {
+                return false;
+            }
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('确认', '是否确定删除该扩展信息?', function(r) {
+                    if (r) {
+                        $.post(removeUrl, { propertyAttributeId: row.propertyAttributeId }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        }, 'json');
+                    }
+                });
+            }else {
+                $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行删除！', 1000);
+            }
+
+            $('#datagrid').datagrid('cancelEdit', editIndex).datagrid('deleteRow', editIndex);
+            editIndex = undefined;
+        }
+
+        var saveUrl = '@Url.Action(ActionName.CustomerInfo.SaveCustomerExtInfo, ControllerName.CustomerInfo)';
+        function accept() {
+            if (endEditing()) {
+                //使用JSON序列化datarow对象，发送到后台。
+                var rows = $("#datagrid").datagrid('getChanges');
+                var rowstr = JSON.stringify(rows);
+                $.post(saveUrl, rowstr, function(data) {
+                    if (data.success) {
+                        $.messager.showInfoTopCenter('系统提示', '操作成功。');
+                    } else {
+                        $.messager.showErrorTopCenter('系统提示', '操作失败。');
+                    }
+                    $.easyui.loaded();
+                });
+
+                $('#datagrid').datagrid('reload');
+            }
+        }
+
+        function reject() {
+            $('#datagrid').datagrid('rejectChanges');
+            editIndex = undefined;
+        }
+
+        //function getChanges() {
+        //    var rows = $('#datagrid').datagrid('getChanges');
+        //    alert(rows.length + ' rows are changed!');
+        //}
+
+        //var getFormUrl = '';
+
+        //function openForm(id) {
+        //    var dialog = $.easyui.showDialog({
+        //        title: "添加/修改文本值",
+        //        width: 500,
+        //        height: 400,
+        //        href: getFormUrl + "?id=" + id + "&&customerId=" + customerId,
+        //        modal: true,
+        //        topMost: false,
+        //        enableHeaderContextMenu: false,
+        //        enableApplyButton: false,
+        //        onSave: function(d) {
+        //            var validate = d.form("enableValidation").form("validate");
+
+        //            if (validate) {
+        //                $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+        //                $.ajax({
+        //                    async: true,
+        //                    type: "post",
+        //                    dataType: "json",
+        //                    url: saveFormUrl,
+        //                    data: AddAntiForgeryToken(d.form("getData")),
+        //                    success: function(data) {
+        //                        if (data) {
+        //                            if (data.success) {
+        //                                d.window('close');
+        //                                $.messager.showInfoTopCenter('系统提示', data.message > 0 ? '修改客户成功。' : '客户添加成功。');
+        //                                $('#datagrid').datagrid('reload');
+        //                            } else {
+        //                                $.messager.showErrorTopCenter('系统提示', data.message);
+        //                            }
+        //                        } else {
+        //                            $.messager.showErrorTopCenter('系统提示', '客户保存数失败。');
+        //                        }
+        //                    },
+        //                    complete: function() {
+        //                        $.easyui.loaded();
+        //                    }
+        //                });
+        //                return false;
+        //            } else {
+        //                return false;
+        //            }
+        //        },
+        //        onLoad: function() {
+        //            var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+        //            f.form("disableValidation").form("enableValidation");
+        //            return ret;
+        //        }
+        //    });
+        //}
+    </script>
+}
+

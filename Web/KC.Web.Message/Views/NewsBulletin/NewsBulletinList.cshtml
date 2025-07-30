@@ -1,0 +1,233 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Message.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "新闻公告列表";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+<div class="easyui-layout" data-options="fit:true" style="height: auto;">
+    <div data-options="region:'west',collapsible:false" style="width:25%;min-width:350px;">
+        <div id="categoryToolbar">
+            <div>
+            </div>
+            <div>
+                <input id="txtCategoryName" class="easyui-textbox" style="width: 140px;height:26px;" data-options="prompt:'请输入分类名称'" />
+                <a href="javascript:void(0)" onclick="reloadCategory()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshCategory()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="treegridCategory"></table>
+    </div>
+    <div data-options="region:'center'">
+        <div id="toolbar" class="toolbar-f">
+            <div>
+            </div>
+            <div>
+                <input id="txtTitle" class="easyui-textbox" data-options="width:260,prompt:'请输入标题'">
+                <select id="txtType" class="easyui-combobox" data-options="width:200,editable: false,"
+                           asp-items="ViewBag.TypeList" panelHeight="auto" style="display:none" readonly="true"></select>
+                <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="datagrid"></table>
+    </div>
+</div>
+
+@section styles{
+
+}
+
+@section scripts{
+    <!--组件初始化-->
+    <script type="text/javascript">
+        $(function () {
+            $("#txtType").next(".combo").hide();
+            InitTreeGrid();
+            InitDataGrid();
+        });
+
+    </script>
+
+    <!--新闻公告分类（左侧）-->
+    <script type="text/javascript">
+        var selectCategoryId = 0;
+        var selectType = '@ViewBag.selectType';
+        const categoryTreeId = '#treegridCategory';
+        const loadCategoryTreeUrl = '@Url.Action(ActionName.NewsBulletin.LoadCategoryTree, ControllerName.NewsBulletin)';
+        function InitTreeGrid() {
+            $(categoryTreeId).treegrid({
+                url: loadCategoryTreeUrl,
+                toolbar: '#categoryToolbar',
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                queryParams: {
+                    pType: selectType,
+                    excludeId: null,
+                    selectedId: null,
+                    hasAll: true,
+                    hasRoot: false,
+                    maxLevel: 3
+                },
+                fit: true,
+                fitColumns: true,
+                striped: true,
+                nowrap: false,
+                rowNumbers: true,
+                singleSelect: true,
+                lines: true,
+                showFooter: false,
+                checkbox: false,
+                checkOnSelect: false,
+                cascadeCheck: true,
+                cache: true,
+                pagination: false,
+                columns: [[
+                    { field: 'id', title: 'Id', hidden: true },
+                    { field: 'text', title: '分类名称', width: 180 },
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (node, data) {
+                    $(categoryTreeId).treegrid('unselectAll');
+                    $(categoryTreeId).treegrid('expandAll');
+                    $(categoryTreeId).treegrid("fixRowHeight");
+
+                    //默认选中第一个节点
+                    if (data.length > 0) {
+                        selectCategoryId = data[0].id;
+                        $(categoryTreeId).treegrid("selectRow", 0);
+                    }
+                },
+                onLoadError: function () {
+                },
+                onSelect: function (row) {
+                    if (selectCategoryId == row.id) return;
+                    //点击左侧消息类型，显示右侧列表信息
+                    let id = row.id;
+                    let type = row.type;
+                    let level = row.level;
+                    selectCategoryId = id;
+                    if (type) {
+                        selectType = type;
+                    } else {
+                        selectType = '';
+                    }
+                    //只能创建两级分类
+                    if (id == -1 || level > 2) {
+                        $('#btnAddCategory').linkbutton('disable');
+                    } else {
+                        $('#btnAddCategory').linkbutton('enable');
+                    }
+
+                    $(dataGridId).datagrid("reload", { categoryId: id });
+                }
+            });
+        }
+
+        let refreshCategory = function () {
+            $(categoryTreeId).treegrid('unselectAll');
+            $("#txtCategoryName").textbox('setValue', '');
+            reloadCategory();
+        }
+        let reloadCategory = function () {
+            $(categoryTreeId).treegrid('unselectAll');
+            $(categoryTreeId).treegrid("reload", {
+                pType: selectType,
+                name: $("#txtCategoryName").textbox("getValue"),
+                excludeId: null,
+                selectedId: null,
+                hasAll: true,
+                hasRoot: false,
+                maxLevel: 3
+            });
+        }
+    </script>
+
+    <!--新闻公告（右侧）-->
+    <script type="text/javascript">
+        const dataGridId = '#datagrid';
+        const loadReviewInfoUrl = '@Url.Action(ActionName.NewsBulletin.LoadNewsBulletins, ControllerName.NewsBulletin)';
+        function InitDataGrid() {
+            $(dataGridId).datagrid({
+                url: loadReviewInfoUrl,
+                toolbar: '#toolbar',
+                method: 'get',
+                idField: 'id',
+                queryParams: {
+                    type: selectType,
+                    categoryId: selectCategoryId,
+                    name: $("#txtTitle").textbox("getValue")
+                },
+                fit: true,
+                fitColumns: true,
+                striped: true,
+                nowrap: false,
+                rowNumbers: true,
+                singleSelect: true,
+                border: false,
+                pagination: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                remoteSort: false,
+                sortOrder: 'desc',
+                columns: [[
+                    {
+                        field: 'title', title: '标题', width: 150, align: 'left',
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            let tdContext = '<a href="##" style="cursor:pointer" onclick="openPage(\'' + id + '\')">' + value + '</a>';
+                            return tdContext;
+                        }
+                    },
+                    { field: 'typeStr', title: '类型', width: 80, align: 'left' },
+                    { field: 'description', title: '描述', width: 180, align: 'left' },
+                    { field: 'createdName', title: '创建人', width: 100, align: 'left' },
+                    { field: 'modifiedDate', title: '创建时间', width: 150, align: 'left', formatter: FormatterUtil.DateTimeFormatter }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $(dataGridId).datagrid('unselectAll');
+                    $(dataGridId).datagrid('clearSelections');
+                    CommonUtil.buttonStyle();
+                },
+                onClickRow: function (row) {
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+
+        //刷新
+        let refreshSearch = function (index) {
+            $("#txtTitle").textbox('setValue', '');
+            $("#txtType").combobox('setValue', '');
+            reloadDatagrid(index);
+        }
+        //查询
+        let reloadDatagrid = function () {
+            $(dataGridId).datagrid("reload", {
+                categoryId: selectCategoryId,
+                name: $("#txtTitle").textbox("getValue"),
+                type: $("#txtType").combobox("getValue")
+            });
+        }
+
+        //新增/编辑新闻公告
+        var getPageUrl = '@Url.Action(ActionName.NewsBulletin.NewsBulletinDetail, ControllerName.NewsBulletin)';
+        function openPage(id) {
+            //debugger;
+            let sId = id;
+            if (id === undefined || id === null || id < 0)
+                sId = 0;
+            var queryString = "id=" + sId;
+            MainPage_PostMessage("openPage", getPageUrl, queryString);
+        }
+    </script>
+}

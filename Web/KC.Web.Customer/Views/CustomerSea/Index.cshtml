@@ -1,0 +1,166 @@
+﻿@using KC.Web.Customer.Constants
+@using KC.Web.Util
+
+@{
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var controllerName = ControllerName.CustomerSea;
+    var changelogAction = ActionName.CustomerInfo.CustomerChangeLogList;
+
+    <!--配置管理-保存配置属性-->
+    var canOpenChangeLog = false;
+    //if ((await AuthorizationService.AuthorizeAsync(User, "1557E240-6D84-4AB5-ABC6-7F54F3EBC9C2")).Succeeded)
+    {
+        canOpenChangeLog = true;
+    }
+}
+
+<div id="toolbar">
+    @if ((bool)ViewBag.CanPickCustomerFromSeas)
+    {
+        <div>
+            <span style="margin-right: 20px">
+                <a class="easyui-linkbutton" style="margin-left: 5px" iconcls="icon-filter" href="javascript:void(0)" onclick="transferCustomerToSeas();">移至我的客户</a>
+            </span>
+        </div>
+    }
+
+        <div>
+            <span style="margin-top: 12px;">
+                <span style="margin-right: 10px">
+                    客户类型：
+                    @Html.DropDownList("CustomerType", (IEnumerable<SelectListItem>)ViewBag.CustomerTypeList, new { @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+                </span>
+                <span style="margin-right: 10px">
+                    转移时间：
+                    @Html.DropDownList("CustomerSeasTimeSpan", (IEnumerable<SelectListItem>)ViewBag.CustomerSeasTimeSpanList, new { @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+                </span>
+                <span style="margin-right: 10px">
+                    转移人：
+                    <input class="easyui-textbox" style="width: 150px; height: 26px;" id="operator">
+                </span>
+            </span>
+            <div style="margin-top: 10px; display: inline;">
+                <div id="divSearchMenu" class="easyui-menu" style="width: 120px">
+                    <div data-options="name:'CustomerName',selected:true">客户名称</div>
+                    <div data-options="name:'ContactName'">联系人姓名</div>
+                    <div data-options="name:'ContactPhoneNumber'">联系人手机</div>
+                </div>
+                <input id="txtSearchbox" class="easyui-searchbox" style="width: 250px" />
+            </div>
+            <a href="javascript:void(0)" onclick="RefreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+        </div>
+</div>
+<table id="datagrid"></table>
+
+@section scripts
+    {
+<script type="text/javascript">
+        $(function () {
+            InitDataGrid();
+        });
+
+        var loadDataUrl = "@Url.Action(ActionName.CustomerSea.LoadCustomerSeasList, ControllerName.CustomerSea)";
+            function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                columns: [
+                    [
+                        { field: 'checker', title: '选中', checkbox: true, width: 10, align: 'left' },
+                        { field: 'id', title: 'Id', hidden: true },
+                        { field: 'customerId', title: 'CustomerId', hidden: true },
+                        { field: 'customerTypeStr', title: '客户类型', width: 40, align: 'left' },
+                        { field: 'CustomerName', title: '客户名称', width: 40, align: 'left' },
+                        { field: 'ContactName', title: '联系人姓名', width: 80, align: 'left' },
+                        { field: 'contactPhoneNumber', title: '联系人电话', width: 80, align: 'left' },
+                        { field: 'operator', title: '转移人', width: 80, align: 'left' },
+                        { field: 'localOperateDate', title: '转移时间', width: 80, align: 'left' },
+                        { field: 'op', title: '任务操作', width: 140, align: 'center', formatter: addApplicationButton }
+                    ]
+                ],
+                onLoadSuccess: function (data) {
+                    $(".btnUsers").linkbutton({ plain: true, iconCls: 'icon-standard-user-suit' });
+                    $(".btnLogs").linkbutton({ plain: true, iconCls: 'icon-standard-page-white-text' });
+                }
+            });
+
+            $('#txtSearchbox').searchbox({
+                menu: '#divSearchMenu',
+                prompt: '请输入查询值',
+                searcher: searchData
+            });
+        }
+
+        var canOpenChange = '@canOpenChangeLog' === 'True';
+        var getdetailUrl = '@Url.Action(ActionName.CustomerInfo.CustomerDetailInfo, ControllerName.CustomerInfo)';
+        var CustomerChangeLogUrl = '@Url.Action(ActionName.CustomerInfo.CustomerChangeLogList, ControllerName.CustomerInfo)';
+        function addApplicationButton(value, row, index) {
+            var tdContext = '<a href="##" class="btnUsers" onclick="opentModuleForm(\'' + row.customerId + '\',\'' + row.customerName + '\',\'' + getdetailUrl + '\',\'联系人\')">更多联系人</a>';
+            if (canOpenChange)
+                tdContext += '<a href="##"  class="btnLogs" onclick="opentModuleForm(\'' + row.customerId + '\',\'' + row.customerName + '\',\'' + CustomerChangeLogUrl + '\',\'变更日志\')">查看变更日志</a>';
+            return tdContext;
+        }
+
+        function opentModuleForm(id, name, url, str) {
+            showMaxDialog((name == null ? "" : name + "的") + str, url + "?customerId=" + id + "&isoperate=1");
+            OpenTab(isCsc, (name == null ? "" : name + "的") + str, url , "customerId=" + id + "&isoperate=1");
+            //parent.window.mainpage.mainTabs.addModule((name == null ? "" : name + "的") + str, url + "?customerId=" + id + "&isoperate=1", null, true, true, false, true);
+        }
+
+        function searchData(value, name) {
+            $('#datagrid').datagrid('unselectAll');
+            var customerSeasTimeSpan = $("#CustomerSeasTimeSpan").combobox("getValue");
+            var customerType = $("#CustomerType").combobox("getValue");
+            var operator = $('#operator').textbox('textbox').val();
+            $('#datagrid').datagrid('load',
+            {
+                "searchKey": name,
+                "searchValue": value,
+                "customerSeasTimeSpan": customerSeasTimeSpan,
+                "customerType": customerType,
+                "operatorName": operator
+            });
+        }
+        var transferUrl = "@Url.Action(ActionName.CustomerSea.PickCustomerFromSeas, ControllerName.CustomerSea)";
+        //从公海中捕捞客户
+        function transferCustomerToSeas() {
+            
+            var rows = $('#datagrid').datagrid('getChecked');
+            var ids = [];
+            for (var i = 0; i < rows.length; i++) {
+                ids.push(rows[i].id);
+            }
+
+            if (ids.length > 0) {
+                $.messager.confirm('系统提示', '是否转移选择的客户至我的客户?', function (r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(transferUrl, { ids: ids }, function (result) {
+                            if (result.success) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', result.message, 1000);
+                            }
+                            $.easyui.loaded();
+                        }, 'json');
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter('错误消息', "请选择要转移的客户", 1000);
+            }
+        }
+</script>
+}

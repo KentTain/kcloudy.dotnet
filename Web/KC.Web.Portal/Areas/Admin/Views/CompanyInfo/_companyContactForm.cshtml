@@ -1,0 +1,64 @@
+﻿@using KC.Web.Portal.Constants
+@model KC.Service.DTO.Portal.CompanyContactDTO
+
+<form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.CompanyInfo.SaveCompanyContact, ControllerName.CompanyInfo)">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.CompanyCode)
+    @Html.HiddenFor(model => model.CompanyName)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="BusinessType">职能：</label></td>
+                <td>
+                    @*@Html.DropDownList("BusinessType", (IEnumerable<SelectListItem>)ViewBag.BusinessTypes, new { @id = "BusinessType", @class = "easyui-combobox", @style = "width: 260px;", @DropDownStyle = "DropDownList" })*@
+                     
+                    <select id="BusinessType" name="BusinessType" class="easyui-combobox"
+                            data-options="width:260,editable:false,required:true,"
+                            asp-items="ViewBag.BusinessTypes" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="ContactName">对外联系人姓名：</label></td>
+                <td><input id="ContactName" name="ContactName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:260,validType:'length[3,64]'" value="@Model.ContactName" /></td>
+            </tr>
+            <tr>
+                <td><label for="PositionName">联系人职务：</label></td>
+                <td><input id="PositionName" name="PositionName" class="easyui-validatebox easyui-textbox" data-options="width:260,validType:'length[1,20]'" value="@Model.PositionName" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="ContactEmail">联系邮箱：</label></td>
+                <td><input id="ContactEmail" name="ContactEmail" class="easyui-validatebox easyui-textbox" data-options="required:true,width:260,validType:'length[3,64]'" value="@Model.ContactEmail" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="ContactPhoneNumber">联系手机：</label></td>
+                <td><input id="ContactPhoneNumber" name="ContactPhoneNumber" class="easyui-validatebox easyui-textbox" data-options="required:true,width:260,validType:'length[3,64]'" value="@Model.ContactPhoneNumber" /></td>
+            </tr>
+            <tr>
+                <td><label for="ContactQQ">联系QQ号：</label></td>
+                <td><input id="ContactQQ" name="ContactQQ" class="easyui-validatebox easyui-textbox" data-options="width:260,validType:'length[3,64]'" value="@Model.ContactQQ" /></td>
+            </tr>
+            <tr>
+                <td><label for="ContactTelephone">联系座机：</label></td>
+                <td><input id="ContactTelephone" name="ContactTelephone" class="easyui-validatebox easyui-textbox" data-options="width:260,validType:'length[3,64]'" value="@Model.ContactTelephone" /></td>
+            </tr>
+
+        </tbody>
+    </table>
+</form>
+<script type="text/javascript">
+    $(function () {
+        $("#BusinessType").combobox({
+            required: true,
+            editable: false
+        })
+    })
+</script>

@@ -1,0 +1,273 @@
+﻿<link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.css" rel="stylesheet" />
+<link href="~/css/upload.css" rel="stylesheet" />
+
+<style type="text/css">
+    #eAll {
+        margin: 0 auto;
+        width: 400px;
+    }
+
+    .txtTd {
+        height: 40px;
+        width: 220px;
+    }
+
+    .btnTd {
+        height: 40px;
+        width: 80px;
+    }
+
+    #etable {
+        margin-left: 30px;
+        margin-top: 10px;
+    }
+
+    .form-control:-moz-placeholder {
+        color: #999999;
+    }
+
+    .form-control::-moz-placeholder {
+        color: #999999;
+    }
+
+    .form-control:-ms-input-placeholder {
+        color: #999999;
+    }
+
+    .form-control::-webkit-input-placeholder {
+        color: #999999;
+    }
+
+    .form-control {
+        display: block;
+        width: 250px;
+        height: 23px;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.428571429;
+        color: #555555;
+        vertical-align: middle;
+        background-color: #ffffff;
+        border: 1px solid #cccccc;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+        transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+    }
+
+        .form-control:focus {
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+        }
+
+    .webuploader-pick {
+        background: #00b7ee;
+        border-radius: 3px;
+        line-height: 30px;
+        padding: 0 30px;
+        color: #fff;
+        display: inline-block;
+        margin: 0 auto;
+        cursor: pointer;
+        width: 185px;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    }
+
+    .webuploader-pick-hover {
+        background: #00a2d4;
+    }
+
+    .glyphicon {
+        line-height: 30px;
+        height: 30px;
+        margin-left: 60px;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+<div id="eAll">
+    <form class="easyui-form" method="POST" id="emailform" data-options="novalidate:true" action="@Url.Action("SendEmail", "Document")">
+        <table id="etable" style="width: 360px;">
+            <tbody>
+                @*<tr>
+                        <td class="txtTd">
+                            <input type="text" class="easyui-textbox" name="email" data-options="required:true,width:200,validType:['isSpace','email']" />
+                        </td>
+                        <td class="btnTd">
+                            <a href="javascript:;" height="15" width="80" onclick="AddTxtBox()" class="easyui-linkbutton" iconcls="icon-reload" plain="true">新增</a>
+                        </td>
+                    </tr>*@
+
+
+                <tr Id="cmbTree">
+                    <td class="ti">
+                        <div class="text">
+                            <span for="SharedType">选择人员：</span>
+                        </div>
+                    </td>
+                    <td class="ti">
+                        @*<select id="cc" style="width:220px;" class="easyui-combotree" name="CusNames" data-options="required:true"></select>*@
+                        @*<input type="text" class="easyui-textbox" name="email" data-options="required:true,width:200,validType:['isSpace']"  />*@
+                        <input class="easyui-textbox" id="emailStr" style="height:60px;width:265px" prompt="多个邮箱请用 ',' 隔开"
+                               data-options="multiline:true,required:true,validType:['hasSpace','emailrule']" />
+                        @*<input class="easyui-textbox" data-options="multiline:true"
+                            value="This TextBox will allow the user to enter multiple lines of text." style="width:300px;height:100px">*@
+                    </td>
+                </tr>
+                <tr style="height:50px">
+                    <td colspan="2">
+                        @*<a href="javascript:;"   width="80"  style="margin-left:145px;"  class="easyui-linkbutton" iconcls="icon-reload"  plain="true">确定</a>*@
+                        @*<input  type="button" width="80" style="margin-left:145px;" class="easyui-linkbutton" iconcls="icon-reload" plain="true">确定</input>*@
+
+                        <input  type="button" id="sendBtn" onclick="Send()" style="cursor:pointer;width:65px;height:26px;margin-left:145px" value="确定">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
+
+<script>
+
+    $(function () {
+        //initCmbTree();
+    })
+    $.extend($.fn.validatebox.defaults.rules, {
+        emailrule: {
+            validator: function (value) {
+
+                var reg = /，/g;
+                value = value.replace(reg, ',');
+                var earr = value.split(',');
+                if (earr.length > 0) {
+                    for (var i = 0; i < earr.length; i++) {
+                        if (!/^([a-zA-Z0-9_-])+@@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/i.test(earr[i])) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                return false;
+            },
+            message: '邮箱格式不正确'
+        },
+        hasSpace: {
+            validator: function (value) {
+                if (value.indexOf(" ") > -1) {
+                    return false;
+                }
+                return true;
+            },
+            message: '不能存在空格'
+        },
+    });
+
+
+     function initCmbTree() {
+        $("#cc").combotree({
+           editable: false,
+           url:  "@Url.Action("GetUserTree", "Document")",
+           multiple: true,
+           onlyLeafCheck: true,
+            onLoadSuccess: function (node, data) {
+
+            }
+        });
+    }
+
+
+    var sendEmailUrl = '@Url.Action("SendEmail", "Document")'
+    function Send() {
+        debugger;
+        $('#sendBtn').attr('disabled', "true");
+        var $form = $('#emailform');
+        var validate = $form.form("enableValidation").form("validate");
+
+        if (validate) {
+            var estr = $('#emailStr').val();
+            var reg = /，/g;
+            estr = estr.replace(reg, ',');
+            var strArr = estr.split(',');
+            var sendData = { infos: $Infos.distinct(), emailList: strArr.distinct() };
+            $.post(
+                   sendEmailUrl,
+                   sendData,
+                function (data) {
+                    if (data != undefined) {
+                        if (data.result) {
+                            $.messager.showInfoTopCenter('系统提示', '发送成功。', 1000);
+                            emailDialog.dialog('close');
+                            $('#sendBtn').attr('disabled', "false");
+
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.Message, 1000);
+                            $('#sendBtn').attr('disabled', "false");
+                        }
+                    }
+                    else {
+                        $.messager.showErrorTopCenter('错误消息', data.Message, 1000);
+                        $('#sendBtn').attr('disabled', "false");
+                    }
+                      
+                   }, 'json');
+        }
+        //$('#sendBtn').attr('disabled', "false");
+    }
+
+    function func() {
+
+        var tree = $('#cc').combotree('tree');
+        var data = tree.tree('getChecked');
+        return;
+        var postData = { emails: emails, blobIds: blobIds };
+        if (postData.blobIds == null || postData.blobIds == 'null') {
+            $.messager.showErrorTopCenter('系统提示', '数据错误请联系管理员', 1000);
+            return;
+        }
+        $.ajax({
+            async: true,
+            type: "post",
+            dataType: "json",
+            url: sendEmailUrl,
+            data: postData,
+            success: function (data) {
+                if (data.result) {
+                    $.messager.showInfoTopCenter('系统提示', data.Message, 1000);
+                    emailResult = true;
+                    emailDialog.dialog('close');
+
+                } else {
+                    $.messager.showErrorTopCenter('系统提示', data.Message);
+                }
+            },
+            complete: function () {
+                $.easyui.loaded();
+            }
+        });
+
+    }
+
+    //function AddTxtBox() {
+    //    var tr = '<tr> <td class="txtTd" ><input type="text" class="easyui-textbox"  data-options="required:true,width:200,validType:[' +"\'isSpace\',"+'\'email\']" /> </td > <td class="btnTd">  <a href="javascript:;" height="15" width="80" onclick="DelTxtBox(this)" class="easyui-linkbutton" iconcls="icon-reload" plain="true">新增</a></td></tr >';
+    //    $("#etable tbody").append(tr);
+    //}
+    //function DelTxtBox(e) {
+    //    alert(e);
+    //}
+</script>
+
+
+
+
+
+
+
+
+
+
+

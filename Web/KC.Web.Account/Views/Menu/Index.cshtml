@@ -1,0 +1,253 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Account.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "菜单管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    //菜单角色管理-菜单角色管理
+    var canRoleInMenu = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "6862116B-CA67-44DA-9E6A-D5C05DA7F964")).Succeeded)
+    {
+        canRoleInMenu = true;
+    }
+}
+
+<div id="toolbar">
+    <div>
+        @*菜单管理-保存菜单数据*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "9DFC51A6-E5F9-480C-BB99-D619F9E5E690")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addMenu()">新增</a>
+        }
+        @*菜单管理-保存菜单数据*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "9DFC51A6-E5F9-480C-BB99-D619F9E5E690")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editMenu()">编辑</a>
+        }
+        @*菜单管理-删除菜单数据*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "E3A5DD3D-A848-42DE-BE53-C46EE1D0D582")).Succeeded)
+        {
+            <a id="btnDelete" href="javascript:void(0)" class="easyui-linkbutton" 
+               data-options="iconCls:'fa fa-trash',disabled:true" onclick="removeMenu()">删除</a>
+        }
+        <a id="expandCloseBtn" class="easyui-linkbutton" style="margin-left: 5px" onclick="expandCloseTreeNode()" iconCls="fa fa-minus" href="javascript:void(0)">折叠所有节点</a>
+    </div>
+    <div>
+        <input id="txtName" class="easyui-textbox" data-options="prompt:'请输入名称'">
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+        @*<a id="closeMenuInRoleBtn" class="easyui-linkbutton" style="margin-left: 5px" onclick="closeMenuInRole()" iconCls="icon-close" href="javascript:void(0)">关闭角色菜单页面</a>*@
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript">
+        var canRoleInMenu = '@canRoleInMenu' === 'True';
+        $(function() {
+            InitTreeDataGrid();
+            $('body').css('overflow', 'auto');
+        });
+
+        var expandCloseBtn = $('#expandCloseBtn');
+        function expandCloseTreeNode() {
+            if (expandCloseBtn.linkbutton('options').iconCls === 'fa fa-plus') {
+                $datagrid.treegrid('expandAll')
+                expandCloseBtn.linkbutton({ iconCls: 'fa fa-minus' });
+                expandCloseBtn.linkbutton({ text: '折叠所有节点' });
+            }
+            else if (expandCloseBtn.linkbutton('options').iconCls === 'fa fa-minus') {
+                $datagrid.treegrid('collapseAll')
+                expandCloseBtn.linkbutton({ iconCls: 'fa fa-plus' });
+                expandCloseBtn.linkbutton({ text: '展开所有节点' });
+            }
+        }
+
+        var $datagrid = $('#datagrid');
+        var loadDataUrl = '@Url.Action(ActionName.Menu.LoadMenuTree, ControllerName.Menu)';
+        function InitTreeDataGrid() {
+            $datagrid.treegrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                toolbar: '#toolbar',
+                queryParams: {
+                    name: null,
+                    excludeId: null,
+                    selectedId: null,
+                    hasAll: false,
+                    hasRoot: false,
+                    maxLevel: 3
+                },
+                striped: true,
+                pagination: false,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                lines: true,
+                showFooter: false,
+                checkbox: false,
+                checkOnSelect: false,
+                cascadeCheck: true,
+                columns: [[
+                    { field: 'id', title: '编号', width: 50, align: 'left', hidden: true },
+                    { field: 'text', title: '名称', width: 200, align: 'left' },
+                    { field: 'isExtPage', title: '是否弹出页', width: 50, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    //{ field: 'controllerName', title: 'Controller', width: 150, align: 'left' },
+                    //{ field: 'actionName', title: 'Action', width: 150, align: 'left' },
+                    //{ field: 'uRL', title: 'URL', width: 250, align: 'left' },
+                    { field: 'level', title: '层级', width: 50, align: 'left' },
+                    { field: 'index', title: '排序', width: 50, align: 'left' },
+                    { field: 'description', title: '描述', width: 260, align: 'left' },
+                    { field: 'oper', title: "操作", width: 150, align: 'left',
+                        formatter: function (value, row, index) {
+                            var id = row.id;
+                            var tdContext = '';
+                            if (canRoleInMenu)
+                                tdContext += '<a class="btnContacts" style="cursor:pointer" href="#" onclick="addRoleToUser(' + id + ')">分配到角色</a>';
+                            return tdContext;
+                        }
+                    }]
+                ],
+                onBeforeLoad: function(param) {
+                    var a = param;
+                },
+                onLoadSuccess: function(data) {
+                    //$datagrid.treegrid('collapseAll');
+                    $(".btnContacts").linkbutton({ iconCls: 'fa fa-user' });
+                    $datagrid.treegrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                },
+                onSelect: function (row) {
+                    if (row.parentId == null && row.children.length <= 0) {
+                        $('#btnDelete').linkbutton('enable');
+                    } else {
+                        $('#btnDelete').linkbutton('disable');
+                    }
+                }
+            });
+        }
+        function refreshSearch() {
+            $("#txtName").textbox('setValue', '');
+            reloadDatagrid();
+        }
+        function reloadDatagrid() {
+            $datagrid.treegrid('unselectAll');
+            $datagrid.treegrid('reload', {
+                name: $("#txtName").textbox("getValue"),
+                excludeId: null,
+                selectedId: null,
+                hasAll: false,
+                hasRoot: false,
+                maxLevel: 3
+            });
+        }
+
+        var roleInMenu = '@Url.Action(ActionName.Menu.RoleInMenu, ControllerName.Menu)';
+        function addRoleToUser(userId, appId) {
+            var url = roleInMenu;
+            var queryString = "id=" + userId;
+
+            MainPage_PostMessage("openSubPage", url, queryString);
+        }
+
+        function addMenu() {
+            opentForm(0);
+        }
+
+        function editMenu() {
+            var row = $datagrid.treegrid('getSelected');
+            if (row) {
+                opentForm(row.id);
+            } else {
+                $.messager.showErrorTopCenter('系统提示', "请选择需要编辑的数据", 3000);
+            }
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.Menu.GetMenuForm, ControllerName.Menu)';
+        var saveFormUrl = '@Url.Action(ActionName.Menu.SaveMenu, ControllerName.Menu)';
+        function opentForm(id) {
+            $.easyui.showDialog({
+                title: id > 0 ? '编辑菜单' : '添加菜单',
+                width: 510,
+                height: 490,
+                modal: true,
+                topMost: false,
+                href: getFormUrl + "?id=" + id,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $datagrid.treegrid('clearSelections');
+                                        $datagrid.treegrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                }
+            });
+        }
+
+        var removeUrl = '@Url.Action(ActionName.Menu.RemoveMenu, ControllerName.Menu)';
+        function removeMenu() {
+            var row = $datagrid.treegrid('getSelected');
+            if (row) {
+                $.messager.confirm('系统提示', '是否确定删除该条记录?', function(r) {
+                    if (r) {
+                        debugger;
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUrl, { id: row.id }, function (data) {
+                            debugger;
+                            if (data.success) {
+                                if (data.result) {
+                                    $datagrid.treegrid('clearSelections');
+                                    $datagrid.treegrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message);
+                            }
+                            $.easyui.loaded();
+                        });
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter('系统提示', "请选择需要删除的数据", 3000);
+            }
+        }
+
+    </script>
+}
+
+

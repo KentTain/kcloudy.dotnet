@@ -1,0 +1,483 @@
+﻿@using KC.Framework.Extension
+@using KC.Enums.Pay
+@using KC.Framework.Tenant
+@using KC.Web.Pay.Constants
+@using KC.Common
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.DTO.Pay.WithdrawalsDTO
+
+@{
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    @*银行账户管理-申请提现：CapitalManager/ApplyForWithdrawal*@
+    var submit = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        submit = true;
+    }
+    var todayMax = Model.TodayMax;
+    var model0 = Model.Rule.Where(m => m.Paymentdate == 0).ToList();//T+0
+    var fmodel0 = model0.FirstOrDefault();
+    var min0 = fmodel0.MinMoney;
+    var max0 = fmodel0.MaxMoney * 10000;
+    var dayMax0 = fmodel0.DayMaxMoney * 10000;
+    var counterFeeType0 = fmodel0.WithdrawType;
+    var counterFeeRate0 = fmodel0.Withdrawlv;
+    var model1 = Model.Rule.Where(m => m.Paymentdate == 1).ToList();//T+1
+    var fmodel1 = model1.FirstOrDefault();
+    var min1 = fmodel1.MinMoney;
+    var max1 = fmodel1.MaxMoney * 10000;
+    var dayMax1 = fmodel1.DayMaxMoney * 10000;
+    var counterFeeType1 = fmodel1.WithdrawType;
+    var counterFeeRate1 = fmodel1.Withdrawlv;
+    var rules = SerializeHelper.ToJson(Model.Rule);
+}
+@section styles{
+
+    <style>
+        .table tfoot td {
+            font-size: 18px;
+            text-align: center
+        }
+
+        .input-group {
+            width: 100%
+        }
+
+        #applyForWithdrawals td {
+            line-height: 50px;
+            font-size: 16px;
+        }
+
+        .btnSubmit {
+            width: 100%;
+        }
+
+        ul.tips {
+            list-style: decimal;
+            font-size: 14px;
+            margin-left: 25px;
+        }
+
+            ul.tips li {
+                padding-left: 0;
+                line-height: 30px;
+            }
+
+                ul.tips li dt {
+                    font-weight: normal;
+                }
+
+                ul.tips li dd {
+                    line-height: 25px;
+                }
+
+        .tipsLabel {
+            font-size: 16px;
+            font-weight: normal;
+            margin-left: 10px;
+            margin-top: 50px;
+        }
+
+        #applyForWithdrawals .row {
+            margin-left: 50px;
+        }
+
+        .bank {
+            width: 30%;
+            margin-right: 3%;
+            float: left;
+            cursor: pointer;
+            max-width: 400px
+        }
+
+            .bank .panel-heading .glyphicon {
+                float: right;
+                display: none;
+            }
+
+            .bank.panel-primary .glyphicon {
+                display: block;
+            }
+
+            .bank p {
+                line-height: 20px;
+                height: 20px
+            }
+
+        #withdrawals .btnSearch, #withdrawals .btn-group, #withdrawals .input-group {
+            margin-left: 10px;
+            float: left;
+        }
+
+        .panel-title {
+            font-size: 16px
+        }
+    </style>
+}
+
+<div class="panel panel-default panel-boot">
+    <div class="panel-body" id="applyForWithdrawals">
+
+        <div class="row">
+            @if (Model != null && Model.BankList != null)
+            {
+                for (var i = 0; i < Model.BankList.Count; i++)
+                {
+                    <div class="panel panel-default bank  panel-boot" id="@Model.BankList[i].Id">
+                        <div class="panel-heading">@Model.BankList[i].BankName <i class="glyphicon glyphicon-ok"></i></div>
+                        <div class="panel-body">
+                            <p>@Model.BankList[i].AccountName</p>
+                            <p>@Model.BankList[i].AccountNum</p>
+                        </div>
+                    </div>
+                }
+            }
+
+        </div>
+
+        <table>
+            <tr>
+                <td style="width: 140px;" class="text-right">T0可提现余额：</td>
+                <td><label class="text-success" style="margin-bottom: 0">@(Model.T0AvailableBalance.ToString("C")) 元</label></td>
+            </tr>
+
+            <tr>
+                <td style="width: 140px;" class="text-right">T1可提现余额：</td>
+                <td><label class="text-success" style="margin-bottom: 0">@(Model.T1AvailbaleBalance.ToString("C")) 元</label></td>
+            </tr>
+
+            <tr>
+                <td class="text-right">提现金额：</td>
+                <td>
+                    <div class="input-group">
+                        <span class="input-group-addon">￥</span>
+                        <input type="number" class="form-control" id="amount" max="@Model.AvailableBalance" placeholder="请输入提现金额" autocomplete="off" />
+                        <span class="input-group-addon">元</span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 140px;" class="text-right">到账时间：</td>
+                <td>
+                    <input type="radio" value="0" name="Paymentdate" checked onclick="CkPaymentdate()" /><span>T+0</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input type="radio" value="1" name="Paymentdate" onclick="CkPaymentdate()" /><span>T+1</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 140px;" class="text-right">手续费：</td>
+                <td>
+                    <span class="counterFee">0</span>元
+                    @*<i class="glyphicon glyphicon-question-sign" id="counterFeetip" data-toggle="tooltip" data-placement="right"></i>*@
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="color: gray;font-size:14px">今日已提现 @todayMax.ToString("C").TrimEndZero() 元，还可提现<span id="CanDayMoney"></span>元。</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <a class="btn btn-primary btnSubmit @(submit ? "" : "NoAuth")" href="javascript:submitWithdrawals()" data-loading-text="正在提交..." autocomplete="off">申请提现</a>
+                    <a class="btn btn-default" href="javascript:showWithdrawalsFlow()" role="button"><i class="glyphicon glyphicon-briefcase"></i> 提现记录</a>
+                </td>
+            </tr>
+        </table>
+        <label class="tipsLabel">温馨提示：</label>
+        <ul class="tips">
+            <li>
+                提现到账时间：选择T+0时，当天16：30分前申请提现当天可到账。当天16：30分后申请提现需T+1到账。
+                <p>
+                    T+<span class="paymentdate">0</span>日到账，在满足提现条件前提下，您申请的提现金额将在申请日（T日）<span class="paymentdateTip"></span>日到账，即：T+<span class="paymentdate">0</span>日到账。<br />
+                    如提现申请日为星期六、星期日或法定节假日，则顺延至下一个工作日处理。<br />
+                    以上时间不含银行维护时间或其他网络系统故障处理时间。
+                </p>
+
+            </li>
+            <li>
+                提现手续费：
+                <p>
+                    <span>
+                        提现手续费 = <span id="txsxf"></span> 元， 您申请提现时，系统将从账户余额中自动扣除。
+                    </span>
+
+                    <br />
+                    若申请提现时，账户余额不足以支付提现手续费，系统将会提示账户余额不足，请确保账户余额足以支付提现手续费，否则将无法提现。
+                </p>
+            </li>
+            <li>
+                提现金额限制：
+                <p>
+                    单笔最高提现金额为<span id="maxMoney"></span>万元，单笔最低提现金额为<span id="minMoney"></span>元，单日累计最高提现金额为<span id="dayMaxMoney"></span>万元。
+                </p>
+            </li>
+            <li>
+                提现账户：
+                <p>
+                    请确保提现银行卡账户信息填写正确，因信息错误导致的提现失败，手续费将不予返还。
+                </p>
+            </li>
+        </ul>
+        <label style="font-size: 16px;margin-left: 10px">
+            特别提示：禁止在本平台进行洗钱、虚假交易等违法行为，一经发现，将终止您在本平台的所有交易，并移交相关司法机关处理。
+        </label>
+
+    </div>
+</div>
+
+
+@section scripts{
+    <script src="~/Scripts/layer/layer.js"></script>
+    <script>
+       var submitUrl =
+            '@Url.Action(ActionName.CapitalManager.ApplyForWithdrawal, ControllerName.CapitalManager, new { area = "Admin" })';
+        var withdrawals = {};
+        withdrawals.tips = $('#withdrawals .tips');
+        var min = 0,//单笔提现最小金额
+            max = 0,//单笔提现最大金额
+            dayMax = 0;//单日累计最高提现金额
+        var t0Max = @Model.T0AvailableBalance;//T0最大提现金额
+        var t1Max = @Model.T1AvailbaleBalance;//T1最大提现金额
+        var todayMax =@Model.TodayMax;////今日累计已提现金额
+        var counterFee = 0;//手续费
+        var paymentdate = 0;//提现时间T+几
+        var rules = JSON.parse('@rules'.replaceAll('&quot;', '"'));
+        $(function() {
+            //$('#counterFeetip').on('mouseenter', function () {
+            //    availableIndex = layer.tips('请确保提现银行卡账户名与您在大陆之星赊销商城开通商铺时所绑定的银行卡用户名一致，否则无法提现。', '#counterFeetip', { time: 0 });
+            //}).on('mouseleave', function () {
+            //    layer.close(availableIndex);
+            //});
+            if ($('.bank').length == 0) {
+                layer.msg('您还未绑定银行账户，请先绑定银行账户后再进行操作!', { shade: 0.3 }, function () {
+                    if (parent) {
+                        if (parent.pageName === 'CapitalSummary') {
+                            parent.parent.showBanks();
+                            parent.close();
+                        } else {
+                            parent.showBanks();
+                            parent.close();
+                        }
+                    }
+                });
+            }
+            $('#amount').on('keyup',
+                function() {
+                    getCounterFee(this.value);
+                }).on('blur',
+                function () {
+                    getCounterFee(this.value);
+                });
+
+            numberHandle('#amount', 2);
+            CkPaymentdate();
+        });
+        function CkPaymentdate() {
+            getCounterFee($("#amount").val());
+        }
+
+        function getCounterFee(money) {
+            paymentdate = $("input[name='Paymentdate']:checked").val();
+            $(".paymentdate").html(paymentdate);
+            if (paymentdate == 0) {
+                $(".paymentdateTip").html("当");
+                dayMax = @dayMax0;
+                min =@min0;
+                max=@max0;
+                $("#minMoney").html(@min0);
+                $("#maxMoney").html(@(max0 / 10000));
+                $("#dayMaxMoney").html(@(dayMax0 / 10000));
+                var canDayMoney=@dayMax0 - @Model.TodayMax;
+                $("#CanDayMoney").html((canDayMoney > 0 ? canDayMoney:0));
+                if ('@counterFeeType0' == '@WithdrawType.Discount') {//按费率收费
+                    counterFee = @counterFeeRate0;
+                    $('.counterFee').text(counterFee.toFixed(2));
+                    $("#txsxf").html(counterFee.toFixed(2));
+                } else if ('@counterFeeType0' == '@WithdrawType.Disposable') {//按单笔收费
+                    if (money > 0) {
+                        counterFee = Math.round(money * @counterFeeRate0) / 100;
+                        $('.counterFee').text(counterFee.toFixed(2));
+                        $("#txsxf").html("申请提现金额 * @counterFeeRate0%");
+                    } else {
+                        counterFee = 0;
+                        $('.counterFee').text(0);
+                        $("#txsxf").html(0);
+                    }
+                } else {//阶梯式收费
+                    var fee = counterFeeFun(parseInt(paymentdate), Number(money));
+                    counterFee = fee;
+                    $('.counterFee').text(fee.toFixed(2));
+                }
+            } else {
+                $(".paymentdateTip").html("次");
+                dayMax = @dayMax1;
+                min =@min1;
+                max=@max1;
+                $("#minMoney").html(@min1);
+                $("#maxMoney").html(@(max1 / 10000));
+                $("#dayMaxMoney").html(@(dayMax1 / 10000));
+                var canDayMoney=@dayMax0 - @Model.TodayMax;
+                $("#CanDayMoney").html((canDayMoney > 0 ? canDayMoney:0));
+                if ('@counterFeeType1'  == '@WithdrawType.Discount') {//按费率收费
+                    counterFee = @counterFeeRate1;
+                    $('.counterFee').text(counterFee.toFixed(2));
+                    $("#txsxf").html(counterFee.toFixed(2));
+                } else if ('@counterFeeType1' == '@WithdrawType.Disposable') {//按单笔收费
+                    if (money > 0) {
+                        counterFee = Math.round(money * @counterFeeRate1) / 100;
+                        $('.counterFee').text(counterFee.toFixed(2));
+                        $("#txsxf").html("申请提现金额 * @counterFeeRate0%");
+                    } else {
+                        counterFee = 0;
+                        $('.counterFee').text(0);
+                        $("#txsxf").html(0);
+                    }
+                } else  {//阶梯式收费
+                    var fee = counterFeeFun(parseInt(paymentdate), Number(money));
+                    counterFee = fee;
+                    $('.counterFee').text(fee.toFixed(2));
+                }
+            }
+
+        }
+
+        function counterFeeFun(paymentDate, money) {
+            if (money <= 0) {
+                $("#txsxf").html(0);
+                return 0;
+            }
+            for (var i = 0; i < rules.length; i++) {
+                if (rules[i].Paymentdate === paymentDate && ((rules[i].Value * 10000 < money && rules[i].Value1 * 10000 >= money) || (rules[i].Value == -1 && rules[i].Value1 * 10000 < money))) {
+                    if (rules[i].LadderType == 0) {
+                        $("#txsxf").html("申请提现金额 * " + rules[i].Withdrawlv + "‰");
+                        return Math.round(money * rules[i].Withdrawlv) / 1000;
+                    }
+                    else {
+                        $("#txsxf").html(rules[i].Value2);
+                        return rules[i].Value2;
+                    }
+                }
+            }
+        }
+
+        function submitWithdrawals() {
+            if ($("input[name='Paymentdate']:checked").val() == undefined) {
+                layer.alert('请选择到账时间！', {
+                    title: '系统提示',
+                    icon: 2,
+                    skin: 'layer-ext-moon'
+                });
+                return;
+            }
+            var $amount = $('#amount');
+            if ($amount.val() <= 0) {
+                layer.alert('请输入正确的金额！', {
+                    title: '系统提示',
+                    icon: 2,
+                    skin: 'layer-ext-moon'
+                });
+                return;
+            }
+            //T0
+            if (paymentdate == 0) {
+                if ($amount.val() > t0Max) {
+                    layer.alert('提现金额不能大于T0可提现余额！', {
+                        title: '系统提示',
+                        icon: 2,
+                        skin: 'layer-ext-moon'
+                    });
+                    return;
+                }
+            }
+            //T1
+            else  {
+                if ($amount.val() > t1Max) {
+                    layer.alert('提现金额不能大于T1可提现余额！', {
+                        title: '系统提示',
+                        icon: 2,
+                        skin: 'layer-ext-moon'
+                    });
+                    return;
+                }
+            }
+
+            if ($amount.val() < min) {
+                layer.alert('单笔提现最小金额为'+min+'元！', {
+                    title: '系统提示',
+                    icon: 2,
+                    skin: 'layer-ext-moon'
+                });
+                return;
+            }
+               var canDayMoney1=dayMax - todayMax;
+            if (parseFloat($amount.val())+parseFloat(todayMax)  > dayMax) {
+                layer.alert('今日已提现' + todayMax + '元！最多还能提现' + (canDayMoney1 > 0 ? canDayMoney1 : 0)+'元', {
+                    title: '系统提示',
+                    icon: 2,
+                    skin: 'layer-ext-moon'
+                });
+                return;
+            }
+            if ($amount.val() > max) {
+                layer.alert('单笔提现最大金额为'+max+'元！', {
+                    title: '系统提示',
+                    icon: 2,
+                    skin: 'layer-ext-moon'
+                });
+                return;
+            }
+            if (parseFloat($amount.val()) + parseFloat(counterFee.toFixed(2)) > parseFloat($amount.prop('max'))) {
+                layer.alert('提现之后的余额不足以支付手续费！', {
+                    title: '系统提示',
+                    icon: 2,
+                    skin: 'layer-ext-moon'
+                });
+                return;
+            }
+
+            layer.confirm('确认提现' + $amount.val() + '元，手续费' + counterFee.toFixed(2)+'元！', {
+              title: '系统提示',
+              btn: ['提现','取消']
+            }, function() {
+                layer.closeAll();
+                var index = layer.load();
+                $('.btnSubmit').button('loading');
+                $.post(submitUrl, { amount: $amount.val(), Paymentdate: $("input[name='Paymentdate']:checked").val()}, function(data) {
+                    if (data) {
+                        layer.closeAll();
+                        if (data.success && data.result) {
+                            location.reload();
+                            layer.alert('提现成功！', {
+                                title: '系统提示',
+                                icon: 1,
+                                skin: 'layer-ext-moon'
+                            });
+
+                            if (parent.pageName === 'CapitalSummary') {
+                                parent.parent.refreshSummary();
+                                parent.parent.showWithdrawalsFlow();
+                            }
+                            parent.refreshSummary();
+                            parent.showWithdrawalsFlow();
+
+                        } else {
+                            $('.btnSubmit').button('reset');
+                            layer.alert(data.message, {
+                                icon: 2,
+                                skin: 'layer-ext-moon'
+                            });
+                        }
+                    }
+                });
+            });
+        }
+
+        var withdrawlsFlowUrl = '@Url.Action(ActionName.CapitalManager.WithdrawalsFlow, ControllerName.CapitalManager)';
+        function showWithdrawalsFlow() {
+            showMaxDialog({ title: '提现记录', href: withdrawlsFlowUrl });
+        }
+
+    </script>
+
+}

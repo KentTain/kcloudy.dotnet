@@ -1,0 +1,264 @@
+﻿@using KC.Web.Customer.Constants
+@using KC.Web.Extension
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    Layout = null;
+    ViewBag.Title = "客户跟踪日志";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var id = ViewBag.CustomerId;
+    var name = ViewBag.CustomerName;
+}
+<div id="toolbar">
+    <div>
+        <!--配置管理-保存配置-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDatabasePool()">添加</a>
+        }
+        <!--配置管理-保存配置-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editDatabasePool()">编辑</a>
+        }
+        <!--配置管理-删除配置-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "51DE1887-5C57-4C17-984D-F23456499652")).Succeeded)
+        {
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeDatabasePool()">删除</a>
+        }
+    </div>
+
+    <div>
+        日志类型： @Html.DropDownList("TracingType", (IEnumerable<SelectListItem>)ViewBag.TracingTypeList, new { @id = "TracingType", @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+        开始时间：<input type="text" class="mydatepick" id="startTime" onfocus=" WdatePicker({maxDate: '#F{$dp.$D(\'endTime\')}' })" readonly="readonly" style="cursor: pointer; width: 150px; height: 21px;">
+        结束时间： <input type="text" class="mydatepick" id="endTime" onfocus="WdatePicker({ minDate: '#F{$dp.$D(\'startTime\')}' })" readonly="readonly" style="cursor: pointer; width: 150px; height: 21px;">
+        <div id="divSearchMenu" class="easyui-menu" style="width:120px">
+            <div data-options="name:'activityName',selected:true">活动名称</div>
+            <div data-options="name:'operatoruser'">操作人</div>
+        </div>
+        <input id="txtSearchbox" class="easyui-searchbox" style="width:300px" />
+        <a href="javascript:void(0)" onclick="RefreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.config.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.all.min.js"></script>
+    <script type="text/javascript">
+        var customerId = @id;
+        var customerName = '@ViewBag.CustomerName';
+        var defaultGuid = 0;
+        //move to com.common.js
+        $(function() {
+            //日志类型
+            $('#TracingType').combobox(
+            {
+                editable: false,
+                onSelect: function () {
+                    searchData();
+                }
+            });
+
+            //开始时间
+            $('#startTime').bind('keydown', function (e) {
+                if (e.keyCode === 13)
+                    searchData();
+            });
+
+            //结束时间
+            $('#endTime').bind('keydown', function (e) {
+                if (e.keyCode === 13)
+                    searchData();
+            });
+            InitDataGrid();
+        });
+
+        var loadDataUrl = '@Url.Action(ActionName.CustomerInfo.GetActivityLogListByCustomerInfoId, ControllerName.CustomerInfo)';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl + '?customerInfoId=' + customerId,
+                method: 'get',
+                idField: 'processLogId',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                columns: [[
+                    { field: 'tracingTypeName', title: '日志类型', width: 100, align: 'left' },
+                    { field: 'remark', title: '日志内容', width: 300, align: 'left' },
+                    { field: 'customerName', title: '跟踪客户名称', width: 100, align: 'left' },
+                    { field: 'operator', title: '操作人', width: 100, align: 'left' },
+                    //{ field: 'OperatorId', title: '操作人ID', width: 100, align: 'left' },
+                    { field: 'operateDate', title: '操作时间', width: 100, align: 'left', formatter: FormatterUtil.DateTimeFormatter },
+                    { field: 'activityName', title: '活动名称', width: 100, align: 'left' }
+                ]],
+                onBeforeLoad: function(param) {
+
+                },
+                onLoadSuccess: function(data) {
+
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                }
+            });
+
+            $('#txtSearchbox').searchbox({
+                menu: '#divSearchMenu',
+                prompt: '请输入查询值',
+                searcher: searchData
+            });
+        }
+        function searchData(value, name) {
+            $('#datagrid').datagrid('unselectAll');
+            var tracingType = $("#TracingType").combobox("getValue");
+            var start = $("#startTime").val();
+            var end = $("#endTime").val();
+            $('#datagrid').datagrid('load',
+                {
+                    "searchKey": name,
+                    "searchValue": value,
+                    "tracingType": tracingType,
+                    "startTime": start,
+                    "endTime": end
+                });
+        }
+
+        var removeUrl = '@Url.Action(ActionName.CustomerInfo.RomoveCustomerTracingLog, ControllerName.CustomerInfo)';
+        function removeDatabasePool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                if (row.tracingType != 0) {
+                    $.messager.showErrorTopCenter('错误消息', '人工录入的客户跟踪信息才能进行删除！', 2000);
+                    return false;
+                }
+
+                $.messager.confirm('系统提示', '是否确定删除该条记录?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUrl, { id: row.processLogId }, function(result) {
+                            if (result.success) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', result.message, 1000);
+                            }
+                            $.easyui.loaded();
+                        }, 'json');
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter('错误消息', "请选择数据", 1000);
+            }
+        }
+        function addDatabasePool() {
+            opentForm(0);
+        }
+        function editDatabasePool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                //人工录入才能进行编辑
+                if (row.tracingType != 0) {
+                    $.messager.showErrorTopCenter('错误消息', '人工录入的客户跟踪信息才能进行编辑！', 2000);
+                    return;
+                }
+                opentForm(row.processLogId);
+            }else {
+                $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行编辑！', 2000);
+            }
+        }
+
+        var ueditorRemark = null;
+        var getFormUrl = '@Url.Action(ActionName.CustomerInfo.CustomerTracingLogForm, ControllerName.CustomerInfo)';
+        var saveFormUrl = '@Url.Action(ActionName.CustomerInfo.SaveCustomerTracingLog, ControllerName.CustomerInfo)';
+        function opentForm(id) {
+            var result = false;
+            var dialog = $.easyui.showDialog({
+                title: id=="0"?"新增跟踪信息":"编辑跟踪信息",
+                width: 1000,
+                height: 600,
+                href: getFormUrl + "?id=" + id + "&customerId=" + customerId + "&customerName=" + customerName,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    var contData = d.form("getData");
+                    //debugger;
+                    if (contData.remark == '') {
+                        $.messager.showErrorTopCenter('错误消息', '客户跟踪信息内容为空，请填入内容后再重试！', 2000);
+                        return false;
+                    }
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(contData),
+                            success: function(data) {
+                                if (data.success) {
+                                    result = true;
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#datagrid').datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onBeforeClose: function() {
+                    if (!result) {
+                        $.messager.confirm("系统提示", "你确定要关闭窗口吗?",
+                            function(r) {
+                                if (r) {
+                                    result = true;
+                                    dialog.dialog("close", true);
+                                }
+                            });
+                    }
+                    return result;
+                },
+                onLoad: function() {
+                    ueditorRemark = UE.getEditor('Remark', {
+                        serverUrl: '/Home/Upload'
+                    });
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                },
+                onClose: function() {
+                    if (ueditorRemark != null)
+                        ueditorRemark.destroy();
+                }
+            });
+        }
+    </script>
+}

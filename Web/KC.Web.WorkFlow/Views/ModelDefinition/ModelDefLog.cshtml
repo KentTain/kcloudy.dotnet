@@ -1,0 +1,74 @@
+﻿@using KC.Web.Workflow.Constants
+@{
+    ViewBag.Title = "表单定义日志";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+<div id="toolbar">
+    <div>
+        <label>操作人:</label> 
+        <input id="selectname" class="easyui-textbox" style="width: 200px" data-options="prompt:'请输入操作人'" />
+        <a href="javascript:void(0)" onclick="searchData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+{
+    <script type="text/javascript">
+        $(function() {
+            InitDataGrid();
+        });
+
+        var loadDataUrl = '@Url.Action(ActionName.ModelDefinition.LoadModelDefLogList, ControllerName.ModelDefinition)';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                toolbar: "#toolbar",
+                fit: true,
+                fitColumns: true,
+                nowrap: false,
+                striped: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [
+                    [
+                        //{ field: 'operatorId', title: '操作人Id', width: 100, align: 'left' },
+                        { field: 'operator', title: '操作人', width: 100, align: 'left' },
+                        { field: 'operateDate', title: '操作日期', width: 100, align: 'left', formatter: FormatterUtil.DateTimeFormatter },
+                        { field: 'remark', title: '内容', width: 500, align: 'left' }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    $(".btnRemoveModule").linkbutton({ plain: true, iconCls: 'fa fa-trash' });
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                }
+            });
+
+            $("#toolbar").keydown(function() {
+                if (event.keyCode == "13") {
+                    searchData();
+                }
+
+            });
+        }
+
+        function refreshSearch() {
+            $("#selectname").searchbox('setValue', '');
+            searchData('', '');
+        }
+        function searchData() {
+            $('#datagrid').datagrid('unselectAll');
+            $("#datagrid").datagrid('load', { selectname: $("#selectname").searchbox("getValue") });
+        }
+
+    </script>
+}

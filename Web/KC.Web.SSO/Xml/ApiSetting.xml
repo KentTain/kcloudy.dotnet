@@ -1,0 +1,416 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.Web.SSO</name>
+    </assembly>
+    <members>
+        <member name="M:KC.Web.SSO.Controllers.AccountController.Logout(KC.Web.SSO.AccountViewModels.LogoutInputModel)">
+            <summary>
+            Handle logout page postback
+            </summary>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.AccountController.checkSendPhoneCode(System.String,System.String)">
+            <summary>
+            同一手机号，二分钟内不能重复发短信
+            </summary>
+            <param name="phone">用户手机号</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.AccountController.checkSendIP">
+            <summary>
+            同一个IP一天只能发送10次的注册短信
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.AccountController.ChangePassword(KC.Web.Base.ChangePasswordViewModel)">
+            <summary>
+            主页修改密码
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.AccountController.ChangeMailPhone(KC.Web.Base.ChangeEmailPhoneViewModel)">
+            <summary>
+            主页修改邮箱及手机号
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:KC.Web.SSO.Controllers.AccountController.GetServiceJsonResult``1(System.Func{``0})" -->
+        <!-- Badly formed XML comment ignored for member "M:KC.Web.SSO.Controllers.AccountController.GetServiceJsonResultAsync``1(System.Func{System.Threading.Tasks.Task{``0}})" -->
+        <member name="P:KC.Web.SSO.Controllers.AccountController.CurrentUserId">
+            <summary>
+            登录用户Id
+            </summary>
+        </member>
+        <member name="P:KC.Web.SSO.Controllers.AccountController.CurrentUserPhone">
+            <summary>
+            登录用户手机
+            </summary>
+        </member>
+        <member name="T:KC.Web.SSO.Controllers.GlobalConfigApiController">
+            <summary>
+            获取系统的全局设置
+            </summary>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.GlobalConfigApiController.IsValid">
+            <summary>
+            接口是否有效
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.GlobalConfigApiController.GetData">
+            <summary>
+            获取全局配置
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.HomeController.LoadMenus">
+            <summary>
+            主页面载入菜单
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.HomeController.GetMenuIdByUrl(System.String)">
+            <summary>
+            根据菜单的Url，返回菜单Id
+            </summary>
+            <param name="url"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.HomeController.GetCurrentUserMenuTree(System.Func{KC.Service.DTO.Account.MenuNodeSimpleDTO,System.Boolean})">
+            <summary>
+            获取当前用户的菜单树结构
+            </summary>
+            <param name="predict"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.HomeController.SetUrlWithDomain(KC.Service.DTO.Account.MenuNodeSimpleDTO,System.Collections.Generic.List{KC.Service.DTO.Account.MenuNodeSimpleDTO})">
+            <summary>
+            拼装菜单对象的URL，以full Url的方式，例如：http://tenantName.sso.domain.com/area/controller/action?query=
+            </summary>
+            <param name="parent"></param>
+            <param name="allOrgs"></param>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.HomeController.GetCachedCurrentUser">
+            <summary>
+            获取当前用户的基本信息及组织结构信息
+            </summary>
+            <param name="container"></param>
+            <param name="tenant"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.HomeController.GetCachedCurrentUserMenus">
+            <summary>
+            获取当前登录用户的菜单数据
+            </summary>
+            <param name="container"></param>
+            <param name="tenant"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Controllers.HomeController.GetCachedCurrentUserPermissions">
+            <summary>
+            获取当前登录用户的权限数据
+            </summary>
+            <param name="container"></param>
+            <param name="tenant"></param>
+            <returns></returns>
+        </member>
+        <member name="P:KC.Web.SSO.Controllers.HomeController.CurrentUserId">
+            <summary>
+            登录用户Id
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:KC.Web.SSO.Controllers.HomeController.GetServiceJsonResultAsync``1(System.Func{System.Threading.Tasks.Task{``0}})" -->
+        <member name="T:KC.Web.SSO.TenantUserClaimsPrincipal">
+            <summary>
+            Provides methods to create a claims principal for a given user.
+            </summary>
+            <typeparam name="User">The type used to represent a user.</typeparam>
+            <typeparam name="TRole">The type used to represent a role.</typeparam>
+        </member>
+        <member name="M:KC.Web.SSO.TenantUserClaimsPrincipal.#ctor(Microsoft.AspNetCore.Identity.UserManager{KC.Model.Account.User},Microsoft.AspNetCore.Identity.RoleManager{KC.Model.Account.Role},Microsoft.Extensions.Options.IOptions{Microsoft.AspNetCore.Identity.IdentityOptions},Microsoft.Extensions.Logging.ILogger{KC.Web.SSO.TenantUserClaimsPrincipal},KC.Framework.Tenant.Tenant)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Identity.UserClaimsPrincipalFactory`2"/> class.
+            </summary>
+            <param name="userManager">The <see cref="T:Microsoft.AspNetCore.Identity.UserManager`1"/> to retrieve user information from.</param>
+            <param name="roleManager">The <see cref="T:Microsoft.AspNetCore.Identity.RoleManager`1"/> to retrieve a user's roles from.</param>
+            <param name="optionsAccessor">The configured <see cref="T:Microsoft.AspNetCore.Identity.IdentityOptions"/>.</param>
+        </member>
+        <member name="M:KC.Web.SSO.TenantUserClaimsPrincipal.CreateAsync(KC.Model.Account.User)">
+            <summary>
+            Creates a <see cref="T:System.Security.Claims.ClaimsPrincipal"/> from an user asynchronously.
+            </summary>
+            <param name="user">The user to create a <see cref="T:System.Security.Claims.ClaimsPrincipal"/> from.</param>
+            <returns>The <see cref="T:System.Threading.Tasks.Task"/> that represents the asynchronous creation operation, containing the created <see cref="T:System.Security.Claims.ClaimsPrincipal"/>.</returns>
+        </member>
+        <member name="M:KC.Web.SSO.TenantUserClaimsPrincipal.GenerateClaimsAsync(KC.Model.Account.User)">
+            <summary>
+            Generate the claims for a user.
+            </summary>
+            <param name="user">The user to create a <see cref="T:System.Security.Claims.ClaimsIdentity"/> from.</param>
+            <returns>The <see cref="T:System.Threading.Tasks.Task"/> that represents the asynchronous creation operation, containing the created <see cref="T:System.Security.Claims.ClaimsIdentity"/>.</returns>
+        </member>
+        <member name="T:KC.Web.SSO.TenantResourceOwnerPasswordValidator">
+            <summary>
+            自定义 Resource owner password 验证器
+            </summary>
+        </member>
+        <member name="M:KC.Web.SSO.TenantResourceOwnerPasswordValidator.ValidateAsync(IdentityServer4.Validation.ResourceOwnerPasswordValidationContext)">
+            <summary>
+            验证
+            </summary>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="F:KC.Web.SSO.TenantProfileService._userManager">
+            <summary>
+            The users
+            </summary>
+        </member>
+        <member name="M:KC.Web.SSO.TenantProfileService.#ctor(Microsoft.AspNetCore.Identity.UserManager{KC.Model.Account.User},Microsoft.AspNetCore.Identity.RoleManager{KC.Model.Account.Role},Microsoft.Extensions.Logging.ILogger{KC.Web.SSO.TenantProfileService},KC.Framework.Tenant.Tenant)">
+            <summary>
+            Initializes a new instance of the <see cref="!:TesUserProfileService"/> class.
+            </summary>
+            <param name="tenant">The tenant.</param>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:KC.Web.SSO.TenantProfileService.GetProfileDataAsync(IdentityServer4.Models.ProfileDataRequestContext)">
+            <summary>
+            只要有关用户的身份信息单元被请求（例如在令牌创建期间或通过用户信息终点），就会调用此方法
+            </summary>
+            <param name="context">The context.</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.TenantProfileService.IsActiveAsync(IdentityServer4.Models.IsActiveContext)">
+            <summary>
+            验证用户是否有效 例如：token创建或者验证
+            </summary>
+            <param name="context">The context.</param>
+            <returns></returns>
+        </member>
+        <member name="T:KC.Web.SSO.Core.TenantUserValidator`1">
+            <summary>Copy of Microsoft.AspNetCore.Identity UserValidator with added SiteId checking</summary>
+        </member>
+        <member name="M:KC.Web.SSO.Services.HttpContextExtensions.GetIdentityServerHost(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Gets the host name of IdentityServer.
+            </summary>
+            <param name="context">The context.</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Services.HttpContextExtensions.GetIdentityServerBaseUrl(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Gets the public base URL for IdentityServer.
+            </summary>
+            <param name="context">The context.</param>
+            <returns></returns>
+        </member>
+        <member name="T:KC.Web.SSO.Services.CustomApiSecretValidator">
+            <summary>
+            Validates API secrets using the registered secret validators and parsers
+            </summary>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomApiSecretValidator.#ctor(IdentityServer4.Stores.IResourceStore,IdentityServer4.Validation.SecretParser,IdentityServer4.Validation.SecretValidator,IdentityServer4.Services.IEventService,Microsoft.AspNetCore.Http.IHttpContextAccessor,Microsoft.Extensions.Logging.ILogger{KC.Web.SSO.Services.CustomApiSecretValidator})">
+            <summary>
+            Initializes a new instance of the <see cref="T:KC.Web.SSO.Services.CustomApiSecretValidator"/> class.
+            </summary>
+            <param name="resources">The resources.</param>
+            <param name="parsers">The parsers.</param>
+            <param name="validator">The validator.</param>
+            <param name="events">The events.</param>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomApiSecretValidator.ValidateAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Validates the secret on the current request.
+            </summary>
+            <param name="context">The context.</param>
+            <returns></returns>
+        </member>
+        <member name="T:KC.Web.SSO.Services.CustomClientSecretValidator">
+            <summary>
+            Validates a client secret using the registered secret validators and parsers
+            </summary>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomClientSecretValidator.#ctor(IdentityServer4.Stores.IClientStore,IdentityServer4.Validation.SecretParser,IdentityServer4.Validation.SecretValidator,IdentityServer4.Services.IEventService,Microsoft.AspNetCore.Http.IHttpContextAccessor,Microsoft.Extensions.Logging.ILogger{KC.Web.SSO.Services.CustomClientSecretValidator})">
+            <summary>
+            Initializes a new instance of the <see cref="T:KC.Web.SSO.Services.CustomClientSecretValidator"/> class.
+            </summary>
+            <param name="clients">The clients.</param>
+            <param name="parser">The parser.</param>
+            <param name="validator">The validator.</param>
+            <param name="events">The events.</param>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomClientSecretValidator.ValidateAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Validates the current request.
+            </summary>
+            <param name="context">The context.</param>
+            <returns></returns>
+        </member>
+        <member name="T:KC.Web.SSO.Services.CustomClientStore">
+            <summary>
+            https://damienbod.com/2017/12/30/using-an-ef-core-database-for-the-identityserver4-configuration-data/
+            </summary>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomHashedSharedSecretValidator.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,Microsoft.Extensions.Logging.ILogger{KC.Web.SSO.Services.CustomHashedSharedSecretValidator})">
+            <summary>
+            Initializes a new instance of the <see cref="T:IdentityServer4.Validation.HashedSharedSecretValidator"/> class.
+            </summary>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomHashedSharedSecretValidator.ValidateAsync(System.Collections.Generic.IEnumerable{IdentityServer4.Models.Secret},IdentityServer4.Models.ParsedSecret)">
+            <summary>
+            Validates a secret
+            </summary>
+            <param name="secrets">The stored secrets.</param>
+            <param name="parsedSecret">The received secret.</param>
+            <returns>
+            A validation result
+            </returns>
+            <exception cref="T:System.ArgumentNullException">Id or cedential</exception>
+        </member>
+        <member name="T:KC.Web.SSO.Services.CustomIdentityServerInteractionService">
+            <summary>
+            接口服务可以放在IServiceCollection 中提供注入
+            接口旨在提供用户界面用于与IdentityServer通信的服务，主要涉及用户交互。
+            它可以从依赖注入系统获得，通常作为构造参数注入到IdentityServer用户界面的MVC控制器中。
+            </summary>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomIdentityServerInteractionService.CreateLogoutContextAsync">
+            <summary>
+            用于创建一个logoutId如果没有一个目前。
+            这将创建一个cookie来捕获注销所需的所有当前状态，并logoutId标识该cookie。
+            这通常在没有当前时间的情况下使用logoutId，并且注销页面必须在重定向到用于注销的外部身份提供商之前捕获用于singout的当前用户的状态。
+            新创建的应用程序logoutId需要在注销时对外部身份提供程序进行往返，然后在注销回调页面上使用，与正常注销页面上的方式相同。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomIdentityServerInteractionService.GetAllUserConsentsAsync">
+            <summary>
+            返回Consent用户的集合。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomIdentityServerInteractionService.GetAuthorizationContextAsync(System.String)">
+            <summary>
+            返回AuthorizationRequest基于returnUrl传递给登录或同意页面的内容。
+            </summary>
+            <param name="returnUrl"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomIdentityServerInteractionService.GetErrorContextAsync(System.String)">
+            <summary>
+            返回ErrorMessage基于errorId传递给错误页面的内容。
+            </summary>
+            <param name="errorId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomIdentityServerInteractionService.GetLogoutContextAsync(System.String)">
+            <summary>
+            返回LogoutRequest基于logoutId传递给注销页面的内容
+            </summary>
+            <param name="logoutId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomIdentityServerInteractionService.GrantConsentAsync(IdentityServer4.Models.AuthorizationRequest,IdentityServer4.Models.ConsentResponse,System.String)">
+            <summary>
+            接受一个ConsentResponse通知IdentityServer用户同意某个特定的AuthorizationRequest
+            </summary>
+            <param name="request"></param>
+            <param name="consent"></param>
+            <param name="subject"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomIdentityServerInteractionService.IsValidReturnUrl(System.String)">
+            <summary>
+            指出returnUrl登录或同意后是否为重定向的有效网址
+            </summary>
+            <param name="returnUrl"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomIdentityServerInteractionService.RevokeTokensForCurrentSessionAsync">
+            <summary>
+            取消用户在当前会话中登录的所有用户的同意和授予。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomIdentityServerInteractionService.RevokeUserConsentAsync(System.String)">
+            <summary>
+            撤销所有用户的同意和赠款给客户。
+            </summary>
+            <param name="clientId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:KC.Web.SSO.Services.CustomResourceStore">
+            <summary>
+            https://damienbod.com/2017/12/30/using-an-ef-core-database-for-the-identityserver4-configuration-data/
+            </summary>
+        </member>
+        <member name="M:KC.Web.SSO.Services.CustomTokenRequestValidator.ValidateAsync(IdentityServer4.Validation.CustomTokenRequestValidationContext)">
+            <summary>
+            Custom validation logic for a token request.
+            </summary>
+            <param name="context">The context.</param>
+            <returns>
+            The validation result
+            </returns>
+        </member>
+        <member name="T:KC.Web.SSO.Models.AccountViewModels.LoginInputModel">
+            <summary>
+            登录输入对象
+            </summary>
+        </member>
+        <member name="P:KC.Web.SSO.Models.AccountViewModels.LoginInputModel.UserName">
+            <summary>
+            用户名
+            </summary>
+        </member>
+        <member name="P:KC.Web.SSO.Models.AccountViewModels.LoginInputModel.Password">
+            <summary>
+            用户密码
+            </summary>
+        </member>
+        <member name="P:KC.Web.SSO.Models.AccountViewModels.LoginInputModel.RememberLogin">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:KC.Web.SSO.Models.AccountViewModels.LoginInputModel.ReturnUrl">
+            <summary>
+            会跳地址
+            </summary>
+        </member>
+        <member name="P:KC.Web.SSO.Models.AccountViewModels.LoginInputModel.TenantName">
+            <summary>
+            租户代码
+            </summary>
+        </member>
+        <member name="P:KC.Web.SSO.Models.AccountViewModels.LoginInputModel.TenantDisplayName">
+            <summary>
+            租户显示名
+            </summary>
+        </member>
+        <member name="M:KC.Web.SSO.Startup.ConfigureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            This method gets called by the runtime. Use this method to add services to the container.
+            </summary>
+            <param name="services"></param>
+        </member>
+        <member name="M:KC.Web.SSO.Startup.ConfigureIdentityServer4AuthService(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            配置IdentityServer4认证服务器
+            </summary>
+            <param name="services"></param>
+        </member>
+        <member name="M:KC.Web.SSO.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.Extensions.Hosting.IHostEnvironment)">
+            <summary>
+            This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            </summary>
+            <param name="app"></param>
+            <param name="env"></param>
+        </member>
+    </members>
+</doc>

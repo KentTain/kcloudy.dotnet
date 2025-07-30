@@ -1,0 +1,301 @@
+﻿@using KC.Web.Admin.Constants
+@using KC.Web.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    ViewBag.Title = "Vod池管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+<div id="toolbar">
+    <div>
+        @*Vod池管理-保存Vod连接*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "425B3088-9E5A-4A32-B232-02F38E6C1D52")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addVodPool()">添加</a>
+        }
+        @*Vod池管理-保存Vod连接*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "425B3088-9E5A-4A32-B232-02F38E6C1D52")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editVodPool()">编辑</a>
+        }
+        @*Vod池管理-删除Vod连接*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "770C10D1-EE87-40E3-8CAA-B31EBD4A8CA0")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeVodPool()">删除</a>
+        }
+    </div>
+
+    <div>
+        <label>访问名称:</label>
+        <input id="selectname" class="easyui-textbox" style="width:200px" data-options="prompt:'请输入查询值'" />
+        <a href="javascript:void(0)" onclick="searchData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section scripts
+{
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            InitDataGrid();
+        });
+
+        var loadDataUrl = '@Url.Action(ActionName.VodPool.LoadVodPoolList, ControllerName.VodPool)';
+        var LoadTenantUserListByVodPoolUrl = '@Url.Action(ActionName.VodPool.LoadTenantUserListByVodPool, ControllerName.VodPool)';
+        var tenantDetailUrl = '@Url.Action(ActionName.Tenant.TenantDetail, ControllerName.Tenant)';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                view: detailview,
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'vodPoolId',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                showFooter: false,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                columns: [[
+                    { field: 'vodPoolId', title: 'Id', width: 30, align: 'left' },
+                    { field: 'cloudTypeString', title: '云服务', width: 50, align: 'left' },
+                    { field: 'vodTypeString', title: '类型', width: 80, align: 'left' },
+                    { field: 'endpoint', title: '访问地址', width: 200, align: 'left' },
+                    { field: 'accessName', title: '访问名称', width: 100, align: 'left' },
+                    //{ field: 'CreatedBy', title: '创建人', width: 100, align: 'left' },
+                    //{ field: 'CreatedDate', title: '创建时间', formatter: FormatterUtil.DateFormatter, width: 100, align: 'left' },
+                    { field: 'passwordExpiredTime', title: '密码过期时间', formatter: FormatterUtil.DateFormatter, width: 100, align: 'left', sortable: true },
+                    { field: 'tenantCount', title: '租户个数', width: 50, align: 'left', editor: { type: 'numberbox', options: { min: 20, precision: 0 } } }
+                ]],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function (data) {
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function (index,row) {
+                    return '<div style="padding:2px"><table class="ddv"></table></div>';
+                },
+                onExpandRow: function (index, row) {
+                    var ddv = $(this).datagrid('getRowDetail', index).find('table.ddv');
+                    ddv.datagrid({
+                        url: LoadTenantUserListByVodPoolUrl + '?vodPoolId=' + row.vodPoolId,
+                        fitColumns: true,
+                        singleSelect: true,
+                        rowNumbers: true,
+                        loadMsg: '',
+                        height: 'auto',
+                        columns: [[
+                            { field: 'tenantName', title: '租户代码', width: 100, align: 'left' },
+                            { field: 'tenantDisplayName', title: '租户名', width: 80, align: 'left',
+                                formatter: function (value, row, index) {
+                                    return '<a href="javascript:void(0);" onclick="MainPage_PostMessage(\'openPage\', \'' + tenantDetailUrl + '\', \'id=' + row.tenantId + '\')" style="text-decoration: none; color: #0000ff">' + value + '</a>';
+                                }
+                            },
+                            { field: 'cloudTypeString', title: '云服务', width: 60, align: 'left' },
+                            { field: 'versionString', title: '版本类型', width: 40, align: 'left' },
+                            { field: 'tenantTypeString', title: '店铺类型', width: 50, align: 'left' },
+                            { field: 'nickName', title: 'NickName', width: 50, align: 'center' }
+                        ]],
+                        onResize: function () {
+                            $('#datagrid').datagrid('fixDetailRowHeight', index);
+                        },
+                        onLoadSuccess: function () {
+                            setTimeout(function () {
+                                $('#datagrid').datagrid('fixDetailRowHeight', index);
+                            }, 0);
+                        }
+                    });
+                }
+            });
+            $("#toolbar").keydown(function(){
+                if(event.keyCode=="13") {
+               searchData();
+        }
+        });
+        }
+
+        function refreshData() {
+
+            $("#selectname").searchbox('setValue', '');
+            searchData();
+        }
+
+        function searchData() {
+
+            $('#datagrid').datagrid('load', { selectname: $("#selectname").searchbox("getValue") });
+        }
+
+        function addVodPool() {
+            openForm(0);
+        }
+
+        function editVodPool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                openForm(row.vodPoolId);
+            } else {
+                $.messager.showErrorTopCenter("系统提示", "请选择需要编辑的数据", 2000);
+            }
+
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.VodPool.GetVodPoolForm, ControllerName.VodPool)';
+        var saveFormUrl = '@Url.Action(ActionName.VodPool.SaveVodPoolForm, ControllerName.VodPool)';
+        function openForm(id) {
+            var dialog = $.easyui.showDialog({
+                title: "保存数据",
+                width: 500,
+                height: 460,
+                href: getFormUrl + "?id=" + id,
+                model: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: 'post',
+                            dataType: 'json',
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $("#datagrid").datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功', 1000);
+                                    } else {
+                                        $.messager.showInfoTopCenter('错误信息', '保存数据失败', 1000);
+                                    }
+                                } else {
+                                    $.messager.showInfoTopCenter('错误信息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function () {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        var removeUrl = '@Url.Action(ActionName.VodPool.RemoveVodPool, ControllerName.VodPool)';
+        function removeVodPool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('确认', '是否确定删除该条记录?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUrl, { id: row.VodPoolId }, function(data) {
+                            $.easyui.loaded();
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                }
+                            } else {
+                                $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        }, 'json');
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter("系统提示", "请选择需要删除的数据", 2000);
+            }
+        }
+
+        var getPasswordHashUrl = '@Url.Action(ActionName.Tenant.GeneratePasswordHash, ControllerName.Tenant)';
+        function generatePasswordHash() {
+            //debugger;
+            var password = $('#AccessKeyPassword').val();
+            if (password == '') {
+                $.messager.showErrorTopCenter('错误消息', "用户密码不能为空", 1000);
+                return;
+            }
+            $.messager.confirm('确认', '是否根据秘钥:（' + password + '）进行加密，生成加密后的秘钥?', function(r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(getPasswordHashUrl, { password: password }, function(result) {
+                        $.easyui.loaded();
+                        if (result.success) {
+                            $('#AccessKeyPasswordHash').val(result.message);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', result.message, 1000);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+        var testConnectionUrl = '@Url.Action(ActionName.VodPool.TestVodConnection, ControllerName.VodPool)';
+        function testConnection() {
+            //debugger;
+            var VodType = $('#VodType').val();
+            if (VodType == '') {
+                $.messager.showErrorTopCenter('错误消息', "类型不能为空", 1000);
+                return;
+            }
+            var endpoint = $('#Endpoint').val();
+            if (endpoint == '') {
+                $.messager.showErrorTopCenter('错误消息', "服务器地址不能为空", 1000);
+                return;
+            }
+            var accessName = $('#AccessName').val();
+            if (accessName == '') {
+                $.messager.showErrorTopCenter('错误消息', "服务器AccessName不能为空", 1000);
+                return;
+            }
+            var accessKeyHash = $('#AccessKeyPasswordHash').val();
+            if (accessKeyHash == '') {
+                $.messager.showErrorTopCenter('错误消息', "服务器AccessKey不能为空", 1000);
+                return;
+            }
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.post(testConnectionUrl,
+                {
+                    VodType: VodType,
+                    Endpoint: endpoint,
+                    AccessName: accessName,
+                    AccessKeyPasswordHash: accessKeyHash,
+                },
+                function(data) {
+                    $.easyui.loaded();
+                    if (data.success) {
+                        if (data.result == '') {
+                            $.messager.showInfoTopCenter('系统提示', '测试Vod数据库连接成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.result, 3000);
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                    }
+                }, 'json');
+        }
+    </script>
+}
+
+

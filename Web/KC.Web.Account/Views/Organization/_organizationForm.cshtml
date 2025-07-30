@@ -1,0 +1,85 @@
+﻿@using KC.Web.Account.Constants
+@using KC.Framework.Extension
+@model KC.Service.DTO.Account.OrganizationDTO
+
+
+<form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.Organization.SaveOrganizationForm, ControllerName.Organization)">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    @*@Html.HiddenFor(model => model.ParentId)*@
+    @Html.HiddenFor(model => model.Status)
+    @Html.HiddenFor(model => model.Leaf)
+    @Html.HiddenFor(model => model.Level)
+    @Html.HiddenFor(model => model.TreeCode)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label for="ParentId">父节点：</label></td>
+                <td>
+                    @if (Model.ParentId != 0 && Model.Level == 4)
+                    {
+
+                        <input id="ParentId" name="ParentId" class="easyui-textbox" value="@Model.ParentId" style="width: 200px;">
+                    }
+                    else
+                    {
+                        <input id="ParentId" name="ParentId" class="easyui-textbox" value="@Model.ParentId" style="width: 200px;">
+                    }
+
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Name">名称：</label></td>
+                <td>
+                    <input id="Text" name="Text" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:200,prompt:'请输入部门名称',validType:['length[2,15]','isSpace',
+                           'existName[\'@Url.Action(ActionName.Organization.ExistOrganizationName, ControllerName.Organization)\',\'@Model.ParentId\',\'@Model.IsEditMode\',\'@Model.Text\',\'系统已存在该部门名称\']']"
+                           value="@(null != Model ? Model.Text : string.Empty)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="PositionLevel">归属业务类型：</label></td>
+                <td>
+                    <select id="BusinessType" name="BusinessType" class="easyui-combobox"
+                            data-options="width:200,editable: false, required:true,"
+                            asp-items="ViewBag.BusinessTypes" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Index">排序：</label></td>
+                <td><input id="Index" name="Index" class="easyui-numberspinner easyui-textbox" data-options="required:true,width:200,min:1,max:100" value="@(null != Model ? Model.Index : 0)"></td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+<script>
+
+    $(function () {
+        $('.textbox').bind('blur', function () {
+            $(this).validatebox('enableValidation').validatebox('validate');
+        });
+
+        $('#ParentId').combotree({
+            url: '@Url.Action(ActionName.Organization.LoadOrganizationTree, ControllerName.Organization)',
+            queryParams: {
+                name: null,
+                excludeId: null,
+                selectedId: null,
+                hasAll: false,
+                hasRoot: false,
+                maxLevel: 3
+            },
+            required: true
+        });
+    });
+
+</script>
+

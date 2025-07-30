@@ -1,0 +1,317 @@
+﻿@using KC.Web.Constants;
+@model KC.Service.DTO.Portal.WebSitePageDTO
+@*@inject Tenant tenant*@
+@{
+    ViewBag.Title = "鑫亚科技-首页";
+    Layout = "_HomeLayout.cshtml";
+    /*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*/
+    var tenant = ViewBag.UserTenantName ?? ViewBag.TenantName ?? "cdba";
+    var accDomain = KC.Framework.Base.GlobalConfig.GetTenantWebDomain(KC.Framework.Base.GlobalConfig.AccWebDomain, tenant);
+}
+
+@section styles{
+    <style>
+        /*organization*/
+
+    </style>
+}
+
+@section Scripts {
+    <!--Main-->
+    <script>
+
+        $(function () {
+            layui.use('carousel', function () {
+                var carousel = layui.carousel;
+                //debugger;
+                var imgH = $('#divCarousel .bgImage')[0].offsetHeight;
+                if (imgH === undefined || imgH === null || imgH === 0) imgH = 460;
+                $('#divCarousel').height(imgH);
+
+                window.onresize = function () {
+                    var imgH = $('#divCarousel .bgImage')[0].offsetHeight;
+                    if (imgH === undefined || imgH === null || imgH === 0) imgH = 460;
+                    $('#divCarousel').height(imgH);
+                };
+
+                //建造实例
+                carousel.render({
+                    elem: '#divCarousel'
+                    , arrow: 'always' //始终显示箭头
+                    , width: '100%' //设置容器宽度
+                    //, height: 'auto'
+                    , height: imgH
+                    //,anim: 'updown' //切换动画方式
+                });
+
+                carousel.render({
+                    elem: '#divCompany'
+                    , width: '100%' //设置容器宽度
+                    , arrow: 'always'
+                    , height: '90'
+                    , indicator: 'none'
+                });
+            });
+        });
+    </script>
+}
+
+<!-- banner部分 -->
+<div id="divCarousel" class="layui-carousel banner">
+    <div id="divCarouselItem" carousel-item>
+        @if (Model.MainSlideBlobs != null && Model.MainSlideBlobs.Any())
+        {
+            @foreach (var slide in Model.MainSlideBlobs)
+            {
+                @if (!string.IsNullOrEmpty(slide.ShowImageUrl))
+                {
+                    <div class="bgImage" style="background: url(@slide.ShowImageUrl) no-repeat center top; background-size: cover; box-sizing: border-box;">
+                    </div>
+                }
+                else
+                {
+                    <div class="bgImage" style="background: url(/images/demo/banner/banner-2.jpg) no-repeat center top; background-size: cover; box-sizing: border-box;">
+                    </div>
+                }
+            }
+        }
+        else
+        {
+            <div class="bgImage" style="background: url(/images/demo/banner/banner-2.jpg) no-repeat center top; background-size: cover; box-sizing: border-box;">
+            </div>
+        }
+
+    </div>
+</div>
+
+<!-- main部分 -->
+<div class="main" layout:fragment="content">
+@if (Model.WebSiteColumns.Any())
+{
+    var i = 0;
+    @foreach (var column in Model.WebSiteColumns)
+    {
+        var cType = column.Type;
+        var iType = column.ItemType;
+        var iCount = column.ColumnCount;
+        var layCol = 12 / iCount;
+        @if (column.IsShow)
+        {
+    <div id="div-column-@column.Id" class="divGroup">
+        @if (!string.IsNullOrEmpty(column.Title) && column.Type != KC.Enums.Portal.WebSiteColumnType.Slide)
+        {
+            <!--标题-->
+            <div class="layui-container group-title">
+                <h2>
+                    <i></i>
+                    <span class="title">@Html.Raw(column.Title)</span>
+                    <i></i>
+                </h2>
+                <span class="subtitle">@Html.Raw(column.SubTitle)</span>
+            </div>
+        }
+        <!--展示-->
+        <div class="layui-container">
+            <div class="layui-row  @(column.Type == KC.Enums.Portal.WebSiteColumnType.Slide? "company-list":"card-list")">
+                @if (column.WebSiteItems.Any())
+                {
+                    var j = 0;
+                    @if (column.Type == KC.Enums.Portal.WebSiteColumnType.Image)
+                    {
+                        @foreach (var item in column.WebSiteItems)
+                        {
+                            @if (item.IsShow)
+                            {
+                                <div id="div-item-@item.Id" class="layui-col layui-col-xs@(layCol) layui-col-sm@(layCol) layui-col-md@(layCol) layui-col-lg@(layCol)">
+                                    <!--图片式-->
+                                    <div class="image-item image-item-tb">
+                                        @if (item.ImageOrIConClsBlob != null)
+                                        {
+                                            <img id="card-image-@(item.Id)" class="card-img-@(iCount)" src="@item.ImageOrIConClsBlob.ShowImageUrl" style="width:100%">
+                                        }
+                                        else
+                                        {
+                                            <img id="card-image-@(item.Id)" class="card-img-@(iCount)" src="/images/demo/home/home-2.png" style="width:100%">
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                    else if (column.Type == KC.Enums.Portal.WebSiteColumnType.Card && column.ItemType == KC.Enums.Portal.WebSiteItemType.LeftRight)
+                    {
+                        @foreach (var item in column.WebSiteItems)
+                        {
+                            @if (item.IsShow)
+                            {
+                                <div id="div-item-@item.Id" class="layui-col layui-col-xs@(layCol) layui-col-sm@(layCol) layui-col-md@(layCol) layui-col-lg@(layCol)">
+                                    <!--卡片式：左右结构-->
+                                    <div class="card-item card-item-lr">
+                                        <div class="layui-col-xs6 layui-col-sm4 layui-col-md6 layui-col-lg6 card-left">
+                                            <i id="icon-@(item.Id)" class="@item.ImageOrIConCls fa-5x" aria-hidden="true"></i>
+                                        </div>
+                                        <div class="layui-col-xs6 layui-col-sm8 layui-col-md6 layui-col-lg6 card-right">
+                                            <span class="card-title">
+                                                @Html.Raw(item.Title)
+                                            </span>
+                                            <br />
+                                            <span class="card-subtitle">
+                                                @Html.Raw(item.SubTitle)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                j++;
+                            }
+
+                        }
+                    }
+                    else if (column.Type == KC.Enums.Portal.WebSiteColumnType.Card && column.ItemType == KC.Enums.Portal.WebSiteItemType.TopBottom)
+                    {
+                        @foreach (var item in column.WebSiteItems)
+                        {
+                            @if (item.IsShow)
+                            {
+                                <div id="div-item-@item.Id" class="layui-col layui-col-xs@(layCol) layui-col-sm@(layCol) layui-col-md@(layCol) layui-col-lg@(layCol)">
+                                    <!--卡片式：上下结构-->
+                                    <div class="card-item card-item-tb">
+                                        <div class="card-top" style="">
+                                            <div class="card-title" style="width:60%;">
+                                                <span>@Html.Raw(item.Title)</span>
+                                            </div>
+                                            <div class="card-icon" style="width:40%;">
+                                                <i id="icon-@(item.Id)" class="@item.ImageOrIConCls fa-5x" aria-hidden="true" style="display:inline-block;margin:6px 0;"></i>
+                                            </div>
+                                        </div>
+                                        <div class="card-bottom">
+                                            <span class="card-subtitle">
+                                                @Html.Raw(item.SubTitle)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                j++;
+                            }
+                        }
+                    }
+                    else if (column.Type == KC.Enums.Portal.WebSiteColumnType.Product)
+                    {
+                        @foreach (var item in column.WebSiteItems)
+                        {
+                            @if (item.IsShow)
+                            {
+                                <div id="div-item-@item.Id" class="layui-col layui-col-xs@(layCol) layui-col-sm@(layCol) layui-col-md@(layCol) layui-col-lg@(layCol)">
+                                    <!--产品式：上下结构-->
+                                    <div class="card-item card-item-img">
+                                        @if (item.ImageOrIConClsBlob != null)
+                                        {
+                                            <img id="card-image-@(item.Id)" class="card-img-@(iCount)" src="@item.ImageOrIConClsBlob.ShowImageUrl">
+                                        }
+                                        else
+                                        {
+                                            <img id="card-image-@(item.Id)" class="card-img-@(iCount)" src="/images/image_no.jpg">
+                                        }
+                                        <div style="text-align:center">
+                                            <span class="card-title-@(iCount)">
+                                                <span>@Html.Raw(item.Title)</span>
+                                            </span>
+                                            <br />
+                                            <span class="card-subtitle-@(iCount)">
+                                                <span>@Html.Raw(item.SubTitle)</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                j++;
+                            }
+                        }
+                    }
+                    else if (column.Type == KC.Enums.Portal.WebSiteColumnType.Slide)
+                    {
+                        <div class="layui-col-xs2 layui-col-sm2 layui-col-md2 layui-col-lg2">
+                            <div class="company-left">
+                                <span class="company-title">
+                                    <i class="fa fa-play" aria-hidden="true"></i>
+                                    <span class="company-subtitle">&nbsp;@Html.Raw(column.Title)&nbsp;</span>
+                                    <br />
+                                    <span>
+                                        @Html.Raw(column.SubTitle)&nbsp;&nbsp;&nbsp;
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="layui-col-md10">
+                            <div id="divCompany" class="layui-carousel ">
+                                <div carousel-item="">
+                                    <div class="item-box">
+                                        @foreach (var item in column.WebSiteItems)
+                                        {
+                                            @if (item.IsShow)
+                                            {
+                                                <div class="item">
+                                                    <img src="@item.ImageOrIConClsBlob?.ShowImageUrl" />
+                                                </div>
+                                                @if (j == 4)
+                                                {
+                                                    @Html.Raw("</div>")
+                                                    @Html.Raw("<div class='item-box'>")
+                                                }
+                                                j++;
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    }
+                }
+            </div>
+        </div>
+    </div>
+        }
+
+        i++;
+    }
+}
+
+    <!--news部分 -->
+    @*<div class="divGroup">
+        <div class="layui-container">
+            <div class="layui-row news-list">
+                <div class="layui-col-xs3 layui-col-sm3 layui-col-md2 layui-col-lg2">
+                    <div class="news-left">
+                        <span class="news-title">
+                            <i class="fa fa-newspaper-o fa-5x" aria-hidden="true"></i>
+                            <br />
+                            <span class="news-subtitle">News</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="layui-col-xs9 layui-col-sm9 layui-col-md10 layui-col-lg10">
+                    <ul class="news-content">
+                        @if (Model.LatestNews.Any())
+                        {
+                            @foreach (var item in Model.LatestNews)
+                            {
+                                <li><a title="@item.Title" href="/Home/NewsDetails/@item.Id" target="_blank">@item.Title</a></li>
+                            }
+                        }
+                        else
+                        {
+                            @if (ViewBag.CanAddNews)
+                            {
+                                <li><a href="@(accDomain)" target="_blank"><i class="fa fa-plus-square" aria-hidden="true"></i>添加新闻</a></li>
+                            }
+                            else
+                            {
+                                <li>未发布新闻</li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+</div>

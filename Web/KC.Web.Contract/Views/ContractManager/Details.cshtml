@@ -1,0 +1,656 @@
+﻿@using KC.Framework.Base
+@using KC.Enums.Contract
+@using KC.Web.Contract.Constants
+@model KC.Service.DTO.Contract.ContractGroupDTO
+@{
+    Layout = "Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "合同详情";
+    var tenantMarketDomian = GlobalConfig.SSOWebDomain;
+    var RealNameAuthenticationUrl = string.Format("{0}RealNameAuthentication/Index", tenantMarketDomian);
+}
+
+<style type="text/css">
+    /*input {
+        margin: 5px;
+    }*/
+
+    a {
+        cursor: pointer;
+        padding: 10px;
+    }
+
+    #return {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    #returnButton {
+        float: right;
+        margin: 20px;
+    }
+
+    #ContractDiv .basicTable td:nth-child(odd) {
+        text-align: center;
+        background-color: white;
+    }
+
+    .table {
+        text-align: center !important;
+    }
+
+        .table > thead:first-child > tr:first-child > th {
+            text-align: center;
+            background-color: #F5F5F5;
+        }
+
+    #contractContentDiv, #signUserTable {
+        text-align: center;
+    }
+
+    #optTip {
+        padding-bottom: 10px;
+    }
+
+    #parent {
+        min-width: 630px;
+        min-height: 892px;
+        position: relative;
+        margin: 0 auto;
+    }
+
+    #topparent {
+        z-index: 999;
+    }
+
+    #ContractDiv {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    #optTip ul li {
+        display: inline-block;
+    }
+
+        #optTip ul li:first-child {
+            margin-top: 12px;
+        }
+
+    #optTip {
+        text-align: center;
+    }
+
+    #drag-box {
+        float: left;
+        position: absolute;
+        cursor: pointer;
+        border: 1px dashed #ccc;
+        display: none;
+    }
+
+    #sureImgRange, #delImgRange {
+        background: #FFC107;
+        color: white;
+    }
+</style>
+
+<from>
+
+    <table id="datagrid1" class="table table-celled table-structured" style="margin-top:0;">
+        <thead>
+            <tr>
+                <th colspan="2" class="table-title">合同信息</th>
+            </tr>
+        </thead>
+        <tr>
+            <td><label>合同编号：</label></td>
+            <td>
+                @Html.ValueFor(model => model.ContractNo)
+            </td>
+
+        </tr>
+        <tr>
+            <td><label>合同标题：</label></td>
+            <td>
+                @Html.ValueFor(model => model.ContractTitle)
+            </td>
+        </tr>
+        <tr>
+            <td><label>合同类型：</label></td>
+            <td>
+                @Html.ValueFor(model => model.TypeStr)
+            </td>
+        </tr>
+    </table>
+
+    <table class="table table-celled table-structured">
+        <thead>
+            <tr>
+                <th colspan="4" class="table-title">合同主体</th>
+            </tr>
+            <tr>
+                <th>签署方</th>
+                <th>企业标题(个人姓名)</th>
+                <th>状态</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody id="signUserTable">
+            @foreach (var item in Model.UserContract)
+            {
+                <tr>
+                    <td>@item.Key</td>
+                    <td>@item.UserName</td>
+                    <td>@item.StatuStr</td>
+                    <td>@item.BreakRemark</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div id="optTip">
+        <ul>
+            <li>本预览界面出来合同内容包括签章都支持预览，个别浏览器不兼容，建议使用火狐/谷歌浏览器</li>
+            <li> <a href="@(Url.Action("DownloadContract", new { blobId = Model.BlobId, userId = Model.UserId }))" target='_blank' class="easyui-linkbutton button-xs" data-options="iconCls:'icon-standard-arrow-down'">下载</a> </li>
+            <li> <a href="@(Url.Action("PrintPDF", new { blobId = Model.BlobId, userId=Model.UserId }))" class="easyui-linkbutton button-xs" target='_blank' data-options="iconCls:'icon-standard-drive-disk'">打印</a> </li>
+        </ul>
+    </div>
+
+    <div id="parent">
+        @if (Model.Opt.HasValue && Model.Opt.Value == ContractOpt.LastDiscard)
+        {
+            <div id="drag-box" style="width:177px;height:112px;">
+                <img src="~/Content/images/Abandoned.png" style="width: 175px; height: 110px;" />
+                <div style="text-align: right;margin-top: -30px;">
+                    <a onclick="Abandonedsign();" id="sureImgRange" class="easyui-linkbutton">确定</a>
+                    <a onclick="ImgRange(2);" id="delImgRange" class="easyui-linkbutton">删除</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div id="drag-box" style="width:178px;height:178px;">
+                <img src="~/Content/images/seal.png" style="width:176px;height:176px;" id="signImg" />
+                <div style="text-align: right;margin-top: -30px;">
+                    <a onclick="sign('@Model.Id');" id="sureImgRange" class="easyui-linkbutton">确定</a>
+                    <a onclick="ImgRange(2);" id="delImgRange" class="easyui-linkbutton">删除</a>
+                </div>
+            </div>
+        }
+        <canvas id="the-canvas"></canvas>
+        <div id="topparent">
+            <!--page-->
+            <div class="paginationlocal">
+                @*<ul class="pagination pagination-sm"></ul>*@
+                <ul class="pagination_Partial"></ul>
+            </div>
+            <!--page-->
+        </div>
+    </div>
+
+    @if (Model.Opt.HasValue)
+    {
+        switch (Model.Opt.Value)
+        {
+            case ContractOpt.FirstReview:
+                <div style="text-align:center;margin-top:40px">
+                    <a class="easyui-linkbutton button-primary" onclick="comfirm('@Model.Id',true); "> 审核 </a>
+                </div>
+                break;
+            case ContractOpt.Review:
+                <div style="text-align:center;margin-top:40px">
+                    <a class="easyui-linkbutton button-primary" onclick="comfirm('@Model.Id',false); "> 审核 </a>
+                </div>
+                break;
+            case ContractOpt.Withdraw:
+                <div style="text-align:center;margin-top:40px">
+                    <a class="easyui-linkbutton button-primary" onclick="brack('brack',false); "> 退回 </a>
+                </div>
+                break;
+            case ContractOpt.Sign:
+                if (Model.IsPersonal)
+                {
+                    <div style="text-align:center;margin-top:40px">
+                        <a class="easyui-linkbutton button-primary" onclick="PersonalSign('@Model.Id')"> 签署 </a>
+                    </div>
+                }
+                else
+                {
+                    <div style="text-align:center;margin-top:40px">
+                        <a class="easyui-linkbutton button-primary" onclick="ImgRange(0,false); "> 签署 </a>
+                    </div>
+                }
+                break;
+            case ContractOpt.Delete:
+                <div style="text-align:center;margin-top:40px">
+                    <a class="easyui-linkbutton button-primary" onclick="del('@Model.Id'); "> 删除 </a>
+                </div>
+                break;
+            case ContractOpt.Discard:
+                <div style="text-align:center;margin-top:40px">
+                    <a class="easyui-linkbutton button-primary" onclick="brack('abandoned',false); "> 确认作废 </a>
+                </div>
+                break;
+            case ContractOpt.LastDiscard:
+                <div style="text-align:center;margin-top:40px">
+                    <button type="button" class="easyui-linkbutton button-primary" onclick="brack('abandoned',true); "> 确认作废 </button>
+                </div>
+                break;
+            default:
+                break;
+        }
+    }
+
+</from>
+
+<div class="brackReason" style="text-align: center;display: none">
+    <span>
+        <textarea id="brackinput" style="height: 85px;width: 250px;margin-top: 4px;"></textarea>
+    </span>
+</div>
+
+<script type="text/javascript">
+    var backUrl = '@(Url.Action("MyContract"))';
+    var downloadUrl = '@(Url.Action("DownloadContract"))?blobId=@Model.BlobId&userId=@Model.UserId';
+    var getCodeFormUrl = '@Url.Action("GetCodeFormUrl", "CurrencySign")';
+    var str = "";
+    var ctype = '@Convert.ToInt32(Model.Type)';
+    var contractId = '@Model.Id';
+
+    //$(function () {
+        //showPdf(1);
+        //getData();
+    //});
+
+    var page = "", pdfurl = "", printurl = "";
+    var pdf_X = 0;
+    var pdf_Y = 0;
+    var pdf_H = 0;
+    function showPdf(index) {
+        if (index <= 0) {
+            return;
+        }
+        page = index;
+        window.PDFJS.workerSrc = '/js/pdf.js/pdf.worker.js'; //加载核心库'
+        window.PDFJS.getDocument(downloadUrl).then(function getPdfHelloWorld(pdf) {
+            //
+            // 获取第一页数据
+            //
+            $('.pagination_Partial').empty();
+            $("#parent").show();
+            var pagehtml = '<li class="list"> 共有 ' + pdf.numPages + ' 页</li>';
+
+            var len = pdf.numPages < 10 ? pdf.numPages : 10;
+            var temp = index - 5;
+            temp = temp < 0 ? 0 : temp;
+
+            for (var i = 1; i <= len; i++) {
+                var current = temp > 0 ? temp + i : i;
+                if (current > pdf.numPages) {
+                    break;
+                }
+                if (i == 1) {
+                    if (index - 1 > 0) {
+                        pagehtml += ' <li><a onclick="showPdf(' + (index - 1 > 0 ? (index - 1) : 0) + ')" class="pre-page">上一页«</a></li>';
+                    }
+                }
+                if (current == index) {
+                    pagehtml += '<li  class="active"><a onclick="showPdf(' + current + ')" class="pre-page">' + current + '</a></li>';
+                } else {
+                    if (i == 1 && temp > 0) {
+                        pagehtml += '<li><a onclick="showPdf(' + temp + ')">...</a></li>';
+                    }
+                    pagehtml += '<li><a onclick="showPdf(' + current + ')">' + current + '</a></li>';
+                    if (i == len && pdf.numPages > current) {
+                        pagehtml += '<li><a onclick="showPdf(' + (current + 1) + ')">...</a></li>';
+                    }
+                }
+            }
+            if (index < pdf.numPages) {
+                pagehtml += '<li><a onclick="showPdf(' + (index < pdf.numPages ? (index + 1) : 0) + ')" class="next-page">下一页»</a></li>';
+            }
+
+            $(".pagination_Partial").html(pagehtml);
+            pdf.getPage(page).then(function getPageHelloWorld(page) {
+                var scale = 1.5;
+                var viewport = page.getViewport(scale);
+                var canvas = document.getElementById('the-canvas');
+
+                var context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                pdf_H = viewport.height;
+                $("#parent").css("width", viewport.width + 4);
+                $("#parent").css("height", viewport.height + 4);
+                $("#optTip").css("width", viewport.width);
+                $("#topparent").css("width", viewport.width).css("height", "48px");
+                var renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                page.render(renderContext);
+                canvas.style.border = '2px red dashed';
+            });
+
+        });
+    }
+
+    var isGetSignImg = false;
+    var isGetSignImgMsg = "";
+    var phone = "";
+        function ImgRange(obj, isPersonal) {
+        if (obj == 0) {
+            if (!isGetSignImg && isGetSignImgMsg == "") {
+                $.easyui.loading({ msg: '正在获取印章数据，请稍等...', topMost: true });
+                $.ajax({
+                    url: IsSeal,
+                    type: "post",
+                    data: { isPersonal: isPersonal },
+                    success: function (data) {
+                        $.easyui.loaded({ topMost: true });
+                        if (data.result.Result) {
+                            isGetSignImg = true;
+                            phone = data.result.message;
+                            $("#signImg").attr("src", "data:image/gif;base64," + data.result.LogMessage);
+                            $("#drag-box").show();
+                            $("#SignPdf").linkbutton('disable');
+                            $("#drag-box").css("display", "inline-block");
+                        } else {
+                            isGetSignImgMsg = data.result.message;
+                            $.messager.showErrorTopCenter('错误消息', isGetSignImgMsg, 2000);
+                        }
+                    },
+                    error: function (e) {
+                        $.easyui.loaded({ topMost: true });
+                        $.messager.showErrorTopCenter('错误消息', e.responseJSON.Message, 2000);
+                    }
+                });
+            } else {
+                if (isGetSignImgMsg != "") {
+                    $.messager.showErrorTopCenter('错误消息', isGetSignImgMsg, 2000);
+                    return;
+                } else {
+                    $("#drag-box").show();
+                    $("#SignPdf").linkbutton('disable');
+                    $("#drag-box").css("display", "inline-block");
+                }
+            }
+        } else if (obj == 2) {
+            $("#drag-box").hide();
+            $("#SignPdf").linkbutton('enable');
+        }
+        $("#drag-box").css("border", "1px dashed #ccc;");
+        $("#sureImgRange").css("display", "inline-block");
+        $("#delImgRange").css("display", "inline-block");
+        initDrag();
+    }
+
+    function initDrag() {
+        $('#drag-box').myDrag({
+            parent: '#parent', //定义拖动不能超出的外框,拖动范围
+            randomPosition: true, //初始化随机位置
+            direction: 'all', //方向
+            dragEnd: function (x, y) {
+                pdf_X = x;
+                pdf_Y = y;
+            }
+        });
+    }
+
+    var RetutrnContract = '@Url.Action("RetutrnContract", "CurrencySign")';
+    var AbandonedContract = '@Url.Action("AbandonedContract", "CurrencySign")';
+    var RemoveCurrencySignService ='@Url.Action("RemoveCurrencySignService", "CurrencySign")';
+
+    var IsSeal = '@Url.Action("IsSeal", "CurrencySign")';
+    var SignContract = '@Url.Action("SignContract", "CurrencySign")';
+    var Relieve = '@Url.Action("Relieve", "CurrencySign")';
+    var ComfirmContract = '@Url.Action("ComfirmContract", "CurrencySign")';
+
+    var RealNameAuthenticationUrl = '@RealNameAuthenticationUrl';
+    var CurrentTenantName = '@Model.CurrentTenantName';
+    var CurrentUserId = '@Model.CurrentUserId';
+    var CurrentUserPhone = '@Model.CurrentUserPhone';
+    var CurrentUserDisplayName = '@Model.CurrentUserDisplayName';
+    var interval = false;
+    function PersonalSign(id) {
+        var PayConfirm = $('<div></div>');
+        PayConfirm.dialog({
+            title: '人脸识别',
+            closed: false,
+            cache: false,
+            width: '40%',
+            height: '81%',
+            modal: true,
+            content: '<iframe width="100%" height="99%" frameborder="0" src="' + RealNameAuthenticationUrl + '?tenantName=' + CurrentTenantName + '&userId=' + CurrentUserId + '&userName=' + CurrentUserPhone + '&phone=' + CurrentUserDisplayName+'"></iframe>',
+            buttons: [
+                {
+                    text: '识别完成',
+                    handler: function () {
+                        PayConfirm.dialog("close");
+                    }
+                },
+                {
+                    text: '遇到问题',
+                    handler: function () {
+                        PayConfirm.dialog("close");
+                    }
+                }
+            ],
+            onClose: function () {
+                interval = true;
+                ImgRange(0, true);
+            }
+        });
+    }
+
+    function comfirm(id, isComfirmFrist) {
+        $.messager.confirm('系统提示', '是否确认合同？',
+            function (r) {
+                if (r) {
+                    $.ajax({
+                        url: ComfirmContract,
+                        type: "post",
+                        data: { id: id, isComfirmFrist: isComfirmFrist },
+                        beforeSend: function () {
+                            $.easyui.loading({ msg: '正在提交数据，请稍等...', topMost: true });
+                        },
+                        success: function (result) {
+                            $.easyui.loaded({ topMost: true });
+                            if (result.success && result.Result.success) {
+                                $.messager.showInfoTopCenter('系统提示', result.Result.message, 2000);
+                                setTimeout(function () {
+                                    $dialog.dialog('close');
+                                }, 2000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', result.Result.message, 2000);
+                            }
+                        }
+                    });
+                }
+            });
+    }
+
+    function brack(opt, bl) {
+        var url = RetutrnContract;
+        var tip = "退回";
+        if (opt == "abandoned") {
+            tip = "作废";
+            url = AbandonedContract;
+        }
+        if (ctype == 1) { //对账单合同
+            $("#brackinput").attr("placeholder", "注:" + tip + "后,该合同的对账单已作废,需重新对账");
+        } else if (ctype == 4 || ctype == 3) {
+            $("#brackinput").attr("placeholder", "注:" + tip + "后,该合同的销售方需重新上传合同");
+        } else if (ctype == 5) {
+            $("#brackinput").attr("placeholder", "注:" + tip + "后,该合同的招标项目需重新上传协议");
+        } else {
+            $("#brackinput").attr("placeholder", "");
+        }
+        if (bl) {
+            ImgRange(0);
+        } else {
+            Abandoned(url, tip, 0, 0);
+        }
+    }
+
+    function Abandonedsign() {
+        Abandoned(AbandonedContract, "作废", parseInt((pdf_X + 88.5) / 1.5), parseInt(((pdf_H - pdf_Y - 55) / 1.5) - 1));
+    }
+
+    function Abandoned(url, tip, x, y) {
+        var $brackReason = $(".brackReason").clone().show();
+        $.easyui.showDialog({
+            title: "请填写" + tip + "原因",
+            width: 260,
+            height: 180,
+            modal: true,
+            topMost: true,
+            content: $brackReason,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onSave: function (d) {
+                var remark = $("#brackinput", d).val();
+                if (remark.trim().length == 0) {
+                    $.messager.showErrorTopCenter('错误消息', tip + "原因必填", 2000);
+                    return;
+                }
+                $.ajax({
+                    url: url,
+                    type: "post",
+                    data: { id: contractId, remark: remark, pdfX: x, pdfY: y, signType: 3 },
+                    beforeSend: function () {
+                        $.easyui.loading({ msg: '正在提交数据，请稍等...', topMost: true });
+                    },
+                    success: function (result) {
+                        $.easyui.loaded({ topMost: true });
+                        if (result.success && result.Result.success) {
+                            $.messager.showInfoTopCenter('系统提示', result.Result.message, 2000);
+                            setTimeout(function () {
+                                $dialog.dialog('close');
+                            }, 2000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', result.Result.message, 2000);
+                        }
+
+                    }
+                });
+            }
+        });
+    }
+
+    function del(id) {
+        $.messager.confirm('系统提示',
+            '删除后不可恢复，是否删除合同？',
+            function (r) {
+                if (r) {
+                    $.ajax({
+                        url: RemoveCurrencySignService,
+                        type: "post",
+                        data: { id: id },
+                        beforeSend: function () {
+                            $.easyui.loading({ msg: '正在删除数据，请稍等...', topMost: true });
+                        },
+                        success: function (result) {
+                            $.easyui.loaded({ topMost: true });
+                            if (result.success && result.Result.success) {
+                                $.messager.showInfoTopCenter('系统提示', result.Result.message, 2000);
+                                //关闭当前窗体
+                                setTimeout(function () {
+                                    $dialog.dialog('close');
+                                }, 2000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', result.Result.message, 2000);
+                            }
+                        }
+                    });
+                }
+            });
+    }
+
+    var $sign_dialog;
+    function sign(id) {
+        $.messager.confirm('系统提示', '您点击“确认”后将在此位置形成签名印章，即代表您对本合同所述条款完全认同，您将完全接受本合同约束',
+            function (r) {
+                if (r) {
+                    $sign_dialog = $.easyui.showDialog({
+                        title: '请输入合同签署验证码',
+                        width: 420,
+                        height: 200,
+                        modal: true,
+                        href: getCodeFormUrl + "?phone=" + phone,
+                        enableHeaderContextMenu: false,
+                        enableApplyButton: false,
+                        onSave: function (d) {
+                            var code = $("#code", d).textbox('getValue');
+                            if (code.trim().length == 0) {
+                                $.messager.showErrorTopCenter('错误消息', '请输入验证码', 2000);
+                                return false;
+                            }
+                            $.ajax({
+                                url: SignContract,
+                                type: "post",
+                                data: {
+                                    id: id,
+                                    personal: interval,
+                                    code: code,
+                                    pdfX: parseInt(((pdf_X + 88) / 1.5) - 3),
+                                    pdfY: parseInt(((pdf_H - pdf_Y - 88) / 1.5) + 3),
+                                    posPage: page
+                                },
+                                beforeSend: function () {
+                                    $.easyui.loading({  msg: '正在盖章，请稍等...', topMost: true });
+                                },
+                                success: function (result) {
+                                    $.easyui.loaded({ topMost: true });
+                                    if (result.Result.success) {
+                                        $("#drag-box").unbind();
+                                        $("#drag-box").hide();
+                                        $.messager.showInfoTopCenter('系统提示', result.Result.message + '，请下载查看', 2000);
+                                        setTimeout(function () {
+                                            $dialog.dialog('close');
+                                        }, 2000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', result.Result.message, 2000);
+                                    }
+                                }
+                            });
+                        },
+                        onBeforeClose: function () {
+                            //parent.clearInterval(parent.interval);
+                            //parent.interval = null
+                        },
+                        onClose: function () {
+                            $(this).dialog("destroy");
+                        }
+                    });
+                }
+            });
+    }
+
+    function relieve(id) {
+        $.messager.confirm('系统提示', '是否解除关联合同合同关系？',
+            function (r) {
+                if (r) {
+                    $.ajax({
+                        url: Relieve,
+                        type: "post",
+                        data: { id: id },
+                        beforeSend: function () {
+                            $.easyui.loading({  msg: '正在提交数据，请稍等...', topMost: true });
+                        },
+                        success: function (result) {
+                            $.easyui.loaded({ topMost: true });
+                            if (result.Result.success) {
+                                $.messager.showInfoTopCenter('系统提示', '保存数据成功,请耐心等待审核。', 2000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', result.Result.message, 2000);
+                            }
+                        }
+                    });
+                }
+            });
+    }
+</script>
+
+<script type="text/javascript">
+    showPdf(1);
+</script>

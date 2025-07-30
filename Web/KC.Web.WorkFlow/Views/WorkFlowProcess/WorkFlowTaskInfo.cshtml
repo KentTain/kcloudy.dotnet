@@ -1,0 +1,829 @@
+﻿@using KC.Framework.Extension
+@using KC.Web.Workflow.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.DTO.Workflow.WorkflowProcessDTO
+@{
+    ViewBag.Title = "流程任务详情";
+    Layout = null;
+    //Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--流程定义-流程定义详情-->
+    var canSaveDefinition = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "4A5ADE5F-19F8-4DC7-8731-850605BFCD39")).Succeeded)
+    {
+        canSaveDefinition = true;
+    }
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>鑫亚科技流程设计器</title>
+    <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <link href="~/css/workflow.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/icon.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/metro/easyui.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)css/common.css" rel="stylesheet" />
+    <style>
+.middle #canvasId{width:75%;}
+.middle #attrPanelId{width:24%;}
+
+.startNode{background-color:#5cb85c;}
+.endNode{background-color:#999999;}
+.controler .conditionNode,.taskNode{background-color:#999999;}
+.jnode-panel .conditionNode{background-color:#5a9cf9;}
+
+.conditionNode.UnProcess,.taskNode.UnProcess{background-color:#999999;}
+.conditionNode.Process,.taskNode.Process{background-color:#5a9cf9;}
+.conditionNode.Finished,.taskNode.Finished{background-color:#5cb85c;}
+.conditionNode.Return,.taskNode.Return{background-color:#dc6b6b;}
+.broadwiseLaneNode{background-color:unset}
+#divTopMenu .demo{width:80px;height:30px;padding:5px 10px;margin-right:10px;color:#fff;text-align:center;border-radius:3px;}
+    </style>
+
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/locale/easyui-lang-zh_CN.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/echarts/echarts.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/JsPlumb/dist/js/jsplumb.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.common.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/com.easyui.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/mainTabs.js"></script>
+
+    <script src="~/js/flowDesigner/component/graphlib.min.js"></script>
+    <script src="~/js/flowDesigner/component/html2canvas.min.js"></script>
+    <script src="~/js/flowDesigner/component/canvg.js"></script>
+
+    <script src="~/js/flowDesigner/config/config.js"></script>
+    <script src="~/js/flowDesigner/workflowUtil.js"></script>
+    <script src="~/js/flowDesigner/workflowDesigner.js"></script>
+
+</head>
+<body>
+    <input id="hiddenData" type="hidden" value="@ViewBag.TaskExecuteData" />
+    <div id="tabWorkflow" class="easyui-tabs" style="width:100%;height:100%">
+        <div class="easyui-layout" title="流程表单审核" data-options="fit:true,border:false,collapsible:false,closable:false,refreshable:false">
+            <div class="easyui-panel">
+                <form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.WorkflowDefinition.SaveWorkflowDefinition, ControllerName.WorkflowDefinition)">
+                    @Html.AntiForgeryToken()
+                    @*<input id="Id" name="Id" type="hidden" value="@Model.Id"/>*@
+                    @Html.HiddenFor(model => model.Id)
+                    @Html.HiddenFor(model => model.Status)
+
+                    @Html.HiddenFor(model => model.DefMessageTemplateCode)
+                    @Html.HiddenFor(model => model.DefDeadlineInterval)
+                    @Html.HiddenFor(model => model.CategoryName)
+
+                    @Html.HiddenFor(model => model.IsDeleted)
+                    @Html.HiddenFor(model => model.CreatedBy)
+                    @Html.HiddenFor(model => model.CreatedName)
+                    @Html.HiddenFor(model => model.CreatedDate)
+                    @Html.HiddenFor(model => model.ModifiedBy)
+                    @Html.HiddenFor(model => model.ModifiedName)
+                    @Html.HiddenFor(model => model.ModifiedDate)
+                    @if (Model.Context != null)
+                    {
+                        int index = 0;
+                        @foreach (var item in Model.Context)
+                        {
+                            <input type="hidden" name="context[@index][id]" value="@item.Id" />
+                            <input type="hidden" name="context[@index][text]" value="@item.Text" />
+                            <input type="hidden" name="context[@index][displayName]" value="@item.DisplayName" />
+                            <input type="hidden" name="context[@index][dataType]" value="@item.DataType" />
+                            <input type="hidden" name="context[@index][description]" value="@item.Description" />
+                            <input type="hidden" name="context[@index][isCondition]" value="@item.IsCondition" />
+                            <input type="hidden" name="context[@index][isPrimaryKey]" value="@item.IsPrimaryKey" />
+                            <input type="hidden" name="context[@index][isExecutor]" value="@item.IsExecutor" />
+                            <input type="hidden" name="context[@index][value]" value="@item.Value" />
+                            <input type="hidden" name="context[@index][value1]" value="@item.Value1" />
+                            <input type="hidden" name="context[@index][value2]" value="@item.Value2" />
+                            index++;
+                        }
+                    }
+                    <table class="table table-bordered table-form tr-col2">
+                        <tbody>
+                            <tr>
+                                <td><label class="required"></label><label for="Code">流程实例编码：</label></td>
+                                <td>
+                                    <input id="Code" name="Code" class="easyui-validatebox easyui-textbox"
+                                           data-options="width:'100%'" readonly="readonly"
+                                           value="@(null != Model ? Model.Code : string.Empty)" />
+                                </td>
+                                <td><label class="required"></label><label for="Version">流程版本：</label></td>
+                                <td>
+                                    <input id="Version" name="Version" class="easyui-validatebox easyui-textbox"
+                                           data-options="width:'100%'" readonly="readonly"
+                                           value="@(null != Model ? Model.Version : string.Empty)" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label class="required"></label><label for="CategoryId">流程类型：</label></td>
+                                <td>
+                                    <input id="CategoryId" name="CategoryId" class="easyui-validatebox easyui-textbox"
+                                           data-options="width:'100%'" readonly="readonly"
+                                           value="@(null != Model ? Model.CategoryId : null)" />
+                                </td>
+                                <td><label class="required"></label><label for="Name">流程名称：</label></td>
+                                <td>
+                                    <input id="Name" name="Name" class="easyui-validatebox easyui-textbox"
+                                           data-options="width:'100%'" readonly="readonly"
+                                           value="@(null != Model ? Model.Name : string.Empty)" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+
+                <div style="min-height:420px;">
+                    <table id="dgPlan"></table>
+                </div>
+            </div>
+            <div style="height: 40px;"></div>
+            <div class="bottom">
+                <!--项目列表-保存项目数据-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "4BA0B9E6-C5D2-49FA-A009-2438C189AEAA")).Succeeded)
+                {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-check" onclick="OpentForm()">审核</a>
+                }
+            </div>
+        </div>
+
+        <div class="easyui-layout middle" title="流程图" data-options="fit:true,border:false,collapsible:false,closable:false,refreshable:false">
+            <!--中间绘制区域-->
+            <div id="canvasId">
+                <!-- 右侧头部区域 -->
+                <div id="divTopMenu" class="easyui-panel" style="z-index:99;position:absolute;padding:2px;">
+                    <a href="javascript: myWORKFLOW.save2Photo();" class="easyui-linkbutton" iconcls=" fa fa-file-image-o fa-2x" data-options="plain:true">保存为图片</a>
+                    <div style="float:right;display:flex;">
+                        <div class="demo" style="background-color:#5cb85c;">已完成</div>
+                        <div class="demo" style="background-color:#5a9cf9;">正在审核</div>
+                        <div class="demo" style="background-color:#dc6b6b;">退回处理</div>
+                        <div class="demo" style="background-color:#999999;">还未处理</div>
+                    </div>
+                </div>
+                <div id="Container"></div>
+            </div>
+            <!--右侧属性区域-->
+            <div id="attrPanelId">
+                <div title="流程审批信息" id="attrForm">
+                </div>
+            </div>
+        </div>
+
+        <div class="easyui-layout" title="流程审核轨迹图" data-options="fit:true,border:false,collapsible:false,closable:false,refreshable:false">
+            <div id="divWfTaskExecuteChart" class="easyui-layout" style="width:100%;height:96%;">
+            </div>
+        </div>
+
+        <div class="easyui-layout" title="流程审核记录" data-options="fit:true,border:false,collapsible:false,closable:false,refreshable:false">
+            <div id="toolbarWfTaskExecute">
+                <div>
+                </div>
+                <div>
+                    <select id="status" class="easyui-combobox" name="dept" style="width:160px;" data-options="editable: false,panelHeight:'auto'">
+                        <option value="">请选择状态</option>
+                        <option value="0">未处理</option>
+                        <option value="1">处理中</option>
+                        <option value="2">已完成</option>
+                    </select>
+                    <input id="txtTaskId" class="easyui-textbox" data-options="prompt:'请输入任务编码'" style="width:200px">
+                    <input id="txtName" class="easyui-textbox" data-options="prompt:'请输入执行人姓名'" style="width:200px">
+                    <a href="javascript:void(0)" onclick="reloadDgWfTaskExecute()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                    <a href="javascript:void(0)" onclick="refreshDgWfTaskExecute()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+                </div>
+            </div>
+            <table id="dgWfTaskExecute"></table>
+        </div>
+    </div>
+
+    <!--组件初始化-->
+    <script type="text/javascript">
+        // 1、删除数组中的一个元素
+        Array.prototype.deleteOne = function (data) {
+            let i;
+            let $this = this;
+            let index = $this.indexOf(data);
+            if (index != -1) {
+                for (i = index; i < $this.length - 1; i++) {
+                    $this[i] = $this[i + 1];
+                }
+                $this.pop();
+            }
+        }
+        $.fn.tooltip.defaults.position = 'right';
+        $.fn.tooltip.defaults.onShow = function () {
+            $(this).tooltip('tip').css({
+                'backgroundColor': '#666',
+                'borderColor': '#666',
+                'border-radius': '4px',
+                'color': '#fff',
+                'font-size': '20px',
+                'line-height': '20px',
+                'white-space': 'normal',
+            });
+        };
+
+        var canSaveDefinition = ('@canSaveDefinition' === 'True');
+        var fileSetting = {
+            fileNumLimit: 1,
+            postUrl: '@(ViewBag.DocWebApiDomain)Resources/Upload',
+            chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+            chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+            fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+            fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+            downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+            imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+            imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+            showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+            params: { isArchive: true }
+        };
+        $(function () {
+            $('#tabWorkflow').tabs({
+                fit: true,
+                border: false,
+                closable: false,
+                collapsible: false,
+                refreshable: false,
+                tabWidth: 160,
+                onSelect: function (title, index) {
+                    if (index == 1) {
+                        InitWorkflowChart();
+                    }
+                }
+            });
+
+            InitDataGridForm();
+
+            InitDgWfTaskExecute();
+
+            InitWfTaskExecuteChart();
+        })
+
+    </script>
+    <!--流程表单-->
+    <script>
+        const $dataGridPlan = $('#dgPlan');
+        let loadProjectPlanUrl = '@Url.Action(ActionName.WorkflowProcess.LoadWfProcessFieldList, ControllerName.WorkflowProcess)';
+        function InitDataGridForm() {
+            let id = $('#Id').val();
+            if (id == undefined || id == null || id == "")
+                id = defaultGuid;
+            $dataGridPlan.treegrid({
+                url: loadProjectPlanUrl + "?id=" + id,
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                //toolbar: '#toolbarPlan',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                selectOnCheck: true,
+                checkOnSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: false,
+                showFooter: false,
+                columns: [[
+                    //{ field: 'id', title: '是否启用', width: 60, checkbox: true },
+                    { field: 'text', title: '字段名称', width: 140, align: 'left',},
+                    { field: 'displayName', title: '字段显示名称', width: 160, align: 'left',},
+                    {
+                        field: 'dataType', title: '数据类型', width: 100, align: 'left',
+                        formatter: function (value, row, index) {
+                            if (value === undefined || value === null || value === '') {
+                                return "";
+                            }
+                            switch (value) {
+                                case 0:
+                                case "0":
+                                    return "字符串";
+                                case 1:
+                                case "1":
+                                    return "布尔型";
+                                case 2:
+                                case "2":
+                                    return "整型";
+                                case 3:
+                                case "3":
+                                    return "数值型";
+                                case 4:
+                                case "4":
+                                    return "金额";
+                                case 5:
+                                case "5":
+                                    return "日期型";
+                                case 6:
+                                case "6":
+                                    return "文本型";
+                                case 7:
+                                case "7":
+                                    return "列表";
+                            }
+                        }
+                    },
+                    {
+                        field: 'value', title: '数据值', width: 300, align: 'left',
+                        editor: {
+                            type: 'textbox',
+                            options: {
+                                required: true
+                            }
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    CommonUtil.buttonStyle();
+                    $dataGridPlan.treegrid('unselectAll');
+                    $dataGridPlan.treegrid('clearSelections');
+                    $dataGridPlan.treegrid('fixRowHeight');
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+    </script>
+    <!--流程审核-->
+    <script type="text/javascript">
+        const getFormUrl = '@Url.Action(ActionName.WorkflowProcess.GetWorkflowTaskAuditForm, ControllerName.WorkflowProcess)';
+        const saveFormUrl = '@Url.Action(ActionName.WorkflowProcess.AuditWorkflowTask, ControllerName.WorkflowProcess)';
+        const currentPageUrl = '@Url.Action(ActionName.WorkflowProcess.WorkflowTaskInfo, ControllerName.WorkflowProcess)';
+        function OpentForm() {
+            let taskId = '@ViewBag.CurrentTaskId';
+            let taskCode = '@ViewBag.CurrentTaskCode';
+            let taskName = '@ViewBag.CurrentTaskName';
+            let code = $('#Code').val();
+            $.easyui.showDialog({
+                title: '审核流程任务：' + taskName,
+                href: getFormUrl + "?wfDefCode=" + code + "&taskId=" + taskId + "&taskCode=" + taskCode + "&taskName=" + taskName,
+                width: 560,
+                height: 500,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (!validate) {
+                        let errorMsg = '';
+                        let invalidComps = d.find(".validatebox-invalid");
+                        $.each(invalidComps, function (i, invalidComp) {
+                            errorMsg += 'id=' + invalidComp.id + ', ';
+                        });
+                        console.error("---验证失败的组件Id：" + errorMsg);
+                        return;
+                    }
+
+                    let code = $('#Code').val();
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "POST",
+                        dataType: "json",
+                        url: saveFormUrl + "?code=" + code,
+                        data: AddAntiForgeryToken(d.form("getData")),
+                        success: function (data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    //MainPage_PostMessage("closeSubPage", currentPageUrl);
+                                    MainPage_PostMessage("closePage", currentPageUrl);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                },
+                onLoad: function() {
+                    $('.textbox').bind('blur', function() {
+                        $(this).validatebox('enableValidation').validatebox('validate');
+                    });
+                }
+            });
+        }
+    </script>
+    <!--流程图：初始化-->
+    <script>
+        var myWORKFLOW = null;
+        function InitWorkflowChart() {
+            if (myWORKFLOW == null) {
+                let flowId = $('#Id').val();
+                let flowCode = $('#Code').val();
+                let flowName = $('#Name').val();
+                let flowVersion = $('#Version').val();
+                myWORKFLOW = new WorkflowDesigner();
+                myWORKFLOW.init({
+                    flowId: flowId,
+                    flowCode: flowCode,
+                    flowVersion: flowVersion,
+                    flowName: flowName,
+                    nodeClickFn: nodeClickEvent,
+                });
+
+                InitPropertyGrid();
+                getStartNode();
+            }
+        }
+
+        let formId = "#saveform";
+        const getStartNodeUrl = '@Url.Action(ActionName.WorkflowProcess.GetWorkflowTaskStartNode, ControllerName.WorkflowProcess)';
+        let getStartNode = function () {
+            var wfTaskCode = $('#Code').val();
+            $.ajax({
+                async: true,
+                url: getStartNodeUrl + "?code=" + wfTaskCode,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        if (data.result) {
+                            //debugger;
+                            //页面表单的属性列表数据
+                            let fieldData = CommonUtil.getArrayFormDataByPropertyName(formId, 'context');
+                            if (fieldData === undefined || fieldData === null)
+                                fieldData = [];
+
+                            //后台返回的流程节点数据
+                            let wfNodeData = data.result;
+                            //图形载入节点数据
+                            myWORKFLOW.loadJson(wfNodeData);
+
+                            //属性列表载入数据
+                            let flowId = $('#Id').val();
+                            let flowCode = $('#Code').val();
+                            let flowName = $('#Name').val();
+                            let flowVersion = $('#Version').val();
+                            WorkflowPropertyUtil.loadPropertyNodeData(propertyGridId, flowId, flowCode, flowName, flowVersion, wfNodeData, fieldData);
+                            //只显示流程信息，其他节点信息隐藏
+                            //WorkflowPropertyUtil.showRowByCode(flowId);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                    } else {
+                        $.messager.showInfoTopCenter('系统提示', data.message);
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+        };
+
+        //单击图形Node时，显示相应的节点属性数据
+        let nodeClickEvent = function (nodeType, nodeId) {
+            //debugger;
+            //保存选中Node或Link的数据，用于删除所用
+            removeType = nodeType;
+            removeGraphId = nodeId;
+            //清除已选中连线的样式
+            let flowData = myWORKFLOW.getCurrentFlow();
+            let nodeData = flowData.nodeDataArray;
+            nodeData.forEach(function (gRow, gIndex, nodeArr) {
+                let nId = gRow.key;
+                if (nId === nodeId && gRow.tooltip) {
+                    //debugger;
+                    $('#' + nodeId).tooltip({ content: gRow.tooltip });
+                }
+            });
+            let linkData = flowData.linkDataArray;
+            linkData.forEach(function (gRow, gIndex, nodeArr) {
+                let linkId = gRow.routerId;
+                $('#' + linkId).find('path:nth-child(2)').attr('fill', CONFIG.conn.stroke)
+                $('#' + linkId).find('path').attr('stroke', CONFIG.conn.stroke)
+            });
+            //设置选中Node或Link的样式，并设置Canvas或Node的属性列表
+            if (nodeType === 'canvans') {
+                WorkflowPropertyUtil.showAllRows();
+                //WorkflowPropertyUtil.showRowByCode(nodeId);
+
+                $('#' + nodeId).find('path:nth-child(2)').attr('fill', CONFIG.conn.stroke)
+                $('#' + nodeId).find('path').attr('stroke', CONFIG.conn.stroke)
+                $('#topBtnDelete').linkbutton('disable');
+            } else if (nodeType === 'link') {
+                $('#' + nodeId).find('path:nth-child(2)').attr('fill', CONFIG.conn.hoverConnStroke)
+                $('#' + nodeId).find('path').attr('stroke', CONFIG.conn.hoverConnStroke)
+                $('#topBtnDelete').linkbutton('enable');
+            } else {
+                WorkflowPropertyUtil.showRowByCode(nodeId);
+
+                $('#' + nodeId).find('path:nth-child(2)').attr('fill', CONFIG.conn.stroke)
+                $('#' + nodeId).find('path').attr('stroke', CONFIG.conn.stroke)
+                $('#topBtnDelete').linkbutton('enable');
+            }
+            //console.info('---NodeType: ' + nodeType + ', NodeId: ' + nodeId)
+        };
+    </script>
+    <!--流程图：属性列表-->
+    <script type="text/javascript">
+        const propertyGridId = '#attrForm';
+        function InitPropertyGrid() {
+            let propertyGrid = $(propertyGridId);
+            propertyGrid.propertygrid({
+                idField: 'fid',
+                width: 'auto',
+                height: '100%',
+                showGroup: true,
+                showHeader: false,
+                //scrollbarSize: 0,
+                columns: [[
+                    { field: 'name', title: 'Name', width: '80', align: 'right', },
+                    { field: 'value', title: 'Value', width: '200', formatter: WorkflowPropertyUtil.formatter }
+                ]],
+                onEndEdit: function (index, row) {
+                    //debugger;
+                    //当属性字段为Name时，设置图形节点的Title值
+                    if (row.field === 'Name') {
+                        let key = row.code;
+                        $('#' + key + ' span').text(row.value);
+                    }
+                }
+            });
+        };
+    </script>
+    <!--流程审核轨迹图-->
+    <script>
+        let labelMess = function (param) {
+            return (
+                `{b|${param.name}} \n` + `{value|${dataMess[param.dataIndex].mess}}`
+            );
+        };
+        let handlerTitle = function (params) {
+            var newParamsName = "";
+            var paramsNameNumber = params.length;
+            var provideNumber = 20;     //每行只显示20个字符
+            var rowNumber = Math.ceil(paramsNameNumber / provideNumber);
+            if (paramsNameNumber > provideNumber) {
+                for (var p = 0; p < rowNumber; p++) {
+                    if (p >= 3) continue;  //只显示三行数据
+                    var tempStr = "";
+                    var start = p * provideNumber;
+                    var end = start + provideNumber;
+                    if (p == rowNumber - 1) {
+                        tempStr = params.substring(start, paramsNameNumber);
+                    } else {
+                        tempStr = params.substring(start, end) + "\n";
+                    }
+                    newParamsName += tempStr;
+                }
+
+            } else {
+                newParamsName = params;
+            }
+            return newParamsName
+        }
+        let dataMess = [];
+        //echarts.js相关Demo：@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/echarts/LogTracing-1.html
+        function InitWfTaskExecuteChart() {
+            //debugger;
+            let xdata = [];
+            let ydata = [];
+            let jsonData = $('#hiddenData').val();
+            let data = $.parseJSON(jsonData);
+            let index = 1;
+            for (let i = 0; i < data.length; i++) {
+                let log = data[i];
+                if (index <= 5) {
+                    index += index;
+                } else {
+                    index = 1;
+                }
+                ydata.push(index);
+                xdata.push(log.executeUserName + '  ' + log.executeDateTime);
+
+                let resultHtml = '';
+                resultHtml += '任\xa0\xa0\xa0\xa0\xa0\xa0\xa0务：' + log.taskName + '\n';
+                resultHtml += '审\xa0\xa0核\xa0\xa0人：' + log.executeUserName + '\n';
+                resultHtml += '审核时间：' + log.executeDateTime + '\n';
+                resultHtml += '状\xa0\xa0\xa0\xa0\xa0\xa0\xa0态：' + log.executeStatusString + '\n';
+                resultHtml += '处理意见：' + (!log.executeRemark ? '' : handlerTitle(log.executeRemark));
+                dataMess.push({ 'index': index, 'mess': resultHtml })
+            }
+            // 绘制图表。
+            var option = option = {
+                backgroundColor: '#FFFFFF',
+                grid: {
+                    top: 180,
+                    right: 80,
+                    left: 80,
+                    bottom: 80,
+                },
+                xAxis: [{
+                    type: 'category',
+                    color: '#272456',
+                    data: xdata,
+                    axisPointer: {
+                        type: 'line'
+                    },
+                    axisTick: {
+                        show: false
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#272456'
+                        },
+
+                    },
+                    axisLabel: {
+                        margin: 20,
+                        color: '#272456',
+                        textStyle: {
+                            color: "#272456",
+                            fontSize: 14,
+                            fontWeight: 200
+                        }
+
+                    },
+                }],
+
+                yAxis: [{
+                    type: 'value',
+                    color: '#eaeae8',
+                    axisLine: {
+                        show: false,
+                    },
+                    axisTick: {
+                        show: false
+                    },
+                    axisLabel: {
+                        show: false,
+                    },
+
+                    splitLine: {
+                        show: false
+                    }
+                }],
+                dataZoom: [{
+                    show: true,
+                    height: 15,
+                    xAxisIndex: [0],
+                    bottom: 20,
+                    startValue: 0,
+                    endValue: 8,
+                    handleIcon: 'path://M306.1,413c0,2.2-1.8,4-4,4h-59.8c-2.2,0-4-1.8-4-4V200.8c0-2.2,1.8-4,4-4h59.8c2.2,0,4,1.8,4,4V413z',
+                    handleSize: '120%',
+                    handleStyle: {
+                        color: "#fff",
+                        shadowColor: "#B1B5B9",
+                        shadowBlur: 5,
+                    },
+                    backgroundColor: "#DEE3F4",
+                    fillerColor: "#18D383",
+
+                }, {
+                    type: "inside",
+                    show: true,
+                    height: 15,
+                    width: 20,
+                    start: 1,
+                    end: 35
+                }],
+                series: [{
+                    type: 'bar',
+                    data: ydata,
+                    barWidth: 1,
+                    symbol: 'path://d="M150 130 L130 50 L170 50 Z"',
+                    itemStyle: {
+                        normal: {
+                            color: {
+                                //图形颜色
+                                type: "linear",
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [
+                                    {
+                                        offset: 0,
+                                        color: "#D0D6E5", // 0% 处的颜色
+                                    },
+                                    {
+                                        offset: 1,
+                                        color: "#D0D6E5", // 100% 处的颜色
+                                    },
+                                ],
+                                global: false, // 缺省为 false
+                            },
+                            shadowColor: "#D0D6E5",
+                            shadowBlur: 1,
+                        },
+                    },
+
+                    label: {
+                        normal: {
+                            show: true,
+                            lineHeight: 22,
+                            width: 220,
+                            height: 155,
+                            padding: 6,
+                            backgroundColor: '#F2F5FB',
+                            borderRadius: 5,
+                            position: 'top',
+                            align: 'center',
+                            formatter: function (params) {
+                                return labelMess(params) + ["\n"].join("");
+                            },
+                            rich: {
+                                b: {
+                                    color: '#999',
+                                    lineHeight: 20,
+                                    fontWeight: 600,
+                                    fontSize: 14,
+                                    align: 'center'
+                                },
+                                value: {
+                                    lineHeight: 20,
+                                    fontSize: 12,
+                                    align: 'left'
+                                },
+                            }
+                        },
+
+                    }
+                }]
+            }
+
+            echarts.init(document.getElementById('divWfTaskExecuteChart')).setOption(option);
+        }
+
+    </script>
+    <!--流程审核记录-->
+    <script type="text/javascript">
+        const selectProcessId = '@Model.Id';
+        const dgWfTaskExecute = '#dgWfTaskExecute';
+        const loadWfTaskExecuteDataUrl = '@Url.Action(ActionName.WorkflowProcess.LoadWfProcessTaskExecuteList, ControllerName.WorkflowProcess)';
+        function InitDgWfTaskExecute() {
+            let processId = $('#Id').val();
+            var $dataGrid = $(dgWfTaskExecute).datagrid({
+                url: loadWfTaskExecuteDataUrl + "?processId=" + processId,
+                toolbar: "#toolbarWfTaskExecute",
+                method: 'GET',
+                idField: 'id',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                showFooter: false,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                columns: [[
+                    { field: 'taskCode', title: '任务编码', width: 120, align: 'left' },
+                    { field: 'taskName', title: '任务名称', width: 160, align: 'left' },
+                    { field: 'executeUserName', title: '审核人', width: 100, align: 'left' },
+                    { field: 'executeStatusString', title: '审核状态', width: 60, align: 'left' },
+                    { field: 'executeDateTime', title: '审核时间', width: 120, align: 'left', formatter: FormatterUtil.DateTimeSecondFormatter },
+                    //{ field: 'isAgree', title: '是否同意', width: 60, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    //{ field: 'statusString', title: '状态', width: 50, align: 'left' },
+
+                ]],
+                onBeforeLoad: function(param) {
+                    /*var bId = $("#txtBId").val();
+                    var AllSearchKey = $("#txtAllSearchKey").val();
+                    param.bId = bId;
+                    param.AllSearchKey = AllSearchKey;*/
+                },
+                onLoadSuccess: function (data) {
+                    CommonUtil.buttonStyle();
+
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                }
+            });
+        }
+
+        function refreshDgWfTaskExecute() {
+            $("#txtTaskId").textbox('setValue', '');
+            $("#txtName").textbox('setValue', '');
+            $('#status').combobox("setValue", '');
+            reloadDgWfTaskExecute();
+        }
+        function reloadDgWfTaskExecute() {
+            $(dgWfTaskExecute).datagrid("load", {
+                processId: selectProcessId,
+                taskId: $("#txtTaskId").textbox("getValue"),
+                name: $("#txtName").textbox("getValue"),
+                status: $('#status').combobox("getValue")
+            });
+        }
+    </script>
+</body>
+</html>

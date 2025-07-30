@@ -1,0 +1,46 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:1003",
+      "sslPort": 1013
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev"
+      }
+    },
+    "KC.Web.Admin-Product": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      },
+      "applicationUrl": "http://localhost:1003;https://cDba.localhost:1013"
+    },
+    "KC.Web.Admin-Beta": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Beta"
+      },
+      "applicationUrl": "http://localhost:1003;https://cDba.localhost:1013"
+    },
+    "KC.Web.Admin-Test": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Test"
+      },
+      "applicationUrl": "http://localhost:1003;https://cDba.localhost:1013"
+    },
+    "KC.Web.Admin-Dev": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev"
+      },
+      "applicationUrl": "http://localhost:1003;https://cDba.localhost:1013"
+    }
+  }
+}

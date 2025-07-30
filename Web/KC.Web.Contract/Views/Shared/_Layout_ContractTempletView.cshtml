@@ -1,0 +1,368 @@
+﻿@using KC.Framework.Tenant
+@using KC.Framework.Base
+@using KC.Service.DTO.Contract
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.DTO.Contract.ContractTemplateValueDTO
+@{
+    var shopDoamin = GlobalConfig.EconWebDomain.Replace(TenantConstant.SubDomain, ViewBag.TenantName);
+
+    <!--合同管理-企业合同分页权限：EditContractTemplet-->
+    var canEdit = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "473B720E-2E8B-402D-80FF-271C4D3F52FB")).Succeeded)
+    {
+        canEdit = true;
+    }
+
+    <!--合同管理-企业合同分页权限：/Sales/UpLoadContant-->
+    var canCreateContant = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "473B720E-2E8B-402D-80FF-271C4D3F52FB")).Succeeded)
+    {
+        canCreateContant = true;
+    }
+
+    var contractTempletOrderDTO = ViewBag.contractTempletOrderDTO as ContractTemplateOrderDTO;
+}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="renderer" content="webkit" />
+    <title>财富共赢产融协作系统</title>
+    <meta name="description" content="CFWIN财富共赢秉承  共赢财富的理念，通过专业的服务为合作伙伴提供金融解决方案，实现合作共赢。" />
+    <meta name="keywords" content="财富共赢，共赢财付，投资，理财，基金，供应链金融，融资租赁， 私募基金， 共赢时贷， 网络借贷， 网络贷款， 互联网金融，Free ERP， Azure, P2B，免费ERP，私募基金，财富租赁，订单融资，应收账款融资，商票融资，商业承兑汇票融资，银票融资，银行承兑汇票融资，供应链采购，供应链销售，房产抵押融资，ERP增值服务，企业EPR，设备直接租赁，设备售后回租" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <script>
+        var topDomain = '@ViewBag.TopDomain';
+        if (window.top === window.self) {
+            location.href='@shopDoamin';
+        }
+    </script>
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/metro/easyui.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/icon.css" rel="stylesheet" />
+    <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <style>
+        input, textarea {
+            background-color: #fff2f2;
+        }
+
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+            }
+
+            input[type="number"] {
+                -moz-appearance: textfield;
+            }
+
+        #_easyui_textbox_input2 {
+            margin-left: -28px !important;
+        }
+    </style>
+    @RenderSection("styles", required: false)
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+        <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+        <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+<body class="child-body" style="background:#ffffff;width: 880px;margin:0 auto;border: 1px dotted;padding: 10px;margin-top: 10px;margin-bottom: 10px;">
+    <div class="child-layout easyui-layout">
+        <form method="post" id="myForm">
+            @Html.AntiForgeryToken()
+            @RenderBody()
+            @if (ViewBag.type == 1 && (contractTempletOrderDTO == null || string.IsNullOrEmpty(contractTempletOrderDTO.CustomerName)))
+            {
+            <div style="text-align:center;margin-top:20px">
+                <button type="button" class="btn btn-primary btn-lg glyphicon glyphicon-floppy-saved @(canEdit ? "" : "NoAuth")" onclick="comfirm(); "> 提交 </button>
+            </div>
+            }
+            else if (ViewBag.type == 0 && !(contractTempletOrderDTO == null || string.IsNullOrEmpty(contractTempletOrderDTO.CustomerName)))
+            {
+            <div style="text-align:center;margin-top:20px">
+                <button type="button" class="btn btn-primary btn-lg glyphicon glyphicon-send @(canCreateContant?"":"NoAuth")" onclick="submitContract(); "> 生成 </button>
+            </div>
+            }
+
+        </form>
+
+    </div>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/locale/easyui-lang-zh_CN.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/jquery.extension.core.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/com.easyui.extension.js"></script>
+
+    <script>
+        var parentIsCsc;
+
+        function getIsCsc() {
+            try {
+                parentIsCsc = parent.isCsc;
+            } catch (e) {
+
+            }
+            if (parentIsCsc) {
+                isCsc = true;
+            }
+        }
+    </script>
+    <script src="~/js/mainTab.js"></script>
+    @RenderSection("scripts", required: false)
+
+    <script>
+        var tabTitle = '', childPageIsTab = true;
+        function showMask() {
+            $("<div class=\"cfwin-mask datagrid-mask\"></div>").css({ display: "block", width: "100%", height: $(window).height() }).appendTo("body");
+            $("<div class=\"cfwin-mask datagrid-mask-msg\"></div>").html("正在处理，请稍候。。。").appendTo("body").css({ display: "block", left: ($(document.body).outerWidth(true) - 190) / 2, top: ($(window).height() - 45) / 2 });
+        }
+
+        function removeMask() {
+            $('.cfwin-mask').remove();
+        }
+        var orderUpPDFToContract = '@Url.Action("OrderUpPDFToContract", "Template")';
+        var comfirmContractTempleturl = "@Url.Action("ComfirmContractTemplet", "Template")";
+
+        function comfirm() {
+            if (!($("input[name='Day']").val() > 0 && $("input[name='BreakDay']").val() > 0)) {
+                $.messager.showErrorTopCenter('系统提示', '请在红色输入框内填写正确的数据,其他约定事项不填默认为无', 2000);
+                return false;
+            }
+            if ($("input[name='Id']").val() == 2 || $("input[name='Id']").val() == 3 || $("input[name='Id']").val() == 4 || $("input[name='Id']").val() == 5 || $("input[name='Id']").val() == 6) {
+                if (!($("input[name='AccountDayIn']").val() > 0)) {
+                    $.messager.showErrorTopCenter('系统提示', '请在红色输入框内填写正确的数据,其他约定事项不填默认为无', 2000);
+                    return false;
+                }
+            }
+            if ($("input[name='Id']").val() == 2 || $("input[name='Id']").val() == 4 || $("input[name='Id']").val() == 5 || $("input[name='Id']").val() == 6 || $("input[name='Id']").val() == 7) {
+                if (!($("input[name='DeliveryDayIn']").val() > 0)) {
+                    $.messager.showErrorTopCenter('系统提示', '请在红色输入框内填写正确的数据,其他约定事项不填默认为无', 2000);
+                    return false;
+                }
+                if ($("input[name='Id']").val()!= 2) {
+                    if (!($("input[name='DisputeType']").val() == 'a' || $("input[name='DisputeType']").val() == 'b')) {
+                        $.messager.showErrorTopCenter('系统提示', '解决争议方式只能选a或者b选择', 2000);
+                        return false;
+                    }
+                    if ($("input[name='Id']").val() != 7 && $("input[name='Id']").val().trim=="") {
+                        $.messager.showErrorTopCenter('系统提示', '请完善交货方式', 2000);
+                        return false;
+                    }
+                    if (!($("input[name='HandleDay']").val() > 0 && $("input[name='ChangeContractDay']").val() > 0 && $("input[name='RectificDay']").val() > 0 && $("input[name='InvestiHandleDay']").val() > 0 && $("input[name='Rescheduling']").val() > 0)) {
+                        $.messager.showErrorTopCenter('系统提示', '请在红色输入框内填写正确的数据,其他约定事项不填默认为无', 2000);
+                        return false;
+                    }
+                }
+            }
+            if ($("input[name='Id']").val() == 7) {
+                if (!($("input[name='LeaseTerm']").val() > 0 && $("input[name='RentingDay']").val() > 0 && $("input[name='SecrecyPeriod']").val() > 0)) {
+                    $.messager.showErrorTopCenter('系统提示', '请在红色输入框内填写正确的数据,其他约定事项不填默认为无', 2000);
+                    return false;
+                }
+            }
+
+            var ss = $("input[name='DeliveryMode']").val();
+            var data = $("#myForm").serialize();
+            var f = $("#myForm").form("validate");
+            if (f) {
+                $.messager.confirm('系统提示', '确定要保存该模板吗？', function (flag) {
+                    if (flag) {
+                        $.easyui.loading({msg: '正在保存数据，请稍等...' });
+                        $.post(comfirmContractTempleturl, data, function (result) {
+                            $.easyui.loaded();
+                            if (result == true) {
+                                $.messager.showInfoTopCenter('系统提示', "保存成功", 2000);
+                                reload();
+                            } else {
+                                if (result.msg!="") {
+                                    $.messager.showErrorTopCenter('系统提示', result.msg, 2000);
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', "保存失败", 2000);
+                                }
+                            }
+                         });
+                    }
+                });
+
+            }
+        }
+        $('#lghj').numberbox({
+            onChange: function (newValue, oldValue) {
+                if (oldValue == undefined)
+                    return;
+                $('#DeliveryMode').attr("value", moneyToCapital(newValue));
+                $('.DeliveryMode').html(moneyToCapital(newValue));
+            }
+        });
+        function submitContract() {
+            if ($("input[name='ContractNo']").val().trim() == "") {
+                $.messager.showErrorTopCenter("请输入合同编号", 2000);
+                return;
+            }
+            if ($("input[name='ContractNo']").val().trim().length > 40 || $("input[name='ContractNo']").val().trim().length < 2) {
+                $.messager.showErrorTopCenter("合同编号长度为2~40个字符", 2000);
+                return;
+            }
+            $.messager.confirm("是否确认生成合同,采购方：'@ViewBag.CustomerName',供货方：'@ViewBag.tenantDisplayName'?", function (res) {
+                if (res) {
+                    $.easyui.loading({ locale: "#mainLayout", msg: '正在保存数据，请稍等...', topMost: true });
+                    $.ajax({
+                        url: orderUpPDFToContract,
+                        type: 'post',
+                        data: { id:'@ViewBag.ContractTempletType', orderInfoId:'@ViewBag.oRNumberId', contractNo: $("input[name='ContractNo']").val()},
+                        success: function (data) {
+                            $.easyui.loaded({ locale: "#mainLayout", topMost: true });
+                            if (data.result != null && data.result) {
+                                if (data.result.success) {
+                                    $.messager.showInfoTopCenter('生成成功,请等待审核', 2000);
+                                    parent.searchSO();
+                                    closeCurrentTab();
+                                } else {
+                                    $.messager.showErrorTopCenter(data.result.message, 2000);
+                                }
+                                return;
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 2000);
+                                return;
+                            }
+                        },
+                        error: function () {
+                            $.easyui.loaded({ locale: "#mainLayout", topMost: true });
+                        },
+                        complete: function () {
+
+                        }
+                    });
+                }
+            });
+        }
+        $(function () {
+            var $childLayout = $('.child-layout');
+            $childLayout.each(function () {
+                if ($.trim($(this).html()).length === 0)
+                    $(this).remove();
+            });
+            if (childPageIsTab) {
+                if (isCsc) return;
+                tabTitle = parent.window.mainpage ? parent.window.mainpage.mainTabs.getCurrentTabTitle() : (parent && parent.getCurrentTabTitle ? parent.getCurrentTabTitle() : '');
+            }
+            numberHandle('.number0', 0);
+            numberHandle('.number2', 2);
+            getIsCsc();
+        });
+
+        function numberHandle(obj, decimalLen) {
+            var $obj = $(obj);
+            $obj.on('paste', function () {
+                return true;
+            }).on('keypress', function (event) {
+                var event = event || window.event;
+                var getValue = $(this).val();
+                var key = event.keyCode || event.which;
+
+                //控制第一个不能输入小数点"."
+                if (getValue.length == 0 && key == 46) {
+                    event.preventDefault();
+                    return;
+                }
+                //控制只能输入一个小数点"."
+                if (getValue.indexOf('.') != -1 && key == 46) {
+                    event.preventDefault();
+                    return;
+                }
+                if (key == 8 || key == 9 || key == 46 || (key >= 37 && key <= 40))//这里为了兼容Firefox的backspace,tab,del,方向键
+                    return;
+                //控制只能输入的值
+                if (key && (key < 48 || key > 57) && key != 8 && key != 46) {
+                    event.preventDefault();
+                    return;
+                }
+            }).on('keyup', function () {
+                var getValue = $(this).val();
+                var dot = getValue.indexOf(".");
+                if (dot > -1 && getValue.length > dot + decimalLen + 1) {
+                    $(this).val(getValue.substr(0, getValue.length - 1));
+                }
+            }).bind("blur", function (event) {
+                var value = $(this).val(), reg = /^\d+(.\d{1,4})?$/;
+                switch (decimalLen) {
+                    case 0:
+                        reg = /^\d+?$/;
+                        break;
+                    case 1:
+                        reg = /^\d+(.\d{1,1})?$/;
+                        break;
+                    case 2:
+                        reg = /^\d+(.\d{1,2})?$/;
+                        break;
+                    case 3:
+                        reg = /^\d+(.\d{1,3})?$/;
+                        break;
+                }
+                if (reg.test(value)) {
+                    //value = value.replace(reg, "");
+                    //$(this).val(value);
+                } else {
+                    $(this).val('');
+                }
+            });
+        }
+
+
+        function cancel(message, url) {
+            $.messager.confirm(
+                message,
+                function (flag) {
+                    if (flag) {
+                        cancel(url);
+                    }
+                });
+        }
+
+        //暂时没用
+        function cancel(url) {
+            if (parent.window.mainpage) {
+                parent.window.mainpage.mainTabs.closeCurrentTab();
+            } else {
+                location.href = url;
+            }
+        }
+
+        function closeCurrentTab(url, fn) {
+            setTimeout(function () {
+                if ($.isFunction(url)) {
+                    url.call(this);
+                } else if ($.isFunction(fn)) {
+                    fn.call(this);
+                }
+                if (url && !$.isFunction(url)) {
+                    location.href = url;
+                } else {
+                    if (parent.window.mainpage) {
+                        parent.window.mainpage.mainTabs.closeTab(tabTitle);
+                    } else if (parent) {
+                        parent.closeCurrentTab(tabTitle);
+                    }
+                }
+            }, 10);
+        }
+
+        function reload() {
+            setTimeout(function () {
+                location.reload(true);
+            },
+                2000);
+        }
+    </script>
+    <script src="~/Scripts/cfw.global.js"></script>
+</body>
+</html>

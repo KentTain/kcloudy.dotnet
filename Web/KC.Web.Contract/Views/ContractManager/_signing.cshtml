@@ -1,0 +1,220 @@
+﻿
+<div id="tab_Select" class="easyui-tabs">
+    <div title="企业" data-id="0" data-options="refreshable:false">
+        <div id="toolbar-0">
+            <input type="text" id="searchUserName-0" class="easyui-textbox" style="width:350px;" data-options="prompt:'请输入企业，例如：深圳市大陆之星供应链管理有限公司'" />
+            <a class="easyui-linkbutton" onclick="btnSearch(0)">查询</a>
+            <a class="easyui-linkbutton" onclick="ReloadSearch(0)">刷新</a>
+        </div>
+        <table id="searchTable-0"></table>
+    </div>
+    <div title="员工" data-id="1" data-options="refreshable:false">
+        <div id="toolbar-1">
+            <input type="text" id="searchUserName-1" class="easyui-textbox" style="width:250px;" data-options="prompt:'请输入姓名进行搜索'" />
+            <a class="easyui-linkbutton" onclick="btnSearch(1)">查询</a>
+            <a class="easyui-linkbutton" onclick="ReloadSearch(1)">刷新</a>
+            <a class="easyui-linkbutton" onclick="EnterpriseToogle()">重新选择企业</a>
+        </div>
+        <table id="searchTable-1"></table>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var GetUserListUrl = '@Url.Action("GetUserList", "CurrencySign")';
+    var GetIndividualUsersUrl = '@Url.Action("SearchEnterpriseEmployee", "CurrencySign")';
+
+    var TName = '';
+    var $datagrid = '', $toolbar = '', $url = '', $idfield = '', $params = {}, $columns;
+
+    function DisplayDataGrid(index) {
+        $datagrid = '#searchTable-' + index;
+        $toolbar = '#toolbar-' + index;
+
+        switch (index) {
+            case 0:
+                $url = GetUserListUrl;
+                $idfield = 'tenantName';
+                $params = { statu: 5 };
+                $columns = [[
+                    { field: 'TenantDisplayName', title: '公司名称', width: 200, align: 'center' },
+                    {
+                        field: 'tenantName',
+                        title: '操作',
+                        width: 200,
+                        align: 'center',
+                        formatter: function (value, row) {
+                            var htmlcontext = '';
+                            htmlcontext += ' <a class="btn-link-font" onclick="confirm(\'' + row.tenantName + '\',\'' + row.tenantDisplayName + '\',2)">选择</a> ';
+                            //htmlcontext += ' <a onclick="SelectEnterprise(\'' + value + '\')" >旗下员工</a> ';
+                            htmlcontext += ' <a class="btn-link-font" onclick="EnterpriseToogle(\'' + value + '\')" >旗下员工</a> ';
+                            return htmlcontext;
+                        }
+                    }
+                ]];
+                break;
+            case 1:
+                $url = GetIndividualUsersUrl;
+                $idfield = 'displayName';
+                $params = { tName: TName };
+                $columns = [[
+                    { field: 'industryName', title: '所属企业', width: 200, align: 'center' },
+                    { field: 'displayName', title: '姓名', width: 200, align: 'center' },
+                    {
+                        field: 'MemberId',
+                        title: '操作',
+                        width: 200,
+                        align: 'center',
+                        formatter: function (value, row) {
+                            var htmlcontext = '';
+                            htmlcontext += '<a class="btn-link-font" data-options="iconCls:\'icon-search\'" onclick="confirm(\'' + value + '\',\'' + row.displayName + '\',1,\'' + row.userId + '\')" group="">选择</a>';
+                            return htmlcontext;
+                        }
+                    }
+                ]];
+                break;
+        }
+
+        InitialDataGrid($url, $idfield, $params, $columns, $toolbar);
+    }
+
+    function InitialDataGrid(url, idfield, params, columns, toolbar) {
+        $($datagrid).datagrid({
+            url: url,
+            idField: idfield,
+            queryParams: params,
+            columns: columns,
+            toolbar: toolbar,
+            method: 'get',
+            striped: false,
+            pagination: true,
+            fitColumns: true,
+            rowNumbers: true,
+            singleSelect: true,
+            nowrap: true,
+            fit: true,
+            border: false,
+            lines: true,
+            pageSize: 10,
+            pageList: [10, 20, 50],
+            onBeforeLoad: function (param) {
+            },
+            onLoadSuccess: function (data) {
+            },
+            onLoadError: function () {
+            },
+            onClose: function () {
+            }
+        });
+    }
+
+    //var keyValue = ["甲方", "乙方", "丙方", "丁方", "戊方", "己方", "庚方", "辛方", "壬方",  "癸方"];
+    var keyValue = ["乙方", "丙方", "丁方", "戊方", "己方", "庚方", "辛方", "壬方", "癸方"];
+
+    //合同用户
+    function confirm(tenantName, tenantDisplayName, type, userId) {
+        if (tenantName == "" || tenantDisplayName == "") {
+            return;
+        }
+        //$('#cen').remove();
+        //遍历table
+        var $table = $("#signUserTable");
+        var tr = $table.find("tr");
+        var bl = true;
+        if (tr.length > 10) {
+            $.messager.showErrorTopCenter('错误消息', '最多10人签署', 2000);
+            return;
+        }
+        for (var i = 0; i < tr.length; i++) {
+            var label = $($(tr[i]).find("td")[1]).find("label")[0];
+            if ($(label).attr("userid") == tenantName) {
+                bl = false;
+            }
+        }
+        var str = "";
+        if (bl) {
+            str = "<tr id='tr-" + tenantName + "'>";
+            str += "<td><select class='sl-" + tenantName + "'>";
+            for (var j = 0; j < keyValue.length; j++) {
+                str += "<option>";
+                str += keyValue[j];
+                str += "</option>";
+            }
+            str += "</select>";
+            str += "</td>";
+            str += "<td><label userid='" + tenantName + "' type='" + type + "' staffId='" + userId + "'>" + tenantDisplayName + "</label></td>";
+            str += "<td>";
+            str += '<a class="remove-' + tenantName + '"  onclick="deleteuserkey(\'' + tenantName + '\',this)"  href="#">删除</a>';
+            str += "</td>";
+            str += "</tr>";
+            $("#tipTr").css("display", "none");
+            $table.append(str);
+            $('.remove-' + tenantName).linkbutton({ iconCls: 'icon-remove' });
+            $('.sl-' + tenantName).combobox({ editable: false, width: 100 });
+
+        } else {
+            $.messager.showErrorTopCenter('错误消息', '请勿重复选择！', 2000);
+            return;
+        }
+    }
+
+    //加载用户列表
+    function deleteuserkey(i, $this) {
+        $('#tr-' + i).remove();
+        if ($("#signUserTable").find("tr").length == 1) {
+            $("#tipTr").css("display", "");
+        }
+    }
+
+    function btnSearch(index) {
+        switch (index) {
+            case 0:
+                $('#searchTable-' + index).datagrid('load', { userName: $("#searchUserName-" + index).textbox('getValue'), statu: 5 });
+                break;
+            case 1:
+                $('#searchTable-' + index).datagrid('load', { userName: $("#searchUserName-" + index).textbox('getValue') });
+                break;
+            default:
+        }
+    }
+
+    function ReloadSearch(index) {
+        $("#searchUserName-" + index).textbox('setValue', '');
+        btnSearch(index);
+    }
+
+    //function SelectEnterprise(tName) {
+    //    TName = tName;
+    //    $tabs = $('#tab_Select');
+    //    if ($tabs != undefined) {
+    //        $tabs.tabs("select", 1);
+    //    }
+    //}
+
+    //function ReselectEnterprise() {
+    //    TName = undefined;
+    //    $tabs = $('#tab_Select');
+    //    if ($tabs != undefined) {
+    //        $tabs.tabs("select", 0);
+    //    }
+    //}
+
+    function EnterpriseToogle(tName) {
+        TName = tName ? tName : undefined;
+        var $tabs = $('#tab_Select');
+        if ($tabs != undefined) {
+            $tabs.tabs("select", tName ? 1 : 0);
+        }
+    }
+</script>
+
+<script type="text/javascript">
+    $('#tab_Select').tabs({
+        fit: true,
+        border: false,
+        onSelect: function (title, index) {
+            //var $tabIndex = $('#tab_Select').tabs('getSelected').data('id');
+            //InitialDataGrid($tabIndex);
+            DisplayDataGrid(index);
+        }
+    });
+</script>

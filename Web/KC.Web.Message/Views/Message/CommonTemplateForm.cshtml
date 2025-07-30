@@ -1,0 +1,200 @@
+﻿@using KC.Framework.Tenant
+@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Message.Constants
+@using Microsoft.AspNetCore.Authorization
+@model KC.Service.DTO.Message.MessageTemplateDTO
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "消息模板";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--消息管理-保存消息模板-->
+    var canSaveAtt = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "2D4E6BBA-CB63-4168-BB2B-DF62D2BC8804")).Succeeded)
+    {
+        canSaveAtt = true;
+    }
+    <!--消息管理-删除消息模板-->
+    var canRemoveAtt = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "D9278B88-342E-4FBE-9AD3-3E2401C1F040")).Succeeded)
+    {
+        canRemoveAtt = true;
+    }
+
+}
+@section styles{
+    <style>
+        .dialog-form-table tr td:nth-child(odd) {
+            width: 100px;
+        }
+
+        .dialog-form-table tr td:nth-child(even) {
+            width: 260px;
+        }
+    </style>
+}
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform" action="@Url.Action(ActionName.Message.SaveSmsTemplate, ControllerName.Message)">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.MessageClassId)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="table table-bordered table-form tr-col2">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="Name">模板名称：</label></td>
+                <td>
+                    <input id="Name" name="Name" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:'100%',validType:'length[2,100]'"
+                           value="@(null != Model ? Model.Name : string.Empty)" />
+                </td>
+
+                <td><label class="required">*</label><label for="TemplateType">模板类型：</label></td>
+                <td>
+                    @if ((null != Model && Model.IsEditMode) || (null != ViewBag.HasCommonTemplate && ViewBag.HasCommonTemplate))
+                    {
+                        <select id="TemplateType" name="TemplateType" class="easyui-validatebox easyui-combobox"
+                                data-options="width:'100%',editable: false, required:true," readonly="readonly"
+                                asp-items="ViewBag.MessageTemplateTypeList" panelHeight="auto"></select>
+                    }
+                    else
+                    {
+                        <select id="TemplateType" name="TemplateType" class="easyui-validatebox easyui-combobox"
+                                data-options="width:'100%',editable: false, required:true,"
+                                asp-items="ViewBag.MessageTemplateTypeList" panelHeight="auto"></select>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Subject">模板标题：</label></td>
+                <td>
+                    <input id="Subject" name="Subject" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:'100%',validType:'length[2,200]'"
+                           value="@(null != Model ? Model.Subject : string.Empty)" />
+                </td>
+                <td><label for="ReplaceParametersString">替换参数：</label></td>
+                <td>
+                    <input id="ReplaceParametersString" name="ReplaceParametersString" class="easyui-validatebox easyui-textbox"
+                           data-options="readonly:true,width:'100%',validType:'length[0,500]'"
+                           value="@(null != Model ? Model.ReplaceParametersString : string.Empty)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Content">模板内容：</label></td>
+                <td colspan="3">
+                    <textarea id="Content" name="Content" data-options="required:true,validType:'length[2,8000]'">@(null != Model ? Model.Content : "")</textarea>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+<div style="height: 40px;"></div>
+<div class="bottom">
+    <a href="javascript:void(0)" class="easyui-linkbutton" onclick="saveForm()" data-options="iconCls:'fa fa-floppy-o',iconAlign:'left'">保存</a>
+</div>
+@section scripts
+    {
+    <script type="text/javascript" src="/js/ueditor/ueditor.config.js"></script>
+    <script type="text/javascript" src="/js/ueditor/ueditor.all.min.js"></script>
+
+    <!--初始化-->
+    <script type="text/javascript">
+
+        $(function () {
+            $("#TemplateType").combobox({
+                editable: false
+            });
+
+            InitUEditor();
+        });
+
+        //解决UEditor跨域上传问题
+        let uploadUrl = '@(ViewBag.DocWebApiDomain)Resources/Upload';
+        UE.Editor.prototype._bkGetActionUrl = UE.Editor.prototype.getActionUrl;
+        UE.Editor.prototype.getActionUrl = function (action) {
+            //debugger;
+            if (action == 'uploadimage'
+                || action == 'uploadfile'
+                || action == 'listimage'
+                || action == 'uplistfile') {
+                return uploadUrl + "?parm=" + action;
+            } else {
+                return this._bkGetActionUrl.call(this, action);
+            }
+        }
+        var ueditorContent = null;
+        function InitUEditor() {
+            ueditorContent = UE.getEditor('Content', {
+                serverUrl: '/Home/Upload',
+                initialFrameWidth: '100%',
+            });
+
+            ueditorContent.ready(function () {
+                ueditorContent.setHeight(400);
+                //设置编辑器的内容
+                // ue.setContent('hello');
+                // //获取html内容，返回: <p>hello</p>
+                // var html = ue.getContent();
+                // //获取纯文本内容，返回: hello
+                // var txt = ue.getContentTxt();
+            });
+        }
+
+        let getContent = function () {
+            return ueditorContent.getContent();
+        }
+    </script>
+    <!--保存流程定义-->
+    <script type="text/javascript">
+        const formId = "#saveform";
+        const saveFormUrl = '@Url.Action(ActionName.Message.SaveCommonTemplate, ControllerName.Message)';
+        const getPageUrl = '@Url.Action(ActionName.Message.GetCommonTemplateForm, ControllerName.Message)';
+        function saveForm() {
+            //验证
+            let validate = $(formId).form("enableValidation").form("validate");
+            if (!validate) {
+                let errorMsg = '';
+                let invalidComps = $(formId).find(".validatebox-invalid");
+                $.each(invalidComps, function (i, invalidComp) {
+                    errorMsg += 'id=' + invalidComp.id + ', ';
+                });
+                console.error("---验证失败的组件Id：" + errorMsg);
+                return;
+            }
+
+            //debugger;
+            //获取表单数据
+            let formData = $(formId).form("getData");
+            formData.Content = ueditorContent.getContent();;
+            let postData = AddAntiForgeryToken(formData);
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                async: false,
+                url: saveFormUrl,
+                type: 'POST',
+                dataType: 'json',
+                data: postData,
+                success: function (data) {
+                    if (data.success) {
+                        if (data.result) {
+                            $('#IsEditMode').val('true');
+                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                            MainPage_PostMessage("closeSubPage", getPageUrl);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                    } else {
+                        $.messager.showInfoTopCenter('系统提示', data.message);
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+        }
+    </script>
+}

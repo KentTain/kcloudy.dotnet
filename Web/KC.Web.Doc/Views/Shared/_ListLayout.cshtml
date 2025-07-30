@@ -1,0 +1,61 @@
+﻿<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="kcloudy.com" />
+    <meta name="author" content="tianchangjun@outlook.com" />
+    <title>@ViewData["Title"] - KC.Web.Account</title>
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/metro/easyui.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/icon.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)css/common.css" rel="stylesheet" />
+    <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    @*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*@
+    @RenderSection("styles", required: false)
+</head>
+<body style="margin:0px;">
+    <partial name="_CookieConsentPartial" />
+
+    @RenderBody()
+
+
+    <environment include="Dev">
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.extension.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-validation/dist/jquery.validate.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.min.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.extension.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/locale/easyui-lang-zh_CN.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/com.easyui.extension.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.common.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/com.global.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/mainTabs.js"></script>
+    </environment>
+    <environment exclude="Dev">
+        @*<script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"
+                    asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
+                    asp-fallback-test="window.jQuery"
+                    crossorigin="anonymous"
+                    integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT">
+            </script>*@
+        @*var resWebDomain = '@ViewBag.ResWebDomain';
+            var appId = '@ViewBag.AppId';
+            var appName = '@ViewBag.AppName';
+            var imageMaxSize = '@ViewBag.UploadConfig.ImageMaxSize';
+            var imageExt = '@ViewBag.UploadConfig.ImageExt';*@
+
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.min.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.extension.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-validation/dist/jquery.validate.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.min.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.extension.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/locale/easyui-lang-zh_CN.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/com.easyui.extension.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.common.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/com.global.js"></script>
+        <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/mainTabs.js"></script>
+    </environment>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

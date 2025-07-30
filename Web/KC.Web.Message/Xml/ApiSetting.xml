@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.WebApi.Message</name>
+    </assembly>
+    <members>
+        <member name="M:KC.WebApi.Message.Controllers.MessageApiController.LoadTop10UserMessages(System.String,System.Nullable{KC.Enums.Message.MessageStatus})">
+            <summary>
+            获取最新的消息
+            </summary>
+            <param name="userId">用户的UserId</param>
+            <param name="status">消息的状态值：0-未读；1-已读；2-已删除</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Message.Controllers.MessageApiController.LoadPaginatedRemindMessages(System.Int32,System.Int32,System.String,System.String,System.Nullable{KC.Enums.Message.MessageStatus})">
+            <summary>
+            获取消息的分页数据
+            </summary>
+            <param name="pageIndex">分页页码</param>
+            <param name="pageSize">分页大小（不能超过100）</param>
+            <param name="userId">用户Id，必填项</param>
+            <param name="title">消息的标题</param>
+            <param name="status">消息的状态值：0-未读；1-已读；2-已删除</param>
+            <returns>消息的分页数据</returns>
+        </member>
+        <member name="M:KC.WebApi.Message.Controllers.MessageApiController.GetRemindMessageById(System.Int32)">
+            <summary>
+            获取消息的详情
+            </summary>
+            <param name="id">消息的Id号</param>
+            <returns>消息的详情</returns>
+        </member>
+        <member name="M:KC.WebApi.Message.Controllers.MessageApiController.AddRemindMessages(System.Collections.Generic.List{KC.Service.DTO.Message.MemberRemindMessageDTO})">
+            <summary>
+            保存用户站内信消息
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Message.Controllers.MessageApiController.ReadRemindMessage(System.Int32)">
+            <summary>
+            内信消息已读
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Message.Controllers.NewsBulletinApiController.LoadLatestNewsBulletins(System.Nullable{KC.Service.Enums.Message.NewsBulletinType})">
+            <summary>
+            获取最新的新闻公告
+            </summary>
+            <returns>获取10条最新的新闻公告</returns>
+        </member>
+        <member name="M:KC.WebApi.Message.Controllers.NewsBulletinApiController.LoadPaginatedNewsBulletins(System.Int32,System.Int32,System.Nullable{System.Int32},System.String,System.Nullable{KC.Service.Enums.Message.NewsBulletinType})">
+            <summary>
+            获取新闻公告的分页数据
+            </summary>
+            <param name="pageIndex">分页页码</param>
+            <param name="pageSize">分页大小（不能超过100）</param>
+            <param name="categoryId">所属分类</param>
+            <param name="title">新闻公告的标题</param>
+            <param name="type">新闻公告的类型</param>
+            <returns>新闻公告的分页数据</returns>
+        </member>
+        <member name="M:KC.WebApi.Message.Controllers.NewsBulletinApiController.GetNewsBulletinById(System.Int32)">
+            <summary>
+            获取新闻公告的详情
+            </summary>
+            <param name="id">新闻公告的Id号</param>
+            <returns>新闻公告的详情</returns>
+        </member>
+        <member name="M:KC.WebApi.Message.Controllers.TestApiController.GetTenant">
+            <summary>
+            获取当前Tenant编码及名称
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Message.Controllers.TestApiController.GetEnv">
+            <summary>
+            获取当前环境类型
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

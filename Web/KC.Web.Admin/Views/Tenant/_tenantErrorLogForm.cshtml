@@ -1,0 +1,46 @@
+﻿@model KC.Service.DTO.Admin.TenantUserOpenAppErrorLogDTO
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+</head>
+<body>
+    <div>
+        <table class="dialog-form-table">
+            <tr>
+                <td><label style="float: right">租户代码：</label></td>
+                <td><input id="TenantName" name="TenantName" readonly="readonly" class="easyui-validatebox easyui-textbox" data-options="width:200" value="@Model.TenantName" /></td>
+            </tr>
+            <tr>
+                <td><label style="float: right">租户名称：</label></td>
+                <td><input id="TenantDisplayName" name="TenantDisplayName" readonly="readonly" class="easyui-validatebox easyui-textbox" data-options="width:200" value=" @Model.TenantDisplayName " /></td>
+            </tr>
+            <tr>
+                <td><label style="float: right">错误类型：</label></td>
+                <td><input id="OpenServerTypeName" name="OpenServerTypeName" readonly="readonly" class="easyui-validatebox easyui-textbox" data-options="width:200" value="@Model.OpenServerTypeName" /></td>
+            </tr>
+            
+            <tr>
+                <td><label style="float: right">日志类型：</label></td>
+                <td><input id="TypeName" name="TypeName" readonly="readonly" data-options="width:200" class="easyui-validatebox easyui-textbox" value="@Model.TypeString" /></td>
+            </tr>
+            <tr>
+                <td><label style="float: right">日期：</label></td>
+                <td><input id="OperateDate" name="OperateDate" readonly="readonly" class="easyui-validatebox easyui-textbox" data-options="width:200" value="@Model.OperateDate" /></td>
+            </tr>
+            <tr>
+                <td><label style="float: right">日志内容：</label></td>
+                <td><input id="Remark" name="Remark" readonly="readonly" class="easyui-textbox" value="@Model.Remark" data-options="width:300,height:200,multiline:true" /></td>
+            </tr>
+
+        </table>
+    </div>
+</body>
+</html>

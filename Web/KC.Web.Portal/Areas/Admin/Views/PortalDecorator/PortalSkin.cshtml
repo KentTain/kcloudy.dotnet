@@ -1,0 +1,193 @@
+﻿@using KC.Web.Constants
+@using KC.Framework.Tenant
+@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@model KC.Service.DTO.Portal.WebSiteInfoDTO
+@{
+    ViewBag.Title = "门户皮肤信息";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+@section styles
+    {
+    <style>
+        .table-form > tbody > tr > td:nth-child(odd) {
+            width: 20% !important;
+        }
+
+        .table-form > tbody > tr > td:nth-child(even) {
+            width: 80% !important;
+        }
+        .table-skin tr{text-align:center;}
+        .table-skin tr td{text-align:center;width:30%;}
+        .table-skin .textbox-label{width:auto!important;font-size:20px;}
+    </style>
+}
+
+@if (ViewBag.CompanyIsAuth != null && !ViewBag.CompanyIsAuth)
+{
+    <input id="hiddenAuthRedirectUrl" type="hidden" value="/Admin/CompanyInfo/Authentication" />
+    <input id="hiddenClosePageUrl" type="hidden" value="/Admin/PortalInfo/PortalBasicInfo" />
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/companyAuth-redirect.js"></script>
+}
+
+<div class="easyui-layout" style="width:99%;">
+    <form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.PortalDecorator.SavePortalSkin, ControllerName.PortalDecorator)">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.IsEditMode)
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.Name)
+        @Html.HiddenFor(model => model.ServiceDate)
+        @Html.HiddenFor(model => model.ServiceTime)
+        @Html.HiddenFor(model => model.LogoImage)
+        @Html.HiddenFor(model => model.QRCode)
+        @Html.HiddenFor(model => model.HomePageSlide)
+        @Html.HiddenFor(model => model.MainImage)
+        @Html.HiddenFor(model => model.ContactId)
+        @Html.HiddenFor(model => model.ContactName)
+        @Html.HiddenFor(model => model.ContactQQ)
+        @Html.HiddenFor(model => model.ContactWeixin)
+        @Html.HiddenFor(model => model.ContactEmail)
+        @Html.HiddenFor(model => model.ContactPhoneNumber)
+        @Html.HiddenFor(model => model.ContactTelephone)
+        @Html.HiddenFor(model => model.KeyWord)
+        @Html.HiddenFor(model => model.KeyDescription)
+        @*@Html.HiddenFor(model => model.SkinCode)*@
+        @Html.HiddenFor(model => model.SkinName)
+        @Html.HiddenFor(model => model.CompanyInfo)
+
+        @Html.HiddenFor(model => model.IsDeleted)
+        @Html.HiddenFor(model => model.CreatedBy)
+        @Html.HiddenFor(model => model.CreatedName)
+        @Html.HiddenFor(model => model.CreatedDate)
+        @Html.HiddenFor(model => model.ModifiedBy)
+        @Html.HiddenFor(model => model.ModifiedName)
+        @Html.HiddenFor(model => model.ModifiedDate)
+        @*<input class="easyui-iconpicker" data-options="width:500,">*@
+        <div class="div-list">
+            <table style="width:100%;">
+                @{
+                    var iO = 0;
+                    @Html.Raw("<tr>")
+                    @foreach (var item in ViewBag.AllSkins)
+                    {
+                        @Html.Raw("<td>")
+                        <table class="table-skin">
+                            <tr>
+                                <td style="color: #555;padding-bottom: 10px;">
+                                    <input class="easyui-radiobutton" id="@item.SkinCode" name="SkinCode"
+                                           value="@item.SkinCode" label="@item.SkinName" labelwidth="auto" labelPosition="after" checked="@item.IsSelected">
+                                    <br />
+                                    <br />
+                                    <span style="padding:10px 0;">@item.SkinDescription</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <img style="height:200px;" src="@item.SkinImageUrl" border="0" id="@item.SkinCode">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a href="#" onclick="SeeBigImg(this);">查看大图</a>&nbsp;&nbsp;
+                                    <a href="@item.SkinImageUrl" target="_blank">预览模板</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="price">价格：<em class="org">免费</em></div>
+                                </td>
+                            </tr>
+                        </table>
+                        if (iO == 2)
+                        {
+                            @Html.Raw("</tr>")
+                            @Html.Raw("</td>")
+                        }
+                        iO++;
+                    }
+                    @Html.Raw("</tr>")
+                }
+            </table>
+        </div>
+    </form>
+</div>
+<div style="height: 50px;"></div>
+<div class="bottom">
+    <!--会员门户信息-保存会员门户信息-->
+    @if ((await AuthorizationService.AuthorizeAsync(User, "11006F6E-6372-4C94-B34B-4EADC7B58AF0")).Succeeded)
+    {
+        <a href="javascript:void(0)" style="width:100px;height:30px" class="easyui-linkbutton" iconcls="fa fa-floppy-o" onclick="SaveForm()">保存</a>
+    }
+</div>
+
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+
+@section scripts {
+    <!--组件初始化-->
+    <script type="text/javascript">
+
+    let selectedSkinCode = '@Model.SkinCode';
+    $(function () {
+        if (selectedSkinCode)
+            $('#' + selectedSkinCode).radiobutton({ checked: true });
+    })
+
+    </script>
+
+    <!--相关事件-->
+    <script type="text/javascript">
+    const formId = '#saveform';
+    const saveFormUrl = '@Url.Action(ActionName.PortalInfo.SaveWebSiteInfo, ControllerName.PortalInfo)';
+    let SaveForm = function () {
+        let validate = $(formId).form("enableValidation").form("validate");
+        if (!validate) {
+            let errorMsg = '';
+            let invalidComps = $(formId).find(".validatebox-invalid");
+            $.each(invalidComps, function (i, invalidComp) {
+                errorMsg += 'id=' + invalidComp.id + ', ';
+            });
+            console.error("---验证失败的组件Id：" + errorMsg);
+            return;
+        }
+
+        //debugger;
+        let postData = $(formId).form("getData");
+        let skinName = $('#' + postData.SkinCode).radiobutton('options').label;
+        postData.SkinName = skinName;
+
+        //let jsonData = JSON.stringify(postData);
+        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+        $.ajax({
+            async: true,
+            url: saveFormUrl,
+            type: "post",
+            dataType: "json",
+            //contentType: "application/json;charset=UTF-8",
+            //data: jsonData,
+            contentType:"application/x-www-form-urlencoded;charset=UTF-8",
+            data: postData,
+            success: function (data) {
+                if (data.success) {
+                    if (data.result) {
+                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message);
+                    }
+                } else {
+                    $.messager.showInfoTopCenter('系统提示', data.message);
+                }
+            },
+            complete: function () {
+                $.easyui.loaded();
+            }
+        });
+    }
+
+
+    </script>
+}
+
+

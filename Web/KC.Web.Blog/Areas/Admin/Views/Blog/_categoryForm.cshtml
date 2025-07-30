@@ -1,0 +1,34 @@
+﻿@using KC.Web.Blog.Constants
+@model KC.Service.DTO.Blog.CategoryDTO
+
+@{
+    Layout = null;
+}
+@using (Html.BeginForm(ActionName.Blog.SaveCategory, ControllerName.Blog, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="Name">分类名称：</label></td>
+                <td><input id="Name" name="Name" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[1,50]'" value="@Model.Name" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="OrderBy">排序:</label></td>
+                <td><input id="OrderBy" name="OrderBy" class="easyui-numberspinner easyui-textbox" data-options="required:true,width:200,height:26,min:1,max:100" value="@(null != Model ? Model.OrderBy : 0)"></td>
+            </tr>
+            <tr>
+                <td><label for="Remark">描述:</label></td>
+                <td>
+                    <input id="Remark" name="Remark" class="easyui-validatebox easyui-textbox"
+                           data-options="multiline:true,width:'100%',height:100,validType:'length[0,500]'"
+                           value="@(null != Model ? Model.Remark : string.Empty)" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+}
+
+

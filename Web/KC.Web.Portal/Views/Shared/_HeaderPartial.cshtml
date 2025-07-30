@@ -1,0 +1,65 @@
+﻿@{
+    var tenant = ViewBag.UserTenantName ?? ViewBag.TenantName ?? "cdba";
+    var accDomain = KC.Framework.Base.GlobalConfig.GetTenantWebDomain(KC.Framework.Base.GlobalConfig.AccWebDomain, tenant);
+}
+
+<style>
+
+.nav-content{width:100%;height:126px;box-shadow:0 3px 3px 0 #ccc;background:#fff;left:0;top:0;z-index:999;overflow:hidden;transition:.3s}
+.nav-content{background:rgba(230,230,230,.8);box-shadow:0 0 0 0 rgba(0,0,0,.05)}
+.nav-content.scroll{background:#fff;box-shadow:0 3px 3px 0 rgba(0,0,0,.05);transition:.3s}
+.nav-content .layui-container{position:relative;transition:all .4s ease-out}
+.nav-content .nav-logo{height:100%;position:absolute;top:10px;left:15px;line-height:60px}
+.nav-content .nav-logo img{height:60px}
+.nav-content .nav-list{display:inline-block;height:80px}
+.nav-content .layui-nav{width:auto;position:absolute;top:10px;right:0;margin:0;padding:0 5px;border-radius:0;color:#000;background:0 0}
+.nav-content .layui-nav .layui-nav-item{display:inline-block;line-height:60px;margin:0 10px}
+.nav-content .layui-nav .layui-nav-item a{padding:0 0;color:#000;font-family:'Noto Sans SC';font-weight:400;height:76px;font-size:19px}
+.nav-content .layui-nav .layui-this:after,.nav-content .layui-nav-bar{height:2px;background-color:#00aae5}
+.nav-content .layui-nav .layui-nav-item a:hover,.nav-content .layui-nav .layui-this a{color:#00aae5}
+.nav-content .layui-nav .layui-this:after, .nav-content .layui-nav-bar{height:8px;}
+
+.main-content.text-center{text-align:center}
+.main-content .nav-contact {position: absolute; }
+.main-content .nav-contact img{margin-top:1px;}
+.layui-layer-tips .layui-layer-content{padding:1px!important;width:250px;height:135px;background-color: #fff!important;}
+.layui-layer-tips .layui-layer-content .layui-card{margin: 0px;}
+.layui-layer-tips i.layui-layer-TipsL{border-bottom-color:#fff!important;}
+
+.main-content .header .title{display: flex;vertical-align:middle;align-items: center;text-align:left;padding-left:30px;}
+.main-content .header .title p span:first-child{font-size:22px;color:#00aae5; }
+
+</style>
+
+<!-- header部分 -->
+<div class="layui-container" style="width:100%; height:40px;padding:10px;background-color:#00aae5;color:#fff;text-align:center;vertical-align:middle;">
+    <div class="layui-col-sm6" style="text-align:left;">
+        <span>鑫亚（深圳）企业管理咨询有限公司</span>
+    </div>
+    <div class="layui-col-sm6" style="text-align:right;">
+        <span><a style="color:#fff" href="/Home/Member">&nbsp;成为会员&nbsp;</a></span>
+        |
+        <span><a style="color:#fff" href="/Home/Member?type=3">&nbsp;联系我们&nbsp;</a></span>
+        |
+        <span><a style="color:#fff" href="@(accDomain)">&nbsp;用户中心&nbsp;</a></span>
+        |
+        @if (User.Identity.IsAuthenticated)
+        {
+            <span>
+                &nbsp;
+                <a style="color:#fff" href="@(accDomain)">@ViewBag.userDisplayName</a>
+                <span>&nbsp;/&nbsp;</span>
+                <a style="color:#fff" href="@(accDomain)Account/SignOut?ReturnUrl=@(accDomain)">注销</a>&nbsp;
+            </span>
+        }
+        else
+        {
+            <span>
+                &nbsp;
+                <a style="color:#fff" href="@(accDomain)">登录</a>
+                <span>&nbsp;/&nbsp;</span>
+                <a style="color:#fff" href="@(KC.Framework.Base.GlobalConfig.SSOWebDomain)Account/Register?showCarousel=1">注册</a>&nbsp;
+            </span>
+        }
+    </div>
+</div>

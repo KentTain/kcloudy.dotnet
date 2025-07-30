@@ -1,0 +1,40 @@
+﻿@using KC.Web.Constants;
+@model KC.Service.DTO.Message.NewsBulletinDTO
+@*@inject Tenant tenant*@
+@{
+    ViewBag.Title = "鑫亚科技-新闻详情";
+    Layout = "../_HomeLayout.cshtml";
+    /*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*/
+}
+@section styles{
+    <style>
+        .main .content .detail .title{font-size: 20px; text-align:center;}
+        .main .content .detail .author{font-size: 16px; text-align:center; padding:10px 0 10px 160px; }
+    </style>
+}
+@section Scripts {
+
+    <script>
+
+        $(function () {
+            
+        });
+    </script>
+}
+
+<!-- main部分 -->
+<div class="main" layout:fragment="content">
+    <div class="layui-container">
+        <div class="layui-row content">
+            <div class="layui-col-xs12 layui-col-sm12 layui-col-md12 layui-col-lg12 detail">
+                <p class="title">@(Model != null ? Model.Title : "")</p>
+                <p  class="author">
+                    <span class="name">@(Model != null ? Model.Author : "")</span>
+                    <span class="datetime">@(Model != null ? Model.CreatedDate.ToLongDateString() : "")</span>
+                </p>
+                <br/>
+                @Html.Raw(Model != null ? Model.Content : "")
+            </div>
+        </div>
+    </div>
+</div>

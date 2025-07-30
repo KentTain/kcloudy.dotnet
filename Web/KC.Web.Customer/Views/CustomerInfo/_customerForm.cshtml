@@ -1,0 +1,229 @@
+﻿@using KC.Enums.CRM
+@using KC.Web.Extension
+@using KC.Web.Customer.Constants
+
+@model KC.Service.DTO.Customer.CustomerInfoDTO
+<style type="text/css">
+    .mySelect {
+        position: relative;
+        border: 1px solid #95B8E7;
+        background-color: #fff;
+        vertical-align: middle;
+        display: inline-block;
+        overflow: hidden;
+        white-space: nowrap;
+        margin: 0;
+        padding: 0;
+        -moz-border-radius: 5px 5px 5px 5px;
+        -webkit-border-radius: 5px 5px 5px 5px;
+        border-radius: 5px 5px 5px 5px;
+        width: 150px;
+        margin: 0px 1px 0px 0px;
+        padding-top: 0px;
+        padding-bottom: 0px;
+        height: 23px;
+        line-height: 23px;
+    }
+</style>
+
+@functions
+{
+public string GetDisplayName()
+{
+    string displayName = "客户";
+    if (ViewBag.TabIndex.ToString() == "0")
+        displayName = "机构";
+    if (ViewBag.TabIndex.ToString() == "2")
+        displayName = "企业";
+    return displayName;
+}
+}
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform"
+      action="@Url.Action(ActionName.CustomerInfo.SaveCustomerInfoForm, ControllerName.CustomerInfo)">
+    <div style="display: none;">
+        @Html.DropDownList("CustomerType", ((IEnumerable<SelectListItem>)ViewBag.CustomerTypeList).Where(m => m.Text != "请选择"), new { @id = "CustomerType", @class = "easyui-combobox", @style = "width: 200px;height:26px;", @disabled = true })
+        <input id="CustomerType" name="CustomerType" type="hidden" />
+    </div>
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.ReferenceId)
+    @Html.HiddenFor(model => model.CustomerCode)
+    @Html.HiddenFor(model => model.CustomerId)
+    @Html.HiddenFor(model => model.RecommandedUserId)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table" id="CustomerInfoForm">
+        <tbody>
+            <tr>
+                <td style="text-align: right"><label class='required'>*</label>@GetDisplayName()名称：</td>
+                <td>@Html.TextBoxFor(model => model.CustomerName, new { @class = "easyui-validatebox easyui-textbox", data_options = "required:true,width:200,validType:'length[2,200]'" })</td>
+                <td>联系人</td>
+                <td>@Html.TextBoxFor(model => model.ContactName, new { @class = "easyui-validatebox easyui-textbox", data_options = "required:true,width:200,validType:'length[2,15]'" })</td>
+            </tr>
+            
+            <tr>
+                <td>客户等级</td>
+                <td>
+                    @Html.DropDownList("CustomerLevel", (IEnumerable<SelectListItem>)ViewBag.ClientLevelList, new { @id = "CustomerLevel", @class = "easyui-combobox", @style = "width: 200px;height:26px;" })
+                </td>
+            </tr>
+            <tr>
+                <td>客户分类</td>
+                <td>
+                    @Html.DropDownList("ClientType", (IEnumerable<SelectListItem>)ViewBag.ClientTypeList, new { @id = "ClientType", @class = "easyui-combobox", @style = "width: 200px;height:26px;" })
+                </td>
+                <td>客户来源</td>
+                <td>
+                    @if (Model.CustomerId != 0)
+                    {
+                        @Html.DropDownList("CustomerSource", ((IEnumerable<SelectListItem>)ViewBag.ClientSourceList).Where(m => m.Text != "请选择"), new { @id = "CustomerSource", @class = "easyui-combobox", @style = "width: 200px;height:26px;", @disabled = true })
+                        @Html.HiddenFor(model => model.CustomerSource)
+                    }
+                    else
+                    {
+                        @Html.DropDownList("CustomerSource", ((IEnumerable<SelectListItem>)ViewBag.ClientSourceList), new { @id = "CustomerSource", @class = "easyui-combobox", @style = "width: 200px;height:26px;" })
+                    }
+                </td>
+            </tr>
+            
+            <tr style="display: none">
+                <td><label for="RecommandedUserName">推荐人:</label></td>
+                <td><input id="RecommandedUserName" readonly="readonly" name="RecommandedUserName" class="easyui-validatebox easyui-textbox" value="@(null != Model ? Model.RecommandedUserName : "")" /></td>
+            </tr>
+        </tbody>
+        <tbody id="AddAttr"></tbody>
+    </table>
+
+</form>
+
+<script type="text/javascript">
+    //var getAllProvideUrl = '@Url.Action(ActionName.CustomerSea.GetAllCustomerExtInfoProviers, ControllerName.CustomerSea)';
+    var tabIndex = '@ViewBag.TabIndex';
+    var cityId = '';
+
+    $(function () {
+
+        setCustomerType(tabIndex);
+        queryCity();
+        $("#ProviceID").addClass("mySelect");
+        $('#CustomerInfoForm tr td:even').css({ 'text-align': 'right', 'width': 140 });
+
+        $('#CustomerSource[type=hidden]').val($('#CustomerSource option:selected').val()); //客户来源不可编辑
+
+        $('#BusinessState').combobox({ editable: false });
+        $('#ClientType').combobox({ editable: false });
+        $('#CustomerLevel)').combobox({ editable: false });
+        $('#CompanyPersons').combobox({ editable: false });
+        $('#CustomerSource').combobox({ editable: false });
+
+        if (@Model.CustomerId === 0) {
+            //新增客户移除手工录入，导入，推送选项
+            $('#CustomerSource option').each(function () {
+                if ($(this).val() === "0" || $(this).val() === "1" || $(this).val() === "2") {
+                    $(this).remove();
+                }
+            });
+        }
+        setTimeout(setEnumData, 100);
+    });
+
+    function setEnumData() {
+        if (@Model.CustomerId === 0) {
+            debugger;
+            $('#BusinessState').combobox('select', "-1");
+            $('#ClientType').combobox('select', "-1");
+            $('#CustomerLevel').combobox('select', "-1");
+            $('#CompanyPersons').combobox('select', "-1");
+            $('#CustomerSource').combobox('select', 3);//默认选中客户来源
+        }
+    }
+
+    function queryCity() {
+        var cityListUrl = '@Url.Action(ActionName.LoadCityList, ControllerName.CustomerInfo)';
+        var cityData = '';
+        $.get(cityListUrl, function(data) {
+            if (data && data.success) {
+                cityData = data.result;
+                $('#ProviceID').trigger("change");
+                if (cityId > 0) {
+                    $('#CityId').val(cityId);
+                }
+            } else {
+                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+            }
+        }, "json");
+        $('#ProviceID').on('change', function() {
+            $('#CityId').empty();
+            if ($(this).val() <= 0) {
+                $('#ProviceName').val('');
+                $('#CityId').append('<option>选择市</option>');
+                return;
+            }
+            $('#CityId').append('<option>选择市</option>');
+            $('#CityName').val('');
+
+            $('#ProviceName').val($(this).find("option:selected").text());
+            for (var i = 0,
+                len = cityData.length; i < len; i++) {
+                if (cityData[i].ProvinceId == $(this).val()) {
+                    $('#CityId').append('<option value="' + cityData[i].Id + '">' + cityData[i].Name + '</option>');
+                }
+            }
+        });
+        $('#CityId').on('change', function() {
+            if ($(this).val() <= 0||$(this).val()==='选择市') {
+
+                $('#CityName').val('');
+                return;
+            }
+            $('#CityName').val($(this).find("option:selected").text());
+        });
+    }
+
+    function setCustomerType(tabIndex) {
+        $('#CustomerType option').removeAttr('selected');
+        if (tabIndex === "0") {
+            $('#CustomerType option[value=0]').prop('selected', 'selected');
+            $('#CustomerType[type=hidden]').val(0);
+        }
+        if (tabIndex === "1") {
+            $('#CustomerType option[value=1]').prop('selected', 'selected');
+            $('#CustomerType[type=hidden]').val(1);
+        }
+        if (tabIndex === "2") {
+            $('#CustomerType option[value=2]').prop('selected', 'selected');
+            $('#CustomerType[type=hidden]').val(2);
+        }
+    }
+
+
+    $.extend($.fn.validatebox.defaults.rules, {
+        validCustomerPhoneNumber: {
+            validator: function (value, param) {
+                var flag = true;
+                var postData = {};
+                postData[param[1]]= value;
+                postData.CustomerId = $('#CustomerId').val();
+                $.ajax({
+                    async: false,
+                    type: 'POST',
+                    dataType: 'json',
+                    url: param[0],
+                    data: postData,
+                    success: function (result) {
+                        if (result.toString() == "true") {
+                            flag = false;
+                        }
+                    }
+                });
+                return flag;
+            },
+            message: '{2}'
+        }
+    });
+</script>
+
+
+

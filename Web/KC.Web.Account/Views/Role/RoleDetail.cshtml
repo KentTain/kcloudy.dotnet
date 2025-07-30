@@ -1,0 +1,134 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Account.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.DTO.Account.RoleDTO
+@{
+    ViewBag.Title = "角色详情";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var rId = ViewBag.roleId;
+}
+<style>
+    #tblUser tr td:nth-child(odd) {
+        font-weight: bold;
+    }
+
+    #tblUser tr td:nth-child(even) {
+        /*background-color: #fff;*/
+        font-size: 14px;
+    }
+</style>
+
+<div class="easyui-layout" style="width:100%;height:100%;">
+    <div data-options="region:'north',collapsed:false" style="height:40px;">
+        <table id="tblUser" class="table table-bordered table-form tr-col2">
+            <tr>
+                <td>角色名：</td>
+                <td>@Model.RoleName</td>
+                <td>角色显示名：</td>
+                <td>@Model.DisplayName</td>
+            </tr>
+        </table>
+    </div>
+    <div data-options="region:'west',split:false,collapsed:false" title="角色下的权限" style="width: 300px;">
+        <table id="dgMenu"></table>
+    </div>
+    <div data-options="region:'center',split:false,collapsed:false" title="角色下的用户">
+        <table id="dgUser"></table>
+    </div>
+
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        $(function () {
+            InitDataGrid();
+
+            InitTreeGrid();
+        });
+        var userData = '@ViewBag.Users'.replace(new RegExp('&quot;', "gm"),'"');
+        function InitDataGrid() {
+            var data = JSON.parse(userData);
+            var $dataGrid = $('#dgUser').datagrid({
+                method: 'POST',
+                idField: 'UserId',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: false,
+                nowrap: false,
+                fit: true,
+                showFooter: false,
+                data: data,
+                columns: [[
+                    //{ field: 'memberId', title: '用户编号', width: 80, align: 'left' },
+                    { field: 'displayName', title: '姓名', width: 80, align: 'left' },
+                    //{ field: 'userName', title: '用户名', width: 80, align: 'left' },
+                    { field: 'email', title: '邮箱', width: 120, align: 'left' },
+                    { field: 'phoneNumber', title: '手机号', width: 100, align: 'left' },
+                    //{ field: 'organizationNames', title: '所属部门', width: 80, align: 'left',
+                    //    formatter: function (value, row, index) {
+                    //        if (value != undefined && value != "") {
+                    //            return value.substr(0, value.length - 1);
+                    //        }
+                    //        return value;
+                    //    }
+                    //},
+                    { field: 'positionLevelName', title: '员工类型', width: 60, align: 'left' },
+                    {
+                        field: 'status', title: '状态', width: 60,
+                        formatter: function (value, row, index) {
+                            if (value == 0) {
+                                return "<span style='color:gray;'>草稿</span>";
+                            } else if (value == 1) {
+                                return "<span style='color:yellow;'>提交审核</span>";
+                            } else if (value == 2) {
+                                return "<span style='color:green;'>启用</span>";
+                            } else if (value == 3)
+                                return "<span style='color:red;'>冻结</span>";
+                        }
+                    },
+                ]],
+                onLoadSuccess: function (data) {
+                    $('#dgUser').datagrid('fixRowHeight')
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+
+        var menuData = '@ViewBag.Menus'.replace(new RegExp('&quot;', "gm"),'"');
+        function InitTreeGrid() {
+            var data = JSON.parse(menuData);
+            var $dataTreeGrid = $('#dgMenu').tree({
+                idField: 'id',
+                treeField: 'text',
+                striped: true,
+                pagination: false,
+                fitColumns: false,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                lines: true,
+                showFooter: false,
+                checkbox: false,
+                checkOnSelect: false,
+                cascadeCheck: false,
+                data: data,
+                columns: [[
+                        { field: 'text', title: '名称', width: '34%', align: 'left' },
+                        { field: 'level', title: '等级', width: '19%', align: 'left' },
+                        { field: 'description', title: '描述', width: '45%', align: 'left' }
+                    ]],
+                onBeforeLoad: function (row, param) {
+                },
+                onLoadSuccess: function (row, data) {
+                    $('#dgMenu').tree('expandAll');
+                }
+            });
+        }
+    </script>
+}

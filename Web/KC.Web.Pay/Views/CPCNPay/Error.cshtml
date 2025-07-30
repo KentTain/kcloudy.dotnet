@@ -1,0 +1,115 @@
+﻿@{
+    Layout = "~/Views/Shared/_PaymentLayout.cshtml";
+}
+
+
+<div class="classify">
+    <div style="text-align: center;">
+        <div class="wrapper">
+            <div class="error_bg">
+                <div class="page_error">
+
+                    <div class="note"><span class="icon_rederrorB"><i class="glyphicon glyphicon-exclamation-sign"></i></span><em class="S_link1">抱歉，你提交的数据有误，或者访问的页面不存在</em></div>
+                    <div class="tips S_txt2">
+                        <ol>
+                            @if (string.IsNullOrEmpty(ViewBag.Message))
+                            {
+                                <li>请检查输入的网址是否正确，或者与网站管理员联系。</li>
+                                <li>确认您已经登录网站并有权限查看该页面。</li>
+                                <li>提交的数据出错。</li>
+                                <li>该订单已经支付完成。</li>
+                            }
+                            else
+                            {
+                                <li>@ViewBag.Message</li>
+                            }
+                            <li>如有疑问，请联系客服 400-788-8586！</li>
+                        </ol>
+                    </div>
+                    <dl class="detail">
+                        <dt class="S_txt2">你还可以：</dt>
+                        @*<dd><a href="/">1）返回首页</a></dd>*@
+                        <dd><a href="javascript:history.go(-1);">2）返回上一页</a></dd>
+                    </dl>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .wrapper {
+        width: 1200px;
+        text-align: left;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+
+    .error_bg {
+        width: 1000px;
+        min-height: 374px;
+        margin: 16px auto;
+        padding: 186px 0 0 80px;
+        /*background: #fff url(/Content/images/404bg.png) 287px 22px no-repeat;*/
+        box-sizing: content-box;
+    }
+
+    .page_error .note {
+        font-size: 18px;
+        padding-bottom: 10px;
+    }
+
+        .page_error .note .icon_rederrorB {
+            vertical-align: middle;
+            margin-right: 10px;
+            color: #eb7350;
+            font-size: 28px;
+        }
+
+    .glyphicon {
+        position: relative;
+        top: 1px;
+        display: inline-block;
+        font-family: 'Glyphicons Halflings';
+        font-style: normal;
+        font-weight: 400;
+        line-height: 1;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    .S_link1, a.S_txt2:hover, .page_error a:link, .page_error a:visited {
+        color: #eb7350;
+    }
+
+    .page_error ol {
+        line-height: 24px;
+        margin: 10px 0 0;
+    }
+
+        .page_error ol li {
+            list-style-type: decimal;
+            list-style-position: inside;
+        }
+
+    .page_error .detail {
+        margin-top: 20px;
+    }
+
+    .page_error .detail, .page_error .tips {
+        width: 500px;
+        margin-left: 48px;
+        line-height: 20px;
+    }
+
+        .page_error .detail dd, .page_error .detail dt {
+            padding-bottom: 10px;
+            font-weight: 400;
+        }
+
+    .S_txt2 {
+        color: grey;
+        text-decoration: none;
+    }
+</style>
+

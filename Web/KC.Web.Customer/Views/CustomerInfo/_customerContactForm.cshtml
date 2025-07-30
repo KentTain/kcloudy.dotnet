@@ -1,0 +1,67 @@
+﻿@using KC.Web.Customer.Constants
+@using KC.Web.Extension
+@model KC.Service.DTO.Customer.CustomerContactDTO
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform"
+      action="@Url.Action(ActionName.CustomerInfo.SaveCustomerContactForm, ControllerName.CustomerInfo)">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CustomerId)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table" id="CustomerContactForm">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="ContactName">联系人：</label></td>
+                <td><input id="ContactName" name="ContactName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[2,15]'" value="@(null != Model ? Model.ContactName : string.Empty)" /></td>
+            </tr>
+            <tr>
+                <td>
+                    @if ((int)ViewBag.CustomerType == 1)
+                    {
+                        <label class="required">*</label>
+                    }
+                    <label for="ContactPhoneMumber">联系人手机：</label>
+                </td>
+                <td><input id="ContactPhoneMumber" name="ContactPhoneMumber" class="easyui-validatebox easyui-textbox" data-options="width:200,validType:'mobile',novalidate:true" value="@(null != Model ? Model.ContactPhoneMumber : "")" prompt="手机号码：138XXXXXXXX" /></td>
+            </tr>
+            <tr>
+                <td><label for="ContactEmail">联系邮箱：</label></td>
+                <td><input id="ContactEmail" name="ContactEmail" class="easyui-validatebox easyui-textbox" data-options="width:200,validType:'email',novalidate:true" value="@(null != Model ? Model.ContactEmail : "")" /></td>
+            </tr>
+            <tr>
+                <td><label for="ContactTelephone">联系人座机：</label></td>
+                <td><input id="ContactTelephone" name="ContactTelephone" data-options="width:200,validType:'tel',novalidate:true" class="easyui-validatebox easyui-textbox" value="@(null != Model ? Model.ContactTelephone : "")" /></td>
+            </tr>
+            <tr>
+                <td><label for="ContactQQ">QQ：</label></td>
+                <td><input id="ContactQQ" name="ContactQQ" type="text" class="easyui-validatebox easyui-textbox" data-options="width:200,validType:'qq',novalidate:true" value="@(null != Model ? Model.ContactQQ : "")" /></td>
+            </tr>
+            <tr>
+                <td><label for="PositionName">职务：</label></td>
+                <td><input id="PositionName" name="PositionName" type="text" class="easyui-validatebox easyui-textbox" data-options="width:200,validType:'length[2,50]',novalidate:true" value="@(null != Model ? Model.PositionName : "")" /></td>
+            </tr>
+            <tr>
+                <td><label for="IsDefault">是否默认联系人：</label></td>
+                <td>
+                    @if (Model == null || Model.IsDefault == false)
+                    {
+                        <input type="radio" name="IsDefault" value="True"><label>是</label>
+                        <input type="radio" name="IsDefault" value="False" checked="checked"><label>否</label>
+                    }
+                    else
+                    {
+                        <input type="radio" name="IsDefault" value="True" checked="checked"><label>是</label>
+                        <input type="radio" name="IsDefault" value="False"><label>否</label>
+                    }
+                    @*<input id="IsDefault" name="IsDefault" class="easyui-validatebox easyui-textbox" value="@(null !=Model? (Model.IsDefault?"是":"否") :"否")" />*@
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+
+</form>
+

@@ -1,0 +1,995 @@
+﻿@using KC.Enums.App
+@using KC.Framework.Tenant
+@using KC.Web.Admin.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "租户管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    @*租户管理-添加租户应用*@
+    var cansaveAtt = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "57165E12-3DE5-4B88-B16A-ED5392E4AA57")).Succeeded)
+    {
+        cansaveAtt = true;
+    }
+    @*租户管理-开通租户应用*@
+    var canopenAtt = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "381C3080-BD0B-47C7-B3AE-CADD6B17A5BE")).Succeeded)
+    {
+        canopenAtt = true;
+    }
+    @*租户管理-回滚单个租户数据库*@
+    var rollbackAtt = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "B9A63EA0-BEEF-4437-B2D9-BEC51896C4AF")).Succeeded)
+    {
+        rollbackAtt = true;
+    }
+    @*租户管理-开通短信服务*@
+    var canSmsAtt = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "B0F53C31-8974-48EF-B161-33B6BC01D7A9")).Succeeded)
+    {
+        canSmsAtt = true;
+    }
+    @*租户管理-开通邮件服务*@
+    var canEmailAtt = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "5CC95124-4311-49D3-A286-D82D401E8474")).Succeeded)
+    {
+        canEmailAtt = true;
+    }
+    @*租户管理-开通呼叫中心服务*@
+    var canCallAtt = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "CAD430DF-8C50-4222-8174-758C2141121E")).Succeeded)
+    {
+        canCallAtt = true;
+    }
+    @*租户管理-发送开通邮件*@
+    var canSendOpenEmail = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "8436972E-B2B6-45F3-A4CA-29251B46201C")).Succeeded)
+    {
+        canSendOpenEmail = true;
+    }
+    @*租户管理-发送开通短信*@
+    var canSendOpenSms = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "6FCA4967-CE65-4B54-994A-D90F7C25C633")).Succeeded)
+    {
+        canSendOpenSms = true;
+    }
+    @*租户管理-更新租户数据库*@
+    var canUpgradeDatabase = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "EB81D087-51C9-41C3-AE87-1B4ED196FC75")).Succeeded)
+    {
+        canUpgradeDatabase = true;
+    }
+}
+@section styles{
+    <link href="~/css/step.css" rel="stylesheet" />
+    @*<link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.css" rel="stylesheet" />
+        <link href="~/Content/upload.css" rel="stylesheet" />*@
+    <style>
+        ul {
+            list-style: none outside none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .app-item {
+            overflow: hidden;
+            display: none;
+        }
+
+        .openApp {
+            width: 92%;
+            padding: 10px;
+            margin: 0 auto;
+        }
+
+        .app-name {
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .app-doing {
+            background: url(/Content/images/loading.gif) 0 50% no-repeat;
+            width: 100px;
+            height: 30px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .app-exists, .app-new {
+            display: none;
+        }
+
+        .app-exists-list li, .app-new-list li {
+            height: 30px;
+            line-height: 30px;
+            padding-left: 20px;
+        }
+
+            .app-exists-list li span, .app-new-list li span {
+                float: left;
+                margin-top: 7px;
+                margin-right: 5px;
+            }
+    </style>
+}
+<div id="toolbar">
+    <div>
+        @*租户管理-保存租户信息*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "BDA3F21F-16D9-4DC6-99F8-0F7A57DC4980")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addTenantUser()">添加</a>
+        }
+        @*租户管理-保存租户信息*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "BDA3F21F-16D9-4DC6-99F8-0F7A57DC4980")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editTenantUser()">编辑</a>
+        }
+        @*租户管理-删除租户信息*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "D3D82D15-B144-4A28-8DE6-C06CFA870ED0")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeTenantUser()">删除</a>
+        }
+        @*租户管理-发送开通短信*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "6FCA4967-CE65-4B54-994A-D90F7C25C633")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-commenting" onclick="SendOpenSms()">发送租户短信</a>
+        }
+        @*租户管理-回滚所有租户数据库*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "79C48640-AA83-4D35-AADD-FD284619E355")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-undo" onclick="rollbackAllDatabase()">回滚所有的数据库</a>
+        }
+    </div>
+
+    <div>
+        <span>
+            <span>
+                云服务：
+                @Html.DropDownList("CloudType", (IEnumerable<SelectListItem>)ViewBag.CloudTypeList, new { @id = "CloudType", @class = "easyui-combobox", @style = "width: 120px;height:26px;" })
+            </span>
+            <span>
+                版本类型：
+                @Html.DropDownList("Version", (IEnumerable<SelectListItem>)ViewBag.TenantVersionList, new { @id = "Version", @class = "easyui-combobox", @style = "width: 120px;height:26px;" })
+            </span>
+        </span>
+        <div id="divSearchMenu" class="easyui-menu" style="width: 100px">
+            <div data-options="name:'TenantName',selected:true">租户名</div>
+            <div data-options="name:'TenantCode'">租户代码</div>
+            @*<div data-options="name:'ContactName'">联系人</div>*@
+            @*<div data-options="name:'Server'">服务器</div>
+                <div data-options="name:'Database'">数据库</div>*@
+        </div>
+        <input id="txtSearchbox" class="easyui-searchbox" style="width: 250px; height: 26px;" />
+        <a href="javascript:void(0)" onclick="refreshData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+
+    </div>
+</div>
+<table id="datagrid"></table>
+
+<div class="app-item">
+    <fieldset>
+        <legend class="app-name"></legend>
+        <ol class="ui-step ui-step-4">
+            <li class="step-active">
+                <div class="ui-step-line"></div>
+                <div class="ui-step-cont">
+                    <span class="ui-step-cont-number">1</span>
+                    <span class="ui-step-cont-text">等待开通</span>
+                </div>
+            </li>
+            <li>
+                <div class="ui-step-line"></div>
+                <div class="ui-step-cont">
+                    <span class="ui-step-cont-number">2</span>
+                    <span class="ui-step-cont-text">生成客户数据库</span>
+                </div>
+            </li>
+            <li>
+                <div class="ui-step-line"></div>
+                <div class="ui-step-cont">
+                    <span class="ui-step-cont-number">3</span>
+                    <span class="ui-step-cont-text">开通Web服务器</span>
+                </div>
+            </li>
+            <li class="step-end">
+                <div class="ui-step-line"></div>
+                <div class="ui-step-cont">
+                    <span class="ui-step-cont-number">4</span>
+                    <span class="ui-step-cont-text">开通成功</span>
+                </div>
+            </li>
+        </ol>
+        <div class="app-doing"></div>
+    </fieldset>
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+    var cansaveAtt = '@cansaveAtt' === 'True';
+    var canopenAtt = '@canopenAtt' === 'True';
+    var rollbackAtt = '@rollbackAtt' === 'True';
+
+    var canSmsAtt = '@canSmsAtt' === 'True';
+    var canEmailAtt = '@canEmailAtt' === 'True';
+    var canCallAtt = '@canCallAtt' === 'True';
+    var canSendOpenEmail = '@canSendOpenEmail' === 'True';
+    var canSendOpenSms = '@canSendOpenSms' === 'True';
+    var canUpgradeDatabase = '@canUpgradeDatabase' === 'True';
+
+    var endStatus = @((int) ApplicationStatus.OpenSuccess);
+    var existsAppIcon = 'icon-standard-accept',
+        newAppIcon = 'icon-standard-hourglass-add',
+        appsDialog = null, $installDialog = null;
+
+    var $dataGrid = $('#datagrid');
+    $(function () {
+        InitDataGrid();
+
+        //资源类型
+        $('#CloudType').combobox(
+        {
+            editable: false,
+                onChange: function () {
+                    searchData();
+                }
+        });
+
+        //版本类型
+        $('#Version').combobox(
+        {
+            editable: false,
+            onChange: function() {
+                searchData();
+            }
+        });
+    });
+
+    var loadDataUrl = '@Url.Action(ActionName.Tenant.LoadTenantUserList, ControllerName.Tenant)';
+    var loadAppDtaUrl = '@Url.Action(ActionName.Tenant.LoadTenantAppList, ControllerName.Tenant)';
+    var tenantDetailUrl = '@Url.Action(ActionName.Tenant.TenantDetail, ControllerName.Tenant)';
+    function InitDataGrid() {
+        $dataGrid.datagrid({
+            view: detailview,
+            url: loadDataUrl,
+            method: 'get',
+            idField: 'tenantId',
+            striped: true,
+            fitColumns: true,
+            rowNumbers: true,
+            singleSelect: false,
+            nowrap: false,
+            fit: true,
+            pagination: true,
+            checkbox: true,
+            pageSize: 20,
+            pageList: [20, 40, 60, 100],
+            toolbar: "#toolbar",
+            columns: [[
+                { field: 'check', checkbox: true },
+                { field: 'tenantId', title: 'Id', width: 30, align: 'left', hidden: true },
+                { field: 'tenantName', title: '租户代码', width: 100, align: 'left' },
+                { field: 'tenantDisplayName', title: '租户名', width: 180, align: 'left',
+                    formatter: function (value, row, index) {
+                        return '<a href="javascript:void(0);" onclick="MainPage_PostMessage(\'openPage\', \'' + tenantDetailUrl + '\', \'id=' + row.tenantId + '\')" style="text-decoration: none; color: #0000ff">' + value + '</a>';
+                    }
+                },
+                { field: 'cloudTypeString', title: '云服务', width: 40, align: 'left' },
+                { field: 'versionString', title: '版本类型', width: 100, align: 'left' },
+                //{ field: 'tenantTypeString', title: '店铺类型', width: 50, align: 'left' },
+                //{ field: 'nickName', title: '自定义域名前缀', width: 50, align: 'center' },
+                //{ field: 'contactName', title: '联系人', width: 40, align: 'left' },
+                //{ field: 'contactEmail', title: 'Email', width: 100, align: 'left' },
+                //{ field: 'createdBy', title: '创建人', width: 100, align: 'left' },
+                //{ field: 'createdDate', title: '创建时间', formatter: FormatterUtil.DateFormatter, width: 100, align: 'left' },
+                //{ field: 'passwordExpiredTime', title: '密码过期时间', formatter: FormatterUtil.DateFormatter, width: 100, align: 'left' },
+                { field: 'operator', title: '任务操作', width: 160, align: 'center', formatter: addButton },
+                { field: 'operatorbtn', title: '开通服务', width: 70, align: 'center', formatter: addServiceButton }
+            ]],
+            onBeforeLoad: function(param) {
+                /*var bId = $("#txtBId").val();
+                var AllSearchKey = $("#txtAllSearchKey").val();
+                param.bId = bId;
+                param.AllSearchKey = AllSearchKey;*/
+            },
+            onLoadSuccess: function(data) {
+                $('#datagrid').datagrid('clearChecked');
+                $('#datagrid').datagrid('clearSelections');
+                $('#datagrid').datagrid("fixRowHeight");
+
+                $(".btnAddModule").linkbutton({ plain: true, iconCls: 'fa fa-plus' });
+                $(".btnSendSMS").linkbutton({ plain: true, iconCls: 'fa fa-commenting' });
+                $(".btnSendEmail").linkbutton({ plain: true, iconCls: 'fa fa-envelope' });
+                $(".btnContacts").linkbutton({ plain: true, iconCls: 'fa fa-phone' });
+                $(".btnDatas").linkbutton({ plain: true, iconCls: 'fa fa-file-text' });
+                $(".btnOpenEmail").linkbutton({ plain: true, iconCls: 'fa fa-envelope' });
+            },
+            onLoadError: function() {
+            },
+            detailFormatter: function(index, row) {
+                return '<div style="padding:2px;"><table class="ddv"></table></div>';
+            },
+            onExpandRow: function(index, row) {
+                var ddv = $(this).datagrid('getRowDetail', index).find('table.ddv');
+                ddv.datagrid({
+                    url: loadAppDtaUrl + '?tenantId=' + row.tenantId,
+                    fitColumns: true,
+                    singleSelect: true,
+                    rowNumbers: true,
+                    loadMsg: '',
+                    height: 'auto',
+                    columns: [[
+                        { field: 'applicationId', title: '应用程序Id', width: 160, align: 'left' },
+                        { field: 'applicationName', title: '应用程序名称', width: 100, align: 'left' },
+                        //{ field: 'domainName', title: '域名', width: 160, align: 'left' },
+                        { field: 'domainName', title: '域名', width: 160, align: 'left',
+                            formatter: function (value1, row1, index1) {
+                                return '<a href="http://' + row1.domainName + '"  target="_blank" class="btnUsers" >' + row1.domainName + '</a>';
+                            }
+                        },
+                        { field: 'description', title: '描述', width: 100, align: 'left' },
+                        { field: 'appStatusName', title: '状态', width: 80, align: 'center' },
+                        { field: 'appOper', title: '操作', width: 100, align: 'center', formatter: addApplicationButton }
+                    ]],
+                    onResize: function() {
+                        $('#datagrid').datagrid('fixDetailRowHeight', index);
+                    },
+                    onLoadSuccess: function() {
+                        $(".btnUsers").linkbutton({ plain: true, iconCls: 'fa-file-text' });
+                        $(".btnEditModule").linkbutton({ plain: true, iconCls: 'fa fa-pencil' });
+
+                        setTimeout(function() {
+                            $('#datagrid').datagrid('fixDetailRowHeight', index);
+                        }, 0);
+                    }
+                });
+            }
+        });
+
+        $('#txtSearchbox').searchbox({
+            menu: '#divSearchMenu',
+            prompt: '请输入查询值',
+            searcher: searchData
+        });
+    }
+    function refreshData() {
+        $("#txtSearchbox").searchbox('setValue', '');
+        $("#CloudType").combobox("setValue",'');
+        $("#Version").combobox("setValue",'');
+        searchData('', '');
+    }
+    function searchData(value, name,cloutype,version) {
+        $('#datagrid').datagrid('clearChecked');
+        $('#datagrid').datagrid('clearSelections');
+        var cloudType = $("#CloudType").combobox("getValue");
+        var version = $("#Version").combobox("getValue");
+
+        $('#datagrid').datagrid('load', { "searchKey": name, "searchValue": value,cloudType:cloudType,version:version });
+    }
+    function addButton(value, row, index) {
+        var tdContext = '';
+        if (cansaveAtt) {
+            tdContext += '<a href="##" class="btnAddModule" onclick="openApplicationForm(\'' + row.tenantId + '\',\'' + row.applicationId + '\')">创建应用</a>';
+        }
+        if (canSendOpenEmail) {
+            tdContext += '<a href="##" class="btnOpenEmail" onclick="SendOpenEmail(\'' + row.tenantName + '\')">开通邮件</a>';
+        }
+        if (canSendOpenSms) {
+            tdContext += '<a href="##" class="btnSendSMS" onclick="SendOpenSms(\'' + row.tenantName + '\')">开通短信</a>';
+        }
+        return tdContext;
+    }
+    function addServiceButton(value, row, index) {
+        var tdContext = '';
+        var tenantId = row.tenantId;
+        var tenantName = row.tenantName;
+        //if (canSmsAtt && !row.EnableSms)
+        //    tdContext += '<a href="##" class="btnSendSMS" style="padding-left: 4px" onclick="openSmsService(\'' + tenantId + '\',\'' + tenantName + '\')">开通短信服务</a>';
+        //if (canEmailAtt && !row.EnableEmail)
+        //    tdContext += '<a href="##" class="btnSendEmail" style="padding-left: 4px" onclick="openEmailService(\'' + tenantId + '\',\'' + tenantName + '\')">开通邮件服务</a>';
+        //if (canCallAtt && !row.EnableCallCenter)
+        //    tdContext += '<a href="##" class="btnContacts" style="padding-left: 4px" onclick="openCallService(\'' + tenantId + '\',\'' + tenantName + '\')">开通呼叫中心服务</a>';
+        //tdContext += '<a href="##" class="btnDatas" style="padding-left: 4px" onclick="SysData(\'' + tenantName + '\')">同步数据</a>';
+        if (canUpgradeDatabase) {
+            tdContext += '<a href="##" class="btnDatas" style="padding-left: 4px" onclick="UpgradeTenantDatabase(\'' + tenantId + '\')">更新库</a>';
+        }
+        return tdContext;
+    }
+    function addApplicationButton(value, row, index) {
+        var tdContext = '';
+        if (canopenAtt && row.AppStatus != 3) {
+            tdContext += '<a href="##" class="btnEditModule easyui-linkbutton c1" onclick="openApplicationServiceForm(\'' + row.tenantId + '\',\'' + row.applicationId + '\',\'' + row.applicationName + '\')">开通服务</a>';
+            return tdContext;
+        }
+        //if (rollbackAtt && row.AppStatus == 3){
+        //    tdContext += '<a href="##" class="btnRollback easyui-linkbutton c1" onclick="rollbackDatabaseService(\'' + row.tenantId + '\',\'' + row.applicationId + '\',\'' + row.applicationName + '\')">回滚数据库</a>';
+        //    return tdContext;
+        //}
+        return tdContext;
+    }
+
+    var getFormUrl = '@Url.Action(ActionName.Tenant.GetTenantUserForm, ControllerName.Tenant)';
+    var saveFormUrl = '@Url.Action(ActionName.Tenant.SaveTenantUserForm, ControllerName.Tenant)';
+    function opentForm(id) {
+        var dialog = $.easyui.showDialog({
+            title: "保存数据",
+            width: 520,
+            height: 590,
+            href: getFormUrl + "?id=" + id,
+            modal: true,
+            topMost: false,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onSave: function(d) {
+                var validate = d.form("enableValidation").form("validate");
+                if (validate) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: saveFormUrl,
+                        data: AddAntiForgeryToken(d.form("getData")),
+                        success: function(data) {
+                            if (data.success) {
+                                d.window('close');
+                                if (data.result) {
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        },
+                        complete: function() {
+                            $.easyui.loaded();
+                        }
+                    });
+                    return false;
+                } else {
+                    return false;
+                }
+            },
+            onLoad: function() {
+                var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                f.form("disableValidation").form("enableValidation");
+                return ret;
+            }
+        });
+    }
+    function addTenantUser() {
+        opentForm(0);
+    }
+    function editTenantUser() {
+        //var rows = $('#datagrid').datagrid('getSelections');
+        var rows = $('#datagrid').datagrid('getChecked');
+
+        if (rows.length == 1) {
+            opentForm(rows[0].tenantId);
+        } else if (rows.length == 0) {
+            $.messager.showErrorTopCenter('系统提示', '请选择需要编辑的数据！', 2000);
+        }
+        else {
+
+            $.messager.showErrorTopCenter('系统提示', '请选择一条数据进行编辑！', 2000);
+        }
+    }
+
+    var removeUrl = '@Url.Action(ActionName.Tenant.RemoveTenantUserByName, ControllerName.Tenant)';
+    function removeTenantUser() {
+        var row = [];
+        //var rows = $('#datagrid').datagrid('getSelections');
+        var rows = $('#datagrid').datagrid('getChecked');
+        for(var i=0; i<rows.length; i++){
+            row.push(rows[i].tenantName);
+        }
+
+        if (row.length > 0) {
+            $.messager.confirm('确认', '是否确定删除该条记录?', function(r) {
+                if (r) {
+                    $.post(removeUrl, { ids: row }, function(data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                    }, 'json');
+                }
+            });
+        } else {
+            $.messager.showErrorTopCenter('系统提示', '请选择需要删除的数据！', 2000);
+        }
+    }
+
+    //添加应用
+    var getApplicationFormUrl = '@Url.Action(ActionName.Application.GetApplicationSelectList, ControllerName.Application)';
+    var savaTenantApplicationsUrl = '@Url.Action(ActionName.Tenant.SavaTenantUserApplications, ControllerName.Application)';
+    function openApplicationForm(tenantId) {
+        appsDialog = $.easyui.showDialog({
+            title: "选择应用程序",
+            width: 1000,
+            height: 510,
+            modal: true,
+            topMost: false,
+            closable: false,
+            href: getApplicationFormUrl + "?tenantId=" + tenantId,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onSave: function(d) {
+                var rows = $('#listDatagrid').datagrid('getSelections');
+                var appIds = new Array();
+                var appNames = [];
+                for (var i = 0; i < rows.length; i++) {
+                    appIds.push(rows[i].applicationId);
+                    appNames.push(rows[i].applicationName);
+                }
+
+                if (appIds.length == 0) {
+                    $.messager.showErrorTopCenter('系统提示', '请选择需要开通的应用!');
+                    return false;
+                }
+
+                $.easyui.loading({ msg: '正在安装这些应用，请稍等...' });
+                $.ajax({
+                    async: true,
+                    type: "post",
+                    dataType: "json",
+                    url: savaTenantApplicationsUrl,
+                    data: { tenantId: tenantId, appplicationIds: appIds },
+                    success: function(data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('uncheckAll');
+                                $('#datagrid').datagrid('unselectAll');
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                    },
+                    error: function() {
+                        $.messager.showErrorTopCenter('系统提示', '添加应用失败。');
+                    },
+                    complete: function() {
+                        $.easyui.loaded();
+                    }
+                });
+            }
+        });
+    }
+
+    //开通应用
+    var queryAppStatusInterval = null;
+    var saveOpenAppSericeFormUrl = '@Url.Action(ActionName.Tenant.OpenApplicationService, ControllerName.Tenant)';
+    function openApplicationServiceForm(tenantId, appId, appName) {
+        $.messager.confirm('确定开通应用吗', '确定开通应用: ' + appName + ' 吗？',
+            function(flag) {
+                if (flag) {
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: saveOpenAppSericeFormUrl,
+                        data: { tenantId: tenantId, appId: appId },
+                        success: function(data) {
+                            if (data && data.success) {
+                                installApp(tenantId, appId, appName);
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', data.message);
+                            }
+                        },
+                        error: function() {
+                            $.messager.showErrorTopCenter('系统提示', '安装应用失败。');
+                        }
+                    });
+                } else {
+                    $installDialog.dialog('close');
+                }
+            });
+    }
+    function installApp(tennatId, appId, appName) {
+        $installDialog = $.easyui.showDialog({
+            title: "安装应用程序",
+            width: 1000,
+            height: 210,
+            modal: true,
+            topMost: false,
+            closable: false,
+            content: $('<div class="openApp"><div class="app-exists"><span>已经安装的应用：</span><ul class="app-exists-list"></ul></div>' +
+                '<div class="app-new"><span>需要新安装的应用：</span><ul class="app-new-list"></ul></div></div>'),
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onSave: function(d) {
+            },
+            onClose: function() {
+                if (queryAppStatusInterval != null)
+                    clearInterval(queryAppStatusInterval);
+            }
+        });
+
+        var $openApp = $('.openApp');
+        var $appExists = $('.app-exists-list');
+        var $appNewList = $('.app-new-list');
+        var $appItems = [];
+
+        var $appItem = $('.app-item').clone().show();
+        $appItem.attr('id', appId);
+        $('.app-name', $appItem).text(appName);
+        $appItems.push($appItem);
+        $appNewList.append('<li class="' + appId + '"><span class="' + newAppIcon + '"></span>' + appName + '</li>');
+
+        for (var i = 0; i < $appItems.length; i++) {
+            $openApp.append($appItems[i]);
+        }
+
+        queryAppStatusInterval = setInterval(function() {
+            queryAppInstallStatus(tennatId, appId);
+        }, 2000);
+    }
+
+    //查询应用状态
+    var getTenantAppStatusUrl = '@Url.Action(ActionName.Tenant.GetTenantAppStatus, ControllerName.Tenant)';
+    function queryAppInstallStatus(tenantId, appId) {
+        $.post(getTenantAppStatusUrl, { tenantId: tenantId, appId: appId },
+            function(data) {
+                if (data) {
+                    var complete = true;
+                    var $app = $('#' + data.applicationId);
+                    for (var j = 0; j <= data.appStatus; j++) {
+                        if (data.appStatus == j) {
+                            $('li:eq(' + j + ')', $app).addClass('step-active');
+                        } else {
+                            $('li:eq(' + j + ')', $app).removeClass('step-active').addClass('step-done');
+                        }
+                    }
+                    if (endStatus == data.appStatus) {
+                        $('.app-doing', $app).hide();
+                        $('.' + data.applicationId + ' span').removeClass(newAppIcon).addClass(existsAppIcon);
+                    } else {
+                        complete = false;
+                    }
+
+                    if (complete && queryAppStatusInterval != null) {
+                        clearInterval(queryAppStatusInterval);
+                        $('#datagrid').datagrid('unselectAll');
+                        $('#datagrid').datagrid('reload');
+                        var buttonbar = $installDialog.dialog('dialog').children(".dialog-button");
+                        var btns = buttonbar.children("a");
+                        btns.linkbutton('enable');
+                    }
+
+                }
+            });
+    }
+
+    //回滚所有的数据库
+    var rollbackAllDatabaseUrl = '@Url.Action(ActionName.Tenant.RollBackAllTenantDatabase, ControllerName.Tenant)';
+    function rollbackAllDatabase() {
+        $.messager.confirm('确认', '是否确定回滚所有Database服务?', function(r) {
+            if (r) {
+                $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                $.ajax({
+                    async: true,
+                    type: "post",
+                    dataType: "json",
+                    url: rollbackAllDatabaseUrl,
+                    data: null,
+                    success: function(data) {
+                        if (data) {
+                            if (data.success) {
+                                $.messager.showInfoTopCenter('系统提示', '回滚所有Database服务成功。', 2000);
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', data.message, 2000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('系统提示', '回滚所有Database服务失败。', 2000);
+                        }
+                    },
+                    complete: function() {
+                        $.easyui.loaded();
+                    }
+                });
+            }
+        });
+    }
+
+    //回滚单个租户的数据库
+    var rollbackDBSericeUrl = '@Url.Action(ActionName.Tenant.RollBackDatabaseService, ControllerName.Tenant)';
+    function rollbackDatabaseService(tenantId, appId, appName) {
+        $.messager.confirm('确定回滚应用的数据库至上个版本吗', '确定回滚应用: ' + appName + ' 的数据库吗？',
+            function(flag) {
+                if (flag) {
+                    $.easyui.loading({ msg: '正在回滚应用的数据库，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: rollbackDBSericeUrl,
+                        data: { tenantId: tenantId, appId: appId },
+                        success: function(data) {
+                            if (data) {
+                                if (data.success) {
+                                    $.messager.showInfoTopCenter('系统提示', '回滚应用的Database服务成功。', 2000);
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', data.message, 2000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', '回滚应用的Database服务失败。', 2000);
+                            }
+                        },
+                        error: function() {
+                            $.messager.showErrorTopCenter('系统提示', '安装应用失败。', 2000);
+                        },
+                        complete: function() {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+    }
+
+    //开通短信服务
+    var openSmsSericeUrl = '@Url.Action(ActionName.Tenant.OpenSmsService, ControllerName.Tenant)';
+    function openSmsService(tenantId, tenantName) {
+        $.messager.confirm('确定要开通短信服务', '确定要为租户: ' + tenantName + ' 开通短信服务吗？',
+            function(flag) {
+                if (flag) {
+                    $.easyui.loading({ msg: '正在开通服务，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: openSmsSericeUrl,
+                        data: { tenantId: tenantId, tenantName: tenantName },
+                        success: function(data) {
+                            if (data) {
+                                if (data.success) {
+                                    $.messager.showInfoTopCenter('系统提示', '开通短信服务成功。', 2000);
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', data.message, 2000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', '开通短信服务失败。', 2000);
+                            }
+                        },
+                        error: function() {
+                            $.messager.showErrorTopCenter('系统提示', '开通短信服务失败。', 2000);
+                        },
+                        complete: function() {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+    }
+
+    //开通邮件服务
+    var openEmailSericeUrl = '@Url.Action(ActionName.Tenant.OpenEmailService, ControllerName.Tenant)';
+    function openEmailService(tenantId, tenantName) {
+        $.messager.confirm('确定要开通邮件服务', '确定要为租户: ' + tenantName + ' 开通邮件服务吗？',
+            function(flag) {
+                if (flag) {
+                    $.easyui.loading({ msg: '正在开通服务，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: openEmailSericeUrl,
+                        data: { tenantId: tenantId, tenantName: tenantName },
+                        success: function(data) {
+                            if (data) {
+                                if (data.success) {
+                                    $.messager.showInfoTopCenter('系统提示', '开通邮件服务成功。', 2000);
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', data.message, 2000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', '开通邮件服务失败。', 2000);
+                            }
+                        },
+                        error: function() {
+                            $.messager.showErrorTopCenter('系统提示', '开通邮件服务失败。', 2000);
+                        },
+                        complete: function() {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+    }
+
+    //开通呼叫中心服务
+    var openCallSericeUrl = '@Url.Action(ActionName.Tenant.OpenCallCenterService, ControllerName.Tenant)';
+    function openCallService(tenantId, tenantName) {
+        $.messager.confirm('确定要开通呼叫中心服务', '确定要为租户: ' + tenantName + ' 开通呼叫中心服务吗？',
+            function(flag) {
+                if (flag) {
+                    $.easyui.loading({ msg: '正在开通服务，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: openCallSericeUrl,
+                        data: { tenantId: tenantId, tenantName: tenantName },
+                        success: function(data) {
+                            if (data) {
+                                if (data.success) {
+                                    $.messager.showInfoTopCenter('系统提示', '开通呼叫中心服务成功。', 2000);
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', data.message, 2000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', '开通呼叫中心服务失败。', 2000);
+                            }
+                        },
+                        error: function() {
+                            $.messager.showErrorTopCenter('系统提示', '开通呼叫中心服务失败。', 2000);
+                        },
+                        complete: function() {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+    }
+
+    //同步单个租户的产品
+    var syncDataUrl = '@Url.Action(ActionName.Tenant.SyncData, ControllerName.Tenant)';
+    function SysData(tenantName) {
+        $.messager.confirm('确定要同步数据', '确定要为租户: ' + tenantName + ' 同步数据吗？',
+            function(flag) {
+                if (flag) {
+                    $.easyui.loading({ msg: '正在同步数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: syncDataUrl,
+                        data: { tenantName: tenantName },
+                        success: function(data) {
+                            if (data) {
+                                if (data.success) {
+                                    $.messager.showInfoTopCenter('系统提示', '同步成功。', 2000);
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', data.message, 2000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', '同步失败。', 2000);
+                            }
+                        },
+                        error: function() {
+                            $.messager.showErrorTopCenter('系统提示', '同步失败。', 2000);
+                        },
+                        complete: function() {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+    }
+
+    //发送单个租户的开通应用的邮件
+    var openEmailUrl = '@Url.Action(ActionName.Tenant.SendOpenEmail, ControllerName.Tenant)';
+    function SendOpenEmail(tenantName) {
+        $.messager.confirm('系统提示', '确定要为租户: ' + tenantName + ' 发送开通应用的邮件吗？',
+            function(flag) {
+                if (flag) {
+                    $.easyui.loading({ msg: '正在发送，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: openEmailUrl,
+                        data: { tenantName: tenantName },
+                        success: function(data) {
+                            if (data) {
+                                if (data.success) {
+                                    $.messager.showInfoTopCenter('系统提示', '发送开通应用的邮件成功。', 2000);
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', data.message, 2000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', '发送开通应用的邮件失败。', 2000);
+                            }
+                        },
+                        error: function() {
+                            $.messager.showErrorTopCenter('系统提示', '同步失败。', 2000);
+                        },
+                        complete: function() {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+    }
+
+    //发送开通短信
+    var openSmsUrl = '@Url.Action(ActionName.Tenant.SendOpenSms, ControllerName.Tenant)';
+    function SendOpenSms(tenantName) {
+        var row = [];
+        if (tenantName != '' && tenantName != null) {
+            row.push(tenantName);
+        } else {
+            var rows = $('#datagrid').datagrid('getChecked');
+            for(var i=0; i<rows.length; i++){
+                row.push(rows[i].tenantName);
+            }
+        }
+
+        if (row.length > 0) {
+            $.messager.confirm('系统提示', '确定要为租户发送开通应用的短信吗？',
+                function(flag) {
+                    if (flag) {
+                        $.easyui.loading({ msg: '正在发送，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: openSmsUrl,
+                            data: { tenantNames: row },
+                            success: function(data) {
+                                if (data) {
+                                    if (data.success) {
+                                        $('#datagrid').datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '发送开通应用的短信成功。', 2000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('系统提示', data.message, 2000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', '发送开通应用的短信失败。', 2000);
+                                }
+                            },
+                            error: function() {
+                                $.messager.showErrorTopCenter('系统提示', '发送开通应用的短信失败。', 2000);
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                    }
+                });
+        }else {
+            $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行操作！', 2000);
+        }
+    }
+
+    //更新数据库
+    var UpgradeTenantDatabaseUrl = '@Url.Action(ActionName.Tenant.UpgradeTenantDatabase, ControllerName.Tenant)';
+    function UpgradeTenantDatabase(tenantId) {
+        $.messager.confirm('系统提示', '是否确定重新更新该租户的数据库?', function (r) {
+            if (r) {
+                $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                $.post(UpgradeTenantDatabaseUrl, { tenantId: tenantId, id: 0 }, function (data) {
+                    $.easyui.loaded();
+                    if (data.success) {
+                        if (data.result) {
+                            $('#datagrid').datagrid('reload');
+                            $.messager.showInfoTopCenter('系统提示', '更新该租户的数据库成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', '更新该租户的数据库失败。', 5000);
+                        }
+                    } else {
+                        $.data.showErrorTopCenter('错误消息', data.message, 5000);
+                    }
+                }, 'json');
+            }
+        });
+    }
+
+    </script>
+}

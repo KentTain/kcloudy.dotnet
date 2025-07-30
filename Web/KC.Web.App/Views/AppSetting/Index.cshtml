@@ -1,0 +1,451 @@
+﻿@using KC.Web.App.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "应用配置定义";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--开发配置管理-新增/编辑应用配置-->
+    var canEdit = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "0E440482-514A-418C-8CA1-7EC09BE4179A")).Succeeded)
+    {
+        canEdit = true;
+    }
+    <!--开发配置管理-删除应用配置-->
+    var canDelete = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "3DC34E69-432B-466D-9104-64039FF632C5")).Succeeded)
+    {
+        canDelete = true;
+    }
+
+    <!--开发配置管理-保存应用属性配置-->
+    var canSaveProperty = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "25F11F2A-C036-4BD9-9D12-542DBCED501D")).Succeeded)
+    {
+        canSaveProperty = true;
+    }
+    <!--开发配置管理-删除应用属性配置-->
+    var canDeleteProperty = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "B78D5C65-AF93-492A-BF8E-B9014062B72C")).Succeeded)
+    {
+        canDeleteProperty = true;
+    }
+}
+
+<div class="easyui-layout" data-options="fit:true" style="width: 360px;padding:2px;">
+    <div data-options="region:'west',collapsible:false">
+        <div id="appToolbar">
+            <div>
+            </div>
+            <div>
+                <input id="txtName" class="easyui-textbox" style="width: 140px;height:26px;"
+                       data-options="prompt:'请输入名称'" />
+                <a href="javascript:void(0)" onclick="reloadApplication()" class="easyui-linkbutton"
+                   data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshApplication()" class="easyui-linkbutton ListToolEndBtn"
+                   data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="appDataList"></table>
+    </div>
+    <div data-options="region:'center'">
+        <div id="toolbar">
+            <div>
+                <!--开发配置管理-新增/编辑应用配置-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "0E440482-514A-418C-8CA1-7EC09BE4179A")).Succeeded)
+                {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="openSettingForm(0)">新增</a>
+                }
+            </div>
+
+            <div>
+                <input id="txtSettingName" class="easyui-textbox" data-options="prompt:'请输入配置名称'">
+                <a href="#" onclick="reloadDataGrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="#" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="datagrid"></table>
+    </div>
+</div>
+
+@section scripts
+    {
+<script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+<!--组件初始化-->
+<script type="text/javascript">
+    $.extend($.fn.validatebox.defaults.rules, {
+        existAppSetPropName: {
+            validator: function (value, param) {
+                if ($.string.isNullOrWhiteSpace(value))
+                    return true;
+
+                let flag = true;
+                let postData = {};
+                postData.id = param[1];
+                postData.settingId = param[2];
+                postData.isEditMode = param[3];
+                postData.orginalName = param[4];
+                postData.name = value;
+                $.ajax({
+                    async: false,
+                    type: 'POST',
+                    dataType: 'json',
+                    url: param[0],
+                    data: postData,
+                    success: function (data) {
+                        if (data.success) {
+                            flag = !data.result;
+                        } else {
+                            flag = false;
+                        }
+                    }
+                });
+                return flag;
+            },
+            message: '已存在该配置属性名称'
+        }
+    });
+
+    $(function () {
+        InitDataList();
+
+        InitDataGrid();
+    });
+
+    let initSwitchButton = function (sbButtonId, hiddenValId, isChecked, callback) {
+        $('#' + sbButtonId).switchbutton({
+            checked: isChecked,
+            onChange: function (checked) {
+                $('#' + hiddenValId).val(checked);
+                if (callback)
+                    callback(checked);
+            }
+        });
+    }
+</script>
+<!--应用（左侧）-->
+<script type="text/javascript">
+    let $dataList = $('#appDataList');
+    let selectApplicationId = null;
+
+    const loadAppDataUrl = '@Url.Action(ActionName.Application.LoadAllApplications, ControllerName.Application)';
+    function InitDataList() {
+        $dataList.datagrid({
+            url: loadAppDataUrl,
+            toolbar: '#appToolbar',
+            method: 'get',
+            idField: 'applicationId',
+            valueField: 'applicationId',
+            textField: 'applicationName',
+            queryParams: {
+                hasAll: true,
+                name: $("#txtName").textbox("getValue"),
+            },
+            striped: true,
+            fit: true,
+            fitColumns: true,
+            rowNumbers: true,
+            singleSelect: true,
+            nowrap: false,
+            lines: true,
+            showFooter: false,
+            checkbox: false,
+            checkOnSelect: false,
+            cascadeCheck: true,
+            cache: true,
+            pagination: false,
+            columns: [
+                [
+                    { field: 'applicationId', title: 'Id', hidden: true },
+                    { field: 'applicationName', title: '应用名称', width: 200 },
+                ]
+            ],
+            onBeforeLoad: function (param) {
+            },
+            onLoadSuccess: function (data) {
+                CommonUtil.buttonStyle();
+                $dataList.datagrid('unselectAll');
+                $dataList.datagrid("fixRowHeight");
+
+                //默认选中第一个节点
+                if (selectApplicationId === null
+                    && data.rows && data.rows.length > 0) {
+                    selectApplicationId = data.rows[0].applicationId;
+                    $dataList.datagrid("selectRow", 0);
+                }
+            },
+            onLoadError: function () {
+            },
+            onSelect: function (index, row) {
+                if (selectApplicationId === row.applicationId) return;
+                //点击左侧消息类型，显示右侧列表信息
+                selectApplicationId = row.applicationId;
+
+                reloadDataGrid();
+            }
+        });
+    }
+
+    let refreshApplication = function () {
+        $dataList.datagrid('unselectAll');
+        $("#txtName").textbox('setValue', '');
+        reloadApplication();
+    };
+    let reloadApplication = function () {
+        $dataList.datagrid('unselectAll');
+        $dataList.datagrid("reload", {
+            hasAll: true,
+            name: $("#txtName").textbox("getValue"),
+        });
+    };
+</script>
+<!--应用配置（右侧）-->
+<script type="text/javascript">
+    const canEdit = @Json.Serialize(canEdit);
+    const canDelete = @Json.Serialize(canDelete);
+    const canSaveProperty = @Json.Serialize(canSaveProperty);
+    const canDeleteProperty = @Json.Serialize(canDeleteProperty);
+
+    let $dataGrid = $('#datagrid');
+    const loadDataUrl = '@Url.Action(ActionName.AppSetting.LoadAppSettingList, ControllerName.AppSetting)';
+    const loadAppSettingPropertyDataUrl = '@Url.Action(ActionName.AppSetting.LoadAppSettingPropertyList, ControllerName.AppSetting)';
+    function InitDataGrid() {
+        $dataGrid.datagrid({
+            view: detailview,
+            url: loadDataUrl,
+            method: 'get',
+            idField: 'propertyId',
+            toolbar: '#toolbar',
+            striped: true,
+            fitColumns: true,
+            rowNumbers: true,
+            singleSelect: true,
+            nowrap: false,
+            fit: true,
+            pagination: true,
+            pageSize: 20,
+            pageList: [20, 40, 60, 100],
+            showFooter: false,
+            columns: [[
+                { field: 'propertyId', title: '应用配置Id', width: 80, align: 'left', hidden: true },
+                { field: 'code', title: '应用配置编码', width: 140, align: 'left' },
+                { field: 'name', title: '应用配置名称', width: 140, align: 'left' },
+                { field: 'displayName', title: '应用配置显示名', width: 140, align: 'left' },
+                { field: 'description', title: '描述', width: 160, align: 'left' },
+                { field: 'index', title: '排序', width: 40, align: 'center' },
+                {
+                    field: 'operator', title: '操作', width: 220, align: 'center',
+                    formatter: function (value, row, index) {
+                        let settingId = row.propertyId;
+                        var tdContext = '';
+                        if (canEdit)
+                            tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openSettingForm(\'' + settingId + '\')">编辑</a>';
+                        if (canDelete)
+                            tdContext += '<a href="##" class="btnDelete" style="cursor:pointer" onclick="removeAppSetting(\'' + settingId + '\')">删除</a>';
+                        if (canSaveProperty)
+                            tdContext += '<a href="##" class="btnAdd" onclick="openPropertyDialog(\'0\', \'' + settingId + '\')">添加配置属性</a>';
+                        return tdContext;
+                    }
+                }
+            ]],
+            onBeforeLoad: function (param) {
+                /*var bId = $("#txtBId").val();
+                var AllSearchKey = $("#txtAllSearchKey").val();
+                param.bId = bId;
+                param.AllSearchKey = AllSearchKey;*/
+            },
+            onLoadSuccess: function (data) {
+                CommonUtil.buttonStyle();
+                $dataGrid.datagrid("fixRowHeight");
+            },
+            onLoadError: function () {
+            },
+            detailFormatter: function (index, row) {
+                return '<div style="padding:2px;"><table class="ddv"></table></div>';
+            },
+            onExpandRow: function (index, row) {
+                var ddv = $(this).datagrid('getRowDetail', index).find('table.ddv');
+                ddv.datagrid({
+                    url: loadAppSettingPropertyDataUrl + '?settingId=' + row.propertyId,
+                    fitColumns: true,
+                    singleSelect: true,
+                    rowNumbers: true,
+                    loadMsg: '',
+                    height: 'auto',
+                    columns: [[
+                        { field: 'propertyAttributeId', title: '属性Id', width: 80, align: 'left', hidden: true },
+                        { field: 'name', title: '属性名称', width: 100, align: 'left' },
+                        { field: 'displayName', title: '属性显示名', width: 140, align: 'left' },
+                        { field: 'dataTypeString', title: '数据类型', width: 80, align: 'left' },
+                        { field: 'value', title: '属性默认值', width: 140, align: 'left', hidden: true },
+                        { field: 'isRequire', title: '是否必填', width: 80, align: 'center', formatter: FormatterUtil.BoolFormatter },
+                        { field: 'canEdit', title: '是否能编辑', width: 80, align: 'center', formatter: FormatterUtil.BoolFormatter },
+                        { field: 'ext1', title: '下拉列表接口地址', width: 140, align: 'left', hidden: true },
+                        { field: 'index', title: '排序', width: 40, align: 'center' },
+                        {
+                            field: 'subOper', title: '操作', width: 180, align: 'center',
+                            formatter: function (value, row, index) {
+                                let settingId = row.appSettingId;
+                                let propertyId = row.propertyAttributeId;
+                                let propertyName = row.name;
+                                let canEdit = row.canEdit;
+                                var tdContext = '';
+                                if (canSaveProperty)
+                                    tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openPropertyDialog(\'' + propertyId + '\',\'' + settingId + '\')">编辑属性</a>';
+                                if (canDeleteProperty && canEdit)
+                                    tdContext += '<a href="##" class="btnDelete" style="cursor:pointer" onclick="removeProperty(\'' + propertyId + '\',\'' + propertyName + '\')">删除属性</a>';
+
+                                return tdContext;
+                            }
+                        }
+                    ]],
+                    onResize: function () {
+                        $dataGrid.datagrid('fixDetailRowHeight', index);
+                    },
+                    onLoadSuccess: function () {
+                        CommonUtil.buttonStyle();
+                        $(ddv).datagrid('fixRowHeight');
+
+                        setTimeout(function () {
+                            $dataGrid.datagrid('fixDetailRowHeight', index);
+
+                        }, 0);
+                    }
+                });
+            }
+        });
+    }
+
+    let refreshSearch = function () {
+        $("#txtSettingName").textbox('setValue', '');
+        reloadDataGrid();
+    };
+    let reloadDataGrid = function () {
+        $dataGrid.datagrid("load", {
+            appId: selectApplicationId,
+            name: $("#txtSettingName").textbox("getValue"),
+        });
+    };
+
+    const getSettingFormUrl = '@Url.Action(ActionName.AppSetting.GetAppSetDefForm, ControllerName.AppSetting)';
+    let openSettingForm = function (id) {
+        let queryString = "id=" + id + "&appId=" + selectApplicationId;
+        MainPage_PostMessage("openSubPage", getSettingFormUrl, queryString);
+    };
+
+    const removeUrl = '@Url.Action(ActionName.AppSetting.RemoveAppSetting, ControllerName.AppSetting)';
+    let removeAppSetting = function () {
+        var row = $('#datagrid').datagrid('getSelected');
+        if (row) {
+            $.messager.confirm('系统提示', '是否确定删除该条记录?', function (r) {
+                if (r) {
+                    $.post(removeUrl, { id: row.AppSettingId }, function (result) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+    };
+</script>
+<!--应用属性配置-->
+<script type="text/javascript">
+    const getPropertyFormUrl = '@Url.Action(ActionName.AppSetting.GetAppSetPropDefForm, ControllerName.AppSetting)';
+    const savePropertyUrl = '@Url.Action(ActionName.AppSetting.SaveAppSettingProperty, ControllerName.AppSetting)';
+    let openPropertyDialog = function (id, settingId) {
+        var dialog = $.easyui.showDialog({
+            title: "保存数据",
+            width: 500,
+            height: 460,
+            href: getPropertyFormUrl + "?id=" + id + "&settingId=" + settingId,
+            modal: true,
+            topMost: false,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onSave: function (d) {
+                var validate = d.form("enableValidation").form("validate");
+                if (validate) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: savePropertyUrl,
+                        data:AddAntiForgeryToken(d.form("getData")),
+                        success: function (data) {
+                            if (data.success) {
+                                d.window('close');
+                                if (data.result) {
+                                    $dataGrid.datagrid('clearSelections');
+                                    $dataGrid.datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                    return false;
+                } else {
+                    return false;
+                }
+            },
+            onLoad: function () {
+                var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                f.form("disableValidation").form("enableValidation");
+                return ret;
+            }
+        });
+    };
+
+    //删除属性
+    const removePropertyUrl = '@Url.Action(ActionName.AppSetting.RemoveAppSettingProperty, ControllerName.AppSetting)';
+    let removeProperty = function (id, name) {
+        if (id <= 0) {
+            $.messager.showErrorTopCenter('系统提示', '此属性无法删除', 1000);
+            return;
+        }
+        $.messager.confirm('确定删除该属性：' + name + '?', function (f) {
+            if (f) {
+                $.easyui.loading({ msg: '正在删除数据，请稍等...' });
+                $.ajax({
+                    async: true,
+                    type: "get",
+                    dataType: "json",
+                    url: removePropertyUrl,
+                    data: { id: id },
+                    success: function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $.messager.showInfoTopCenter("提示", '删除成功。', 1500);
+                                $dataGrid.datagrid('reload');
+                                $dataGrid.datagrid('clearSelections');
+                            } else {
+                                $.messager.showErrorTopCenter("错误", data.result.message);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter("错误", data.message);
+                        }
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+            }
+        });
+    };
+</script>
+}

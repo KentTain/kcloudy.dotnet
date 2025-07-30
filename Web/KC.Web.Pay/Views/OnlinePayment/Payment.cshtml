@@ -1,0 +1,22 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>在线支付</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+</head>
+<body onload="submitForm()">
+    @ViewBag.ErrorMessage
+    @Html.Raw(ViewBag.Form)
+    <script>
+        function submitForm() {
+            if ('1' == '@ViewBag.IsPay')
+                document.forms[0].submit();
+        }
+    </script>
+</body>
+</html>

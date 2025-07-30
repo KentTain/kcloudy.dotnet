@@ -1,0 +1,62 @@
+﻿
+@using KC.Framework.Base
+@using KC.Web.Config.Constants
+@model KC.Service.DTO.Config.SysSequenceDTO
+
+@{
+    Layout = null;
+}
+@using (Html.BeginForm(ActionName.SysSequence.SaveSysSequence, ControllerName.SysSequence, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+@Html.AntiForgeryToken()
+
+<table class="dialog-form-table">
+    <tbody>
+        @if (Model.IsEditMode)
+            {
+        <tr>
+            <td><label class="required">*</label><label for="SequenceName">ID生成配置代码：</label></td>
+            <td><input id="SequenceName" name="SequenceName" readonly="readonly" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200" value="@Model.SequenceName" /></td>
+        </tr>
+            }
+            else
+            {
+        <tr>
+            <td><label class="required">*</label><label for="SequenceName">ID生成配置代码：</label></td>
+            <td><input id="SequenceName" name="SequenceName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200" value="@Model.SequenceName" /></td>
+        </tr>
+            }
+        <tr>
+            <td><label class="required">*</label><label for="PreFixString">前缀：</label></td>
+            <td><input id="PreFixString" name="PreFixString" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[1,5]'" value="@Model.PreFixString" /></td>
+        </tr>
+        <tr>
+            <td><label for="PostFixString">后缀：</label></td>
+            <td><input id="PostFixString" name="PostFixString" class="easyui-validatebox easyui-textbox" data-options="width:200,validType:'length[0,5]'" value="@Model.PostFixString" /></td>
+        </tr>
+        <tr>
+            <td><label for="CurrentValue">当前值：</label></td>
+            <td><input id="CurrentValue" name="PostFixString" class="easyui-numberspinner" data-options="required:true, width:200, min:1, max:100" value="@Model.CurrentValue" /></td>
+        </tr>
+        <tr>
+            <td><label class="required">*</label><label for="InitValue">初始值：</label></td>
+            <td><input id="InitValue" name="InitValue" class="easyui-numberspinner" data-options="required:true, width:200, min:1, max:100" value="@Model.InitValue" /></td>
+        </tr>
+        <tr>
+            <td><label class="required">*</label><label for="MaxValue">最大值：</label></td>
+            <td><input id="MaxValue" name="MaxValue" class="easyui-numberspinner" data-options="required:true, width:200, min:1,max:999999" value="@Model.MaxValue" /></td>
+        </tr>
+        <tr>
+            <td><label class="required">*</label><label for="StepValue">步长：</label></td>
+            <td><input id="StepValue" name="StepValue" class="easyui-numberspinner" data-options="required:true, width:200, min:1,max:10" value="@Model.StepValue" /></td>
+        </tr>
+        <tr>
+            <td><label for="Comments">描述：</label></td>
+            <td><input id="Comments" name="Comments" class="easyui-validatebox easyui-textbox" data-options="multiline:true" style="width:200px; height:100px;" value="@Model.Comments" /></td>
+        </tr>
+    </tbody>
+    </table>
+
+}
+
+

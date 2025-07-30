@@ -1,0 +1,123 @@
+﻿@using KC.Web.App.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "应用回收站";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--应用管理-恢复应用-->
+    var canRecover = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "D3D874E9-7757-40AE-9D11-69A2B315E54A")).Succeeded)
+    {
+        canRecover = true;
+    }
+
+}
+
+<div id="toolbar">
+    <div>
+        <input id="txtName" class="easyui-textbox" data-options="prompt:'请输入应用程序名称'">
+        <a href="#" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="#" onclick="refreshSearch()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript">
+        const canRecover = '@canRecover' === 'True';
+        let $dataGrid = $('#datagrid');
+        $(function () {
+            InitDataGrid();
+        });
+
+        const loadDataUrl = '@Url.Action(ActionName.Application.LoadAppRecycleList, ControllerName.Application)';
+        function InitDataGrid() {
+            $dataGrid.datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'applicationId',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [
+                [
+                    {
+                        field: 'iconCls', title: '图标', width: 26, align: 'center', formatter: function (value, row, index) {
+                            var tdContext = '<i class="' + value + '" aria-hidden="true"></i>';
+
+                            return tdContext;
+                        }
+                    },
+                    { field: 'applicationCode', title: '应用编码', width: 80, align: 'left' },
+                    { field: 'applicationName', title: '应用名称', width: 100, align: 'left' },
+                    { field: 'domainName', title: '域名', width: 140, align: 'left' },
+                    { field: 'assemblyName', title: '设置涉及程序集', width: 160, align: 'left' },
+                    { field: 'isEnabledWorkFlow', title: '是否启用工作流', width: 70, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    {
+                        field: 'operator', title: '操作', width: 120, align: 'center', formatter: function (value, row, index) {
+                            var tdContext = '';
+                            if (canRecover)
+                                tdContext += '<a href="##" class="btnRefresh" style="cursor:pointer" onclick="recoverApplication(\'' + row.applicationId + '\')">恢复应用</a>';
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                    /*var bId = $("#txtBId").val();
+                    var AllSearchKey = $("#txtAllSearchKey").val();
+                    param.bId = bId;
+                    param.AllSearchKey = AllSearchKey;*/
+                },
+                onLoadSuccess: function (data) {
+                    CommonUtil.buttonStyle();
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+
+        let refreshSearch = function () {
+            $("#txtName").textbox('setValue', '');
+            reloadDatagrid();
+        }
+        let reloadDatagrid = function () {
+            $("#datagrid").datagrid("load", {
+                name: $("#txtName").textbox("getValue"),
+            });
+        }
+
+        const recoverUrl = '@Url.Action(ActionName.Application.RecoverApplication, ControllerName.Application)';
+        let recoverApplication = function (id) {
+            if (id) {
+                $.messager.confirm('系统提示', '是否确定删除该条记录?', function (r) {
+                    if (r) {
+                        $.post(recoverUrl, { id: id }, function (result) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload'); // reload the user data
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                                }
+                            } else {
+                                $.data.showErrorTopCenter('错误消息', data.message);
+                            }
+                        }, 'json');
+                    }
+                });
+            }
+
+        }
+    </script>
+}

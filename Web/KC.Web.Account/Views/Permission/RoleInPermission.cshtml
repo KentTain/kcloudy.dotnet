@@ -1,0 +1,250 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Account.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "权限角色管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    //权限角色
+    var permissionId = ViewBag.permissionId;
+}
+
+<div class="easyui-layout" style="height: 100%;">
+    <div id="p" data-options="region:'west',collapsible:false," title="权限列表" style="width:300px;padding:1px">
+        <div style="background-color: #F2F2F2; padding: 4px; display: none;">
+            <a href="#" onclick="reloadMenu();" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'icon-search'">查询</a>
+        </div>
+        <div id="menuInRole"></div>
+    </div>
+    <div data-options="region:'center'">
+        <div id="permissionsList" name="permissions" style="padding:1px; height:98%;" data-options="title:'角色菜单',refreshable:false">
+            <div id="toolbar" style="padding: 5px; height: auto">
+                <div style="float: right; display: none;">
+                    <a href="javascript:void(0)" onclick="reloadPermission();" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                </div>
+                @if ((await AuthorizationService.AuthorizeAsync(User, "3A3D7B20-7EFF-49DE-B7ED-71DF57C2C9FC")).Succeeded)
+                {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="SavaPermission()">保存</a>
+                }
+                <a id="closeCurrentBtn" class="easyui-linkbutton" style="margin-left: 5px" onclick="closeCurrentTab()" iconCls="fa fa-times" href="javascript:void(0)">关闭当前页</a>
+            </div>
+            <table id="RoleData" title="角色列表"></table>
+        </div>
+    </div>
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        var preSelectPermissionId = '@(permissionId ?? 0)';
+        var RoleData = $('#RoleData');
+        var menuInRole = $('#menuInRole');
+        var menuList = $('#menuList');
+        $(function () {
+            InitDataGrid(preSelectPermissionId);
+            LoadPermissionData(preSelectPermissionId);
+        });
+
+        //关闭当前页
+        var closeCurrentUrl = '@Url.Action(ActionName.Permission.RoleInPermission, ControllerName.Permission)';
+        function closeCurrentTab() {
+            MainPage_PostMessage("closeSubPage", closeCurrentUrl);
+        }
+
+        //单击查询重新加载菜单
+        function reloadMenu() {
+            preSelectPermissionId = '';
+            menuInRole.treegrid('clearSelections');
+            LoadPermissionData();
+        }
+
+        var getmenuInRoleUrl = '@Url.Action(ActionName.Permission.GetRoleInPermission, ControllerName.Permission)';
+        function InitDataGrid(permissionId) {
+            var $dataGrid = RoleData.datagrid({
+                url: getmenuInRoleUrl + "?id=" + permissionId,
+                idField: 'roleId',
+                toolbar: '#toolbar',
+                striped: true,
+                pagination: false,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: false,
+                nowrap: false,
+                fit: true,
+                lines: true,
+                showFooter: false,
+                checkbox: true,
+                columns: [
+                    [
+                        { field: 'checked', checkbox: true, title: 'checked', align: 'left' },
+                        { field: 'displayName', title: '角色名称', width: 160, align: 'left' },
+                        //{ field: 'RoleName', title: '角色名称', width: 100, align: 'left' },
+                        { field: 'isSystemRole', title: '是否为系统角色', width: 60, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                        //{ field: 'ApplictionName', title: '应用名称', width: 120, align: 'left' },
+                        { field: 'description', title: '描述', width: 260, align: 'left' }
+                    ]
+                ],
+                onLoadSuccess: function(row) {
+                    bindRole(row.rows);
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                }
+            });
+        }
+
+        var hadLoadPermissionCount = 0;
+        var getDataUrl = '@Url.Action(ActionName.Permission.LoadPermissionList, ControllerName.Permission)';
+        function LoadPermissionData(id) {
+            $.easyui.loading({ msg: '正在加载数据，请稍等...' });
+            $.ajax({
+                url: getDataUrl, //所有权限
+                data: { searchValue: '' },
+                type: "post",
+                success: function(result) {
+                    $.easyui.loaded();
+                    InitPermissionTree(result);
+                },
+                error: function() {
+                    $.easyui.loaded();
+                }
+            });
+        };
+
+        function InitPermissionTree(data) {
+            menuInRole.treegrid({
+                lines: true,
+                idField: 'id',
+                treeField: 'text',
+                valueField: 'id',
+                textField: 'text',
+                data: data,
+                columns: [
+                    [
+                        { field: 'id', title: 'id', align: 'left', hidden: true },
+                        { field: 'text', title: '名称', align: 'left' }
+                    ]
+                ],
+                onSelect: function (row) {
+                    //debugger;
+                    if (row != null && preSelectPermissionId == row.id) return;
+
+                    let level = row.level;
+                    if (level === 0) {
+                        menuInRole.treegrid("unselect", row.id);
+                        menuInRole.treegrid('select', preSelectPermissionId);
+                        return;
+                    }
+                    if (row != null)
+                        preSelectPermissionId = row.id;
+                    LoadRoleData(preSelectPermissionId);
+                }
+            });
+            if (hadLoadPermissionCount > 0) {
+                menuInRole.datalist('selectRow', data[0].id);
+            }
+            else {
+                selectedTreeNode(data, preSelectPermissionId);
+            }
+            hadLoadPermissionCount++;
+
+            //menuInRole.treegrid('collapseAll');
+            var node = menuInRole.treegrid("find", preSelectPermissionId);
+            if (node.parentId != null)
+                menuInRole.treegrid("expandAll", node.parentId);
+            else
+                menuInRole.treegrid("expandAll", node.id);
+        };
+
+        function selectedTreeNode(data, preSelectTreeId) {
+            if (data.length > 0) {
+                $.each(data, function (index) {
+                    //debugger;
+                    //if (this.children.length == 0) {
+                    if (this.id == preSelectTreeId) {
+                        menuInRole.datalist('selectRow', preSelectTreeId);
+                        return;
+                    }
+                    //}
+                    selectedTreeNode(this.children, preSelectTreeId);
+                });
+            }
+        }
+
+        function LoadRoleData(roleId) {
+            $.easyui.loading({ msg: '正在加载数据，请稍等...' });
+            $.ajax({
+                url: getmenuInRoleUrl,
+                data: { "id": roleId },
+                type: "post",
+                success: function(result) {
+                    $.easyui.loaded();
+                    bindRole(result);
+                },
+                error: function() {
+                    $.easyui.loaded();
+                }
+            });
+        }
+
+        function bindRole(datas) {
+            if (datas.length > 0) {
+                RoleData.datagrid('unselectAll');
+                $.each(datas, function() {
+                    var $this = this;
+                    var rows = RoleData.datagrid("getRows");
+                    if ($this.checked) {
+                        var row;
+                        $.each(rows, function() {
+                            if (this.roleId == $this.roleId) {
+                                row = this;
+                            }
+                        });
+                        RoleData.datagrid('checkRow', RoleData.datagrid("getRowIndex", row));
+                    }
+                });
+            }
+        }
+
+        var savemenuInRole = '@Url.Action(ActionName.Permission.SubmitRoleInPermission, ControllerName.Permission)';
+        function SavaPermission() {
+            var checkedNodes = RoleData.datagrid('getChecked');
+            var newlist = [];
+            if (checkedNodes.length > 0) {
+                for (var i = 0; i < checkedNodes.length; i++) {
+                    newlist.push(checkedNodes[i].roleId);
+
+                }
+            }
+            var item = menuInRole.datalist("getSelected");
+            if (item == null || item.id == 0 || item.id == null) {
+                $.messager.showErrorTopCenter('系统提示', "请选择左边的权限", 1000);
+                return;
+            }
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                url: savemenuInRole,
+                type: "post",
+                data: { 'menuId': item.id, 'addList': newlist, "type": "permission" },
+                success: function(data) {
+                    $.easyui.loaded();
+                    if (data.success) {
+                        if (data.result) {
+                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('系统提示', '保存数据失败。', 1000);
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('系统提示', data.message, 1000);
+                    }
+                },
+                error: function() {
+                    //var error = JSON.parse(e.responseText).Message;
+                    $.easyui.loaded();
+                    $.messager.showInfoTopCenter('系统提示', '抱歉,你不具有当前操作的权限');
+                }
+            });
+        }
+    </script>
+}
+

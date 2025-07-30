@@ -1,0 +1,1312 @@
+﻿@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@model KC.Service.DTO.Portal.WebSitePageDTO
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = Model.IsEditMode ? "编辑门户页面" : "新增门户页面";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+@section styles{
+    <link href="~/lib/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/css/home/skn2021010100001/home.css" rel="stylesheet" />
+    <style>
+    .main .card-list .card-item a{background:unset;}
+    .textbox-icon.combo-arrow{background:url('@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/metro/images/combo_arrow.png') no-repeat center center!important}
+    .card-left span.textbox,.card-icon span.textbox,.card-title span.textbox, .card-item-lr .card-subtitle span.textbox {background-color: transparent;display: inline-block !important;margin-top:3px;}
+    .card-left span.textbox input,.card-icon span.textbox input,.card-title span.textbox input,.card-item-lr .card-subtitle  span.textbox input{background-color:transparent;color:#fff;}
+    .card-title span.textbox textarea,.card-item-lr .card-subtitle  span.textbox textarea {background-color: transparent;color:#fff;}
+
+    .validatebox-invalid {background-color:#ffbfbf!important;}
+    input::-webkit-input-placeholder, input::-moz-placeholder, input:-moz-placeholder, input:-ms-input-placeholder { color: #999; }
+
+    .imageType .webUploader-file-single, .imageType .imageFile img, .imageType .imageFile .closeImg{display:none;}
+
+    .card-list .image-item,.card-list .card-Item,.slide-list .image-Item {margin:2px 10px;position: relative;}
+    .card-list .image-item .closeImg,.card-list .card-Item .closeImg,.slide-list .image-Item .closeImg{position: absolute;display:inline-block;padding:3px;cursor:pointer;margin: 1px -28px;background-color: transparent!important;color:#fff!important;}
+    .card-list .image-item .closeImg:hover,.card-list .card-Item .closeImg:hover,.slide-list .image-Item .closeImg:hover{background-color: #eee!important;color:#666!important;}
+    .card-list .image-item .closeImg,.slide-list .image-Item .closeImg{background-color: #fff!important;color:#666!important;}
+    .card-list .card-Item.card-item-img .closeImg{margin:-10px -6px;}
+
+    .dialog-button{width:100%!important;}
+    </style>
+}
+<div class="easyui-layout" title="页面基本信息">
+    <form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.PortalDecorator.SaveWebSitePage, ControllerName.PortalDecorator)">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.IsEditMode)
+        @Html.HiddenFor(model => model.SkinCode)
+        @Html.HiddenFor(model => model.SkinName)
+        @Html.HiddenFor(model => model.Status)
+        @Html.HiddenFor(model => model.CanEdit)
+
+        @Html.HiddenFor(model => model.IsDeleted)
+        @Html.HiddenFor(model => model.CreatedBy)
+        @Html.HiddenFor(model => model.CreatedName)
+        @Html.HiddenFor(model => model.CreatedDate)
+        @Html.HiddenFor(model => model.ModifiedBy)
+        @Html.HiddenFor(model => model.ModifiedName)
+        @Html.HiddenFor(model => model.ModifiedDate)
+        <table class="table table-bordered table-form tr-col2">
+            <tbody>
+                <tr>
+                    <td><label class="required">*</label><label for="Title">门户页面名称：</label></td>
+                    <td>
+                        <input class="easyui-validatebox easyui-textbox"
+                               data-options="required:true,width:280,validType:'length[1,200]'"
+                               asp-for="@Model.Name" />
+                    </td>
+
+                    <td><label for="IsEnable">是否启用：</label></td>
+                    <td>
+                        <input type="checkbox" asp-for="@Model.IsEnable">
+                    </td>
+                </tr>
+                <!--简介-->
+                <tr style="display:none;">
+                    <td><label class="required"></label><label for="Description">简介：</label></td>
+                    <td colspan="3">
+                        <input class="easyui-validatebox easyui-textbox"
+                               data-options="multiline:true,width:'100%',height:80,validType:'length[0,1000]'"
+                               asp-for="@(Model.Description)" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="easyui-layout">
+            <div class="easyui-tabs" data-options="tabPosition:'top',width:'100%',height:'auto'">
+                <div id="tabDesign" title="制作页面栏目" data-options="iconCls:'fa fa-th',refreshable:false">
+                    <div class="easyui-panel" title="页面基础信息">
+                        <table class="table table-bordered table-form tr-col1">
+                            <tr style="display:none;">
+                                <td><label class="required"></label><span for="MainColor">页面主色调：</span></td>
+                                <td>
+                                    <input class="easyui-validatebox easyui-colorpicker"
+                                           data-options="required:true,width:280,cellWidth:30,cellHeight:30"
+                                           asp-for="@Model.MainColor" />
+                                </td>
+
+                                <td><label class="required"></label><span for="SecondaryColor">页面辅色调：</span></td>
+                                <td>
+                                    <input class="easyui-validatebox easyui-colorpicker"
+                                           data-options="required:true,width:280,cellWidth:30,cellHeight:30"
+                                           asp-for="@Model.SecondaryColor" />
+                                </td>
+                            </tr>
+                            <!--轮播图-->
+                            <tr>
+                                <td style="width:20%">
+                                    <label for="UseMainSlide">
+                                        <input type="checkbox" asp-for="@Model.UseMainSlide">是否使用轮播图：
+                                    </label>
+                                </td>
+                                <td colspan="3">
+                                    @Html.HiddenFor(model => model.MainSlide)
+                                    <div class="imageUploaderEditor">
+                                        <div style="display: flex;height: 110px;">
+                                            <div id="imageUploader">
+                                                <a href="javascript:void(0)">
+                                                    <i class="fa fa-plus-square fa-5x"></i>
+                                                </a>
+                                            </div>
+                                            <div id="imageList" class="webUploader-image-list">
+                                            </div>
+                                        </div>
+                                        <label style="padding: 3px;">图片个数：3个；图片格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，图片大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                                        <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="easyui-panel" title="页面栏目信息">
+                        <div class="layui-row" style="margin:10px;">
+                            <div class="layui-col-xs11 layui-col-sm11 layui-col-md11 layui-col-lg11">
+                                <div class="layui-row" style="margin:5px 0;">
+                                    <div class="layui-col-xs4 layui-col-sm4 layui-col-md4 layui-col-lg4">
+                                        栏目主标题：<input type="text" class="easyui-textbox" id="ColumnTitle" />
+                                    </div>
+                                    <div class="layui-col-xs8 layui-col-sm8 layui-col-md8 layui-col-lg8">
+                                        栏目副标题：<input type="text" class="easyui-textbox" id="ColumnSubTitle" style="width:80%" />
+                                    </div>
+
+                                </div>
+                                <div class="layui-row" style="margin:5px 0;">
+                                    <div class="layui-col-xs4 layui-col-sm4 layui-col-md4 layui-col-lg4">
+                                        栏目类型：
+                                        <input type="radio" class="easyui-radiobutton ColumnType" name="ColumnType" value="0" label="图片式" labelwidth="50" labelPosition="after" />
+                                        <input type="radio" class="easyui-radiobutton ColumnType" name="ColumnType" value="1" label="卡片式" labelwidth="50" labelPosition="after" checked="checked" />
+                                        <input type="radio" class="easyui-radiobutton ColumnType" name="ColumnType" value="2" label="产品式" labelwidth="50" labelPosition="after" />
+                                        <input type="radio" class="easyui-radiobutton ColumnType" name="ColumnType" value="3" label="轮播式" labelwidth="50" labelPosition="after" />
+                                    </div>
+                                    <div class="layui-col-xs4 layui-col-sm4 layui-col-md4 layui-col-lg4">
+                                        栏目项目个数：
+                                        <input type="radio" class="easyui-radiobutton ItemColumnCount" name="ItemColumnCount" value="1" label="1个" labelwidth="33" labelPosition="after" />
+                                        <input type="radio" class="easyui-radiobutton ItemColumnCount" name="ItemColumnCount" value="2" label="2个" labelwidth="33" labelPosition="after" />
+                                        <input type="radio" class="easyui-radiobutton ItemColumnCount" name="ItemColumnCount" value="3" label="3个" labelwidth="33" labelPosition="after" checked="checked" />
+                                        <input type="radio" class="easyui-radiobutton ItemColumnCount" name="ItemColumnCount" value="4" label="4个" labelwidth="33" labelPosition="after" />
+                                        <input type="radio" class="easyui-radiobutton ItemColumnCount" name="ItemColumnCount" value="6" label="6个" labelwidth="33" labelPosition="after" />
+                                    </div>
+                                    <div class="layui-col-xs4 layui-col-sm4 layui-col-md4 layui-col-lg4">
+                                        栏目项目结构：
+                                        <input type="radio" class="easyui-radiobutton ItemColumnType" name="ItemColumnType" value="0" label="左右结构" labelwidth="65" labelPosition="after" checked="checked" />
+                                        <input type="radio" class="easyui-radiobutton ItemColumnType" name="ItemColumnType" value="2" label="上下结构" labelwidth="65" labelPosition="after" />
+                                        @*<input type="radio" class="easyui-radiobutton ItemColumnType" name="ItemColumnType" value="4" label="产品结构" labelwidth="65" labelPosition="after" />*@
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-xs1 layui-col-sm1 layui-col-md1 layui-col-lg1">
+                                <a href="javascript:void(0)" onclick="addPageColumn()" style="width:90px;height:30px;margin-top:20px;" class="easyui-linkbutton" data-options="iconCls:'fa fa-plus'">新增栏目</a>
+                            </div>
+                        </div>
+
+                        <div class="main">
+                            @if (Model.WebSiteColumns.Any())
+                            {
+                                var i = 0;
+                                @foreach (var column in Model.WebSiteColumns)
+                                {
+                                    var cType = column.Type;
+                                    var iType = column.ItemType;
+                                    var iCount = column.ColumnCount;
+                                    var layCol = 12 / iCount;
+                                    var iCardLeftCount = iCount == 1 ? 2 : iCount == 2 ? 4 : 6;
+                                    var iCardRightCount = 12 - iCardLeftCount;
+                            <div id="div-column-opr-@column.Id" class="layui-container" style="background: rgba(240, 240, 240, 0.3); ">
+                                <!--项目操作-->
+                                <div class="layui-row card-operator" style="vertical-align:middle;">
+                                    <div class="layui-col-xs6 layui-col-sm4 layui-col-md6 layui-col-lg6">
+                                        <p style="vertical-align:middle;">第   @(i+1)  栏</p>
+                                    </div>
+                                    <div class="layui-col-xs6 layui-col-sm4 layui-col-md6 layui-col-lg6">
+                                        <a href="javascript:void(0)" onclick="removeColumn(false,'@column.Id')" style="width:90px;height:30px;float:right;margin-right:5px;" class="easyui-linkbutton btnDelete">删除栏目</a>
+                                        @if (cType == KC.Enums.Portal.WebSiteColumnType.Product)
+                                        {
+                                            <a id="cItemSelect-@column.Id" href="javascript:void(0)" onclick="openOfferingDialog(@(i), '@(cType)', '@(iType)', @iCount, '@column.Id')" style="width: 90px; height: 30px; float: right; margin-right: 5px;" class="easyui-linkbutton btnAdd">选择产品</a>
+                                        }
+                                        else @if (cType == KC.Enums.Portal.WebSiteColumnType.Slide)
+                                        {
+                                            <a id="cItemSelect-@column.Id" href="javascript:void(0)" onclick="openCustomerDialog(@(i), '@(cType)', '@(iType)', @iCount, '@column.Id')" style="width: 90px; height: 30px; float: right; margin-right: 5px;" class="easyui-linkbutton btnAdd">选择企业</a>
+                                        }
+                                        else
+                                        {
+                                            <a href="javascript:void(0)" onclick="addColumnItem(@(i), '@(cType)', '@(iType)', @iCount, '@column.Id')" style="width: 70px; height: 30px; float: right; margin-right: 5px;" class="easyui-linkbutton btnAdd">新增项</a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="div-column-@column.Id" class="divGroup">
+                                <input type="hidden" name="WebSiteColumns[@i].WebSitePageId" value="@column.WebSitePageId">
+                                <input type="hidden" name="WebSiteColumns[@i].Id" value="@column.Id">
+                                <input type="hidden" name="WebSiteColumns[@i].Type" value="@column.Type">
+                                <input type="hidden" name="WebSiteColumns[@i].ItemType" value="@column.ItemType">
+                                <input type="hidden" name="WebSiteColumns[@i].RowCount" value="@column.RowCount">
+                                <input type="hidden" name="WebSiteColumns[@i].ColumnCount" value="@column.ColumnCount">
+                                <input type="hidden" name="WebSiteColumns[@i].IsShow" value="@column.IsShow">
+                                <input type="hidden" name="WebSiteColumns[@i].CanEdit" value="@column.CanEdit">
+                                <input type="hidden" name="WebSiteColumns[@i].Index" value="@column.Index">
+                                <input type="hidden" name="WebSiteColumns[@i].Description" value="@column.Description">
+                                @if (!string.IsNullOrEmpty(column.Title) && column.Type != KC.Enums.Portal.WebSiteColumnType.Slide)
+                                {
+                                    <!--标题-->
+                                    <div class="layui-container group-title">
+                                        <h2>
+                                            <i></i>
+                                            <span class="title">
+                                                @*@Html.Raw(column.Title)*@
+                                                <input name="WebSiteColumns[@i].Title" value="@column.Title" class="easyui-validatebox easyui-textbox" data-options="width:280,validType:['length[0,50]'],prompt:'栏目标题'">
+                                            </span>
+                                            <i></i>
+                                        </h2>
+                                        <span class="subtitle">
+                                            @*@Html.Raw(column.SubTitle)*@
+                                            <input name="WebSiteColumns[@i].SubTitle" value="@column.SubTitle" class="easyui-validatebox easyui-textbox" data-options="multiline:true,width:580,height:60,validType:['length[0,200]'],prompt:'栏目副标题'">
+                                        </span>
+                                    </div>
+                                }
+                                <!--展示-->
+                                <div class="layui-container">
+                                    <div class="layui-row @(column.Type == KC.Enums.Portal.WebSiteColumnType.Slide? "slide-list":"card-list")">
+                                        @if (column.WebSiteItems.Any())
+                                        {
+                                            var j = 0;
+                                            @if (column.Type == KC.Enums.Portal.WebSiteColumnType.Image)
+                                            {
+                                                @foreach (var item in column.WebSiteItems)
+                                                {
+                                                    <div id="div-item-@item.Id" class="layui-col layui-col-xs@(layCol) layui-col-sm@(layCol) layui-col-md@(layCol) layui-col-lg@(layCol)">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].WebSiteColumnId" value="@item.WebSiteColumnId">
+                                                        <input type="hidden" class="clsColumnItemId" name="WebSiteColumns[@i].WebSiteItems[@j].Id" value="@item.Id">
+                                                        <input type="hidden" id="cItemLink-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].Link" value="@item.Link">
+                                                        <input type="hidden" id="cItemLinkIsOpenNewPage-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].LinkIsOpenNewPage" value="@item.LinkIsOpenNewPage">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].IsShow" value="@item.IsShow">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].CanEdit" value="@item.CanEdit">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Index" value="@item.Index">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Description" value="@item.Description">
+                                                        <!--图片式-->
+                                                        <div class="image-item image-item-tb">
+                                                            <input type="hidden" id="cItemIsImage-@item.Id" name="WebSiteColumns[@i].IsImage" value="true">
+                                                            <input type="hidden" id="cItemImageOrIConCls-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].ImageOrIConCls" value="@item.ImageOrIConCls">
+                                                            @if (item.ImageOrIConClsBlob != null)
+                                                            {
+                                                                <img id="card-image-@(item.Id)" class="card-img-@(iCount)" src="@item.ImageOrIConClsBlob.ShowImageUrl" style="width:100%">
+                                                            }
+                                                            else
+                                                            {
+                                                                <img id="card-image-@(item.Id)" class="card-img-@(iCount)" src="/images/demo/home/home-2.png" style="width:100%">
+                                                            }
+                                                            <a class="closeImg" href="javascript:void(0)" onclick="removeItem(false, '@(item.Id)')"><div><i class="fa fa-times fa-1x" aria-hidden="true"></i></div></a>
+                                                            <br />
+                                                            <div class="fileUploaderEditor imageType" style="display: flex;margin:0 20%;" id="div-uploader-@(item.Id)" cItemId="@(item.Id)">
+                                                                <div id="docFileList@(item.Id)" class="webUploader-file-single"></div>
+                                                                <a id="btnAddDocFile@(item.Id)" href="javascript:void(0)" class="easyui-linkbutton btnSelect" iconcls="fa fa-pencil">选择</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    j++;
+                                                }
+                                            }
+                                            else if (column.Type == KC.Enums.Portal.WebSiteColumnType.Card && column.ItemType == KC.Enums.Portal.WebSiteItemType.LeftRight)
+                                            {
+                                                @foreach (var item in column.WebSiteItems)
+                                                {
+                                                    <div id="div-item-@item.Id" class="layui-col layui-col-xs@(layCol) layui-col-sm@(layCol) layui-col-md@(layCol) layui-col-lg@(layCol)">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].WebSiteColumnId" value="@item.WebSiteColumnId">
+                                                        <input type="hidden" class="clsColumnItemId" name="WebSiteColumns[@i].WebSiteItems[@j].Id" value="@item.Id">
+                                                        <input type="hidden" id="cItemLink-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].Link" value="@item.Link">
+                                                        <input type="hidden" id="cItemLinkIsOpenNewPage-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].LinkIsOpenNewPage" value="@item.LinkIsOpenNewPage">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].IsShow" value="@item.IsShow">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].CanEdit" value="@item.CanEdit">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Index" value="@item.Index">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Description" value="@item.Description">
+                                                        <!--卡片式：左右结构-->
+                                                        <div class="card-item card-item-lr">
+                                                            <div class="layui-col-xs3 layui-col-sm4 layui-col-md@(iCardLeftCount) layui-col-lg@(iCardLeftCount) card-left">
+                                                                <i id="icon-@(item.Id)" class="@item.ImageOrIConCls fa-5x" aria-hidden="true"></i>
+                                                                <br />
+                                                                <input type="hidden" id="cItemIsImage-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].IsImage" value="false">
+                                                                <input class="easyui-validatebox easyui-iconpicker" name="WebSiteColumns[@i].WebSiteItems[@j].ImageOrIConCls" data-options="required:true,width:120,lgTimes:2,cellWidth:42,cellHeight:42,target:'icon-@(item.Id)'" asp-for="@item.ImageOrIConCls" />
+                                                            </div>
+                                                            <div class="layui-col-xs9 layui-col-sm8 layui-col-md@(iCardRightCount) layui-col-lg@(iCardRightCount) card-right">
+                                                                <span class="card-title">
+                                                                    <input name="WebSiteColumns[@i].WebSiteItems[@j].Title" value="@item.Title" class="easyui-validatebox easyui-textbox" data-options="required:true,width:140,validType:['length[0,10]'],prompt:'栏目标题'">
+                                                                </span>
+                                                                <span class="card-subtitle">
+                                                                    <input name="WebSiteColumns[@i].WebSiteItems[@j].SubTitle" value="@item.SubTitle" class="easyui-validatebox easyui-textbox" data-options="required:true,multiline:true,width:180,height:120,validType:['length[0,200]'],prompt:'栏目副标题'">
+                                                                </span>
+                                                            </div>
+                                                            <a class="closeImg" href="javascript:void(0)" onclick="removeItem(false, '@(item.Id)')"><div><i class="fa fa-times fa-1x" aria-hidden="true"></i></div></a>
+                                                        </div>
+                                                    </div>
+                                                    j++;
+                                                }
+                                            }
+                                            else if (column.Type == KC.Enums.Portal.WebSiteColumnType.Card && column.ItemType == KC.Enums.Portal.WebSiteItemType.TopBottom)
+                                            {
+                                                @foreach (var item in column.WebSiteItems)
+                                                {
+                                                    <div id="div-item-@item.Id" class="layui-col layui-col-xs@(layCol) layui-col-sm@(layCol) layui-col-md@(layCol) layui-col-lg@(layCol)">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].WebSiteColumnId" value="@item.WebSiteColumnId">
+                                                        <input type="hidden" class="clsColumnItemId" name="WebSiteColumns[@i].WebSiteItems[@j].Id" value="@item.Id">
+                                                        <input type="hidden" id="cItemLink-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].Link" value="@item.Link">
+                                                        <input type="hidden" id="cItemLinkIsOpenNewPage-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].LinkIsOpenNewPage" value="@item.LinkIsOpenNewPage">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].IsShow" value="@item.IsShow">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].CanEdit" value="@item.CanEdit">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Index" value="@item.Index">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Description" value="@item.Description">
+                                                        <!--卡片式：上下结构-->
+                                                        <div class="card-item card-item-tb">
+                                                            <div class="card-top" style="">
+                                                                <div class="card-title" style="width:60%;">
+                                                                    <span>
+                                                                        <input name="WebSiteColumns[@i].WebSiteItems[@j].Title" value="@item.Title" class="easyui-validatebox easyui-textbox" data-options="required:true,multiline:true,width:150,height:80,validType:['length[0,50]'],prompt:'栏目标题'">
+                                                                    </span>
+                                                                </div>
+                                                                <div class="card-icon" style="width:40%;">
+                                                                    <i id="icon-@(item.Id)" class="@item.ImageOrIConCls fa-5x" aria-hidden="true" style="display:inline-block;margin:6px 0;"></i>
+                                                                    <br />
+                                                                    <input class="easyui-validatebox easyui-iconpicker" name="WebSiteColumns[@i].WebSiteItems[@j].ImageOrIConCls" data-options="required:true,width:120,lgTimes:2,cellWidth:42,cellHeight:42,target:'icon-@(item.Id)'" asp-for="@item.ImageOrIConCls" />
+                                                                </div>
+                                                                <a class="closeImg" href="javascript:void(0)" onclick="removeItem(false, '@(item.Id)')"><div><i class="fa fa-times fa-1x" aria-hidden="true"></i></div></a>
+                                                            </div>
+                                                            <div class="card-bottom">
+                                                                <span class="card-subtitle">
+                                                                    <input name="WebSiteColumns[@i].WebSiteItems[@j].SubTitle" value="@item.SubTitle" class="easyui-validatebox easyui-textbox" data-options="required:true,multiline:true,width:280,height:150,validType:['length[0,500]'],prompt:'栏目副标题'">
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    j++;
+                                                }
+                                            }
+                                            else if (column.Type == KC.Enums.Portal.WebSiteColumnType.Product)
+                                            {
+                                                @foreach (var item in column.WebSiteItems)
+                                                {
+                                                    <div id="div-item-@item.Id" class="layui-col layui-col-xs@(layCol) layui-col-sm@(layCol) layui-col-md@(layCol) layui-col-lg@(layCol)">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].WebSiteColumnId" value="@item.WebSiteColumnId">
+                                                        <input type="hidden" class="clsColumnItemId" name="WebSiteColumns[@i].WebSiteItems[@j].Id" value="@item.Id">
+                                                        <input type="hidden" id="cItemLink-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].Link" value="@item.Link">
+                                                        <input type="hidden" id="cItemLinkIsOpenNewPage-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].LinkIsOpenNewPage" value="@item.LinkIsOpenNewPage">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].IsShow" value="@item.IsShow">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].CanEdit" value="@item.CanEdit">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Index" value="@item.Index">
+                                                        <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Description" value="@item.Description">
+                                                        <!--产品式：上下结构-->
+                                                        <div class="card-item card-item-img">
+                                                            <input type="hidden" id="cItemIsImage-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].IsImage" value="true">
+                                                            <input type="hidden" id="cItemImageOrIConCls-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].ImageOrIConCls" value="@item.ImageOrIConCls">
+                                                            @if (item.ImageOrIConClsBlob != null)
+                                                            {
+                                                                <img id="card-image-@(item.Id)" class="card-img-@(iCount)" src="@item.ImageOrIConClsBlob.ShowImageUrl">
+                                                            }
+                                                            else
+                                                            {
+                                                                <img id="card-image-@(item.Id)" class="card-img-@(iCount)" src="/images/image_no.jpg">
+                                                            }
+                                                            <a class="closeImg" href="javascript:void(0)" onclick="removeItem(false, '@(item.Id)')"><div><i class="fa fa-times fa-1x" aria-hidden="true"></i></div></a>
+                                                            <div style="text-align:center">
+                                                                <span class="card-title-@(iCount)">
+                                                                    <span>@Html.Raw(item.Title)</span>
+                                                                    <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Title" value="@item.Title">
+                                                                </span>
+                                                                <br />
+                                                                <span class="card-subtitle-@(iCount)">
+                                                                    <span>@Html.Raw(item.SubTitle)</span>
+                                                                    <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].SubTitle" value="@item.SubTitle">
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    j++;
+                                                }
+                                            }
+                                            else if (column.Type == KC.Enums.Portal.WebSiteColumnType.Slide)
+                                            {
+                                                <!--轮播式-->
+                                                <div class="layui-col-xs2 layui-col-sm2 layui-col-md2 layui-col-lg2">
+                                                    <div class="card-left">
+                                                        <span class="card-title">
+                                                            <i class="fa fa-play" aria-hidden="true"></i>
+                                                            <span class="card-subtitle">
+                                                                <input name="WebSiteColumns[@i].Title" value="@column.Title" class="easyui-validatebox easyui-textbox" data-options="width:100,validType:['length[0,10]'],prompt:'栏目标题'">
+                                                            </span>
+                                                            <br />
+                                                            <span>
+                                                                <input name="WebSiteColumns[@i].SubTitle" value="@column.SubTitle" class="easyui-validatebox easyui-textbox" data-options="width:180,validType:['length[0,25]'],prompt:'栏目副标题'">
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="layui-col-xs10 layui-col-sm10 layui-col-md10 layui-col-lg10">
+                                                    <div id="divSlide" class="layui-carousel card-content">
+                                                        <div carousel-item="">
+                                                            <div class="item-box layui-this">
+                                                                @foreach (var item in column.WebSiteItems)
+                                                                { 
+                                                                <div id="div-item-@item.Id" class="image-Item item">
+                                                                    <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].WebSiteColumnId" value="@item.WebSiteColumnId">
+                                                                    <input type="hidden" class="clsColumnItemId" name="WebSiteColumns[@i].WebSiteItems[@j].Id" value="@item.Id">
+                                                                    <input type="hidden" id="cItemLink-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].Link" value="@item.Link">
+                                                                    <input type="hidden" id="cItemLinkIsOpenNewPage-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].LinkIsOpenNewPage" value="@item.LinkIsOpenNewPage">
+                                                                    <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].IsShow" value="@item.IsShow">
+                                                                    <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].CanEdit" value="@item.CanEdit">
+                                                                    <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Index" value="@item.Index">
+                                                                    <input type="hidden" name="WebSiteColumns[@i].WebSiteItems[@j].Description" value="@item.Description">
+                                                                    <input type="hidden" id="cItemIsImage-@item.Id" name="WebSiteColumns[@i].IsImage" value="true">
+                                                                    <input type="hidden" id="cItemImageOrIConCls-@item.Id" name="WebSiteColumns[@i].WebSiteItems[@j].ImageOrIConCls" value="@item.ImageOrIConCls">
+                                                                    @if (item.ImageOrIConClsBlob != null)
+                                                                    {
+                                                                        <img id="card-image-@(item.Id)" class="card-img-@(iCount)" src="@item.ImageOrIConClsBlob.ShowImageUrl" style="max-height:80px;">
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <img id="card-image-@(item.Id)" class="card-img-@(iCount)" src="/images/image_add_small.png" style="max-height:80px;">
+                                                                    }
+                                                                    <a class="closeImg" href="javascript:void(0)" onclick="removeItem(false, '@(item.Id)')"><div><i class="fa fa-times fa-1x" aria-hidden="true"></i></div></a>
+                                                                </div>
+                                                                    @if (j == 4)
+                                                                    {
+                                                                        @Html.Raw("</div>")
+                                                                        @Html.Raw("<div class='item-box layui-this'>")
+                                                                    }
+                                                                    j++;
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                                    i++;
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div id="tabCustom" title="自定义页面" data-options="iconCls:'fa fa-pencil-square-o ',refreshable:false">
+                    <div>
+                        <textarea id="CustomizeContent" name="CustomizeContent" class="textarea textbox easyui-validatebox"
+                                  data-options="required:false,validType:'length[0,4000]'"
+                                  style="height:660px; ">@(null != Model ? @Model.CustomizeContent : "")</textarea>
+                    </div>
+
+                </div>
+                <div id="tabLink" title="使用外部页面" data-options="iconCls:'fa fa-link',refreshable:false">
+                    <table class="table table-bordered table-form tr-col2">
+                        <tbody>
+                            <!--简介-->
+                            <tr>
+                                <td><label class="required"></label><label for="Link">外部链接地址：</label></td>
+                                <td colspan="3">
+                                    <input class="easyui-validatebox easyui-textbox"
+                                           data-options="width:280,validType:'length[1,200]'"
+                                           asp-for="@Model.Link" />
+                                    <input type="checkbox" asp-for="@Model.LinkIsOpenNewPage">链接将打开新页面
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td style="background:#f5f5f5"></td>
+                                <td></td>
+                                <td style="background:#f5f5f5"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<div style="height: 50px;"></div>
+@if ((await AuthorizationService.AuthorizeAsync(User, "A7C8FDF6-8EC7-4F92-93DF-7E8383774F73")).Succeeded)
+{
+    <div class="bottom">
+        <a href="javascript:void(0)" onclick="saveFormInfo(0)" style="width:90px;height:30px" class="easyui-linkbutton" data-options="iconCls:'fa fa-save'">保存草稿</a>
+        <a href="javascript:void(0)" onclick="saveFormInfo(1)" style="width:90px;height:30px" class="easyui-linkbutton" data-options="iconCls:'fa fa-check'">提交审核</a>
+    </div>
+}
+
+<!--dialog和dialog中的 datagrid -->
+<div id="dialogOffering" class="easyui-dialog" data-options="title:'请选择已有推荐商品',modal:true,closed:true,cache:false">
+    <div id="toolbarOffering">
+        <div>
+        </div>
+        <div style="float:right;margin:5px;">
+            @*@Html.DropDownList("StatusList", (IEnumerable<SelectListItem>)ViewBag.StatusList, new { @id = "StatusList", @class = "easyui-combobox", @style = "width: 120px;height:26px;", @data_options = "editable: false", @panelHeight = "auto" })*@
+            <input id="txtOfferingName" class="easyui-textbox" data-options="prompt:'请输入商品名称'" style="width:200px">
+            <a href="javascript:void(0)" onclick="reloadDgOffering()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+            <a href="javascript:void(0)" onclick="refreshDgOffering()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+        </div>
+    </div>
+    <table id="dgOffering"></table>
+</div>
+<!--dialog和dialog中的 datagrid -->
+<div id="dialogCustomer" class="easyui-dialog" data-options="title:'请选择已有推荐企业',modal:true,closed:true,cache:false">
+    <div id="toolbarCustomer">
+        <div>
+        </div>
+        <div style="float:right;margin:5px;">
+            @*@Html.DropDownList("StatusList", (IEnumerable<SelectListItem>)ViewBag.StatusList, new { @id = "StatusList", @class = "easyui-combobox", @style = "width: 120px;height:26px;", @data_options = "editable: false", @panelHeight = "auto" })*@
+            <input id="txtCustomerName" class="easyui-textbox" data-options="prompt:'请输入商品名称'" style="width:200px">
+            <a href="javascript:void(0)" onclick="reloadDgCustomer()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+            <a href="javascript:void(0)" onclick="refreshDgCustomer()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+        </div>
+    </div>
+    <table id="dgCustomer"></table>
+</div>
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.config.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.all.min.js"></script>
+    <!--组件初始化-->
+    <script>
+        var fileSetting = {
+            fileNumLimit: 1,
+            postUrl: '@(ViewBag.DocWebApiDomain)Resources/Upload',
+            chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+            chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+            fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+            fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+            downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+            imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+            imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+            showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+            //isArchive：归档设置
+            //blobId：用于拷贝其他blob后，所使用新的blobId
+            params: { isArchive: false }
+        };
+        //解决UEditor跨域上传问题
+        var ueditorContent = null;
+        let uploadUrl = '@(ViewBag.DocWebApiDomain)Resources/Upload';
+        UE.Editor.prototype._bkGetActionUrl = UE.Editor.prototype.getActionUrl;
+        UE.Editor.prototype.getActionUrl = function (action) {
+            //debugger;
+            if (action == 'uploadimage'
+                || action == 'uploadfile'
+                || action == 'listimage'
+                || action == 'uplistfile') {
+                return uploadUrl + "?parm=" + action;
+            } else {
+                return this._bkGetActionUrl.call(this, action);
+            }
+        }
+
+        var selectedColumnType = '1';
+        var selectedItemCount = '3';
+        var selectedItemType = '0';
+        $(function () {
+            // 设置经验范围默认值
+            @*let selectBusinessModel = '@((int)Model.BusinessModel)'
+            $(":radio[name='BusinessModel'][value='" + selectBusinessModel+"']").attr('checked', 'checked');*@
+
+            // 栏目类型
+            $('.ColumnType').radiobutton({
+                onChange: function (checked) {
+                    if (checked)
+                        selectedColumnType = $(this).val();
+                }
+            });
+            // 栏目项目个数
+            $('.ItemColumnCount').radiobutton({
+                onChange: function (checked) {
+                    if (checked)
+                        selectedItemCount = $(this).val();
+                }
+            });
+            // 栏目项目结构
+            $('.ItemColumnType').radiobutton({
+                onChange: function (checked) {
+                    if (checked)
+                        selectedItemType = $(this).val();
+                }
+            });
+
+            // 自定义页面
+            ueditorContent = UE.getEditor('CustomizeContent', {
+                serverUrl: '/Home/Upload',
+                initialFrameWidth: '100%'
+            });
+
+            let uploaderList = Array.from($('.fileUploaderEditor.imageType'));
+            uploaderList.forEach(function (value, index, arr) {
+                let uploaderId = $(value).attr('cItemId');
+                initImageUploader(uploaderId);
+            })
+
+            //InitOfferingDataGrid();
+
+            CommonUtil.buttonStyle();
+
+            // 轮播图上传组件
+            fileSetting.fileNumLimit = 3;
+            defaultInitImageUploader('MainSlide', 'imageUploader', 'imageList', fileSetting);
+        });
+    </script>
+    <!--上传组件-->
+    <script>
+        let initImageUploader = function (itemId) {
+            let hiddenBlob = 'cItemImageOrIConCls-' + itemId;
+            let imgId = 'card-image-' + itemId;
+            let imgInput = $('#' + imgId);
+            if (imgInput === undefined || imgInput === null || imgInput.length <= 0)
+                return;
+
+            let settings = {
+                componentName: 'div-uploader-' + itemId,
+                btnAddFile: '#btnAddDocFile' + itemId,
+                fileList: '#docFileList' + itemId,
+                //params: {ids: options.ids},
+                fileNumLimit: 1,
+                postUrl: '@(ViewBag.DocWebApiDomain)Resources/Upload',
+                chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+                chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+                fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+                fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+                downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+                imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+                imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+                showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+                params: { isArchive: false },
+                isRegister: true,
+                isEditor: true,
+                callback: {
+                    uploadStart: function (file) {
+                    },
+                    uploadProgress: function (file, percentage) {
+                    },
+                    uploadComplete: function (file) { //不管成功或者失败，文件上传完成时触发
+                    },
+                    uploadSuccess: function (file, response, blob) {
+                        let blobJsonString = JSON.stringify(blob);
+                        $('#' + hiddenBlob).val(blobJsonString);
+                        $('#' + imgId).attr('src', blob.showImageUrl);
+                    },
+                    uploadError: function (file, reason) {
+                        let fileName = file.name;
+                        console.error("---file[" + fileName + "] throw error: " + reason);
+                    },
+                    onFileQueued: function (file) {
+                    }
+                }
+            };
+            imageUploader(settings);
+        }
+    </script>
+    <!--添加栏目、项目事件-->
+    <script>
+        //添加栏目
+        let addPageColumn = function () {
+            let pageId = $('#Id').val();
+            let title = $('#ColumnTitle').textbox('getValue');
+            let subtitle = $('#ColumnSubTitle').textbox('getValue');
+            let typeValue = CommonUtil.getRadioSelectValue("ColumnType");
+            let itemTypeValue = CommonUtil.getRadioSelectValue("ItemColumnType");
+            let itemCount = CommonUtil.getRadioSelectValue("ItemColumnCount");
+            let type = typeValue == '0' ? 'Image' : typeValue == '1' ? 'Card' : typeValue == '2' ? 'Product' : typeValue == '3' ? 'Slide' : typeValue == '4' ? 'List' : '';
+            let itemType = itemTypeValue == '0' ? 'LeftRight' : itemTypeValue == '2' ? 'TopBottom' : 'LeftRight';
+
+            //debugger;
+            let columnId = $.util.guid();
+            let itemId = $.util.guid();
+            let iColumn = $(".main .divGroup").length;
+
+            let addOprHtml = type === 'Product'
+                ? '<a id="cItemSelect-' + columnId + '" href="javascript:void(0)" onclick="openOfferingDialog(' + iColumn + ', \'' + type + '\', \'' + itemType + '\', ' + itemCount + ',\'' + columnId + '\')" style="width: 90px; height: 30px; float: right; margin-right: 5px;" class="easyui-linkbutton btnAdd">选择产品</a>'
+                : type === 'Slide'
+                    ? '<a id="cItemSelect-' + columnId + '" href="javascript:void(0)" onclick="openCustomerDialog(' + iColumn + ', \'' + type + '\', \'' + itemType + '\', ' + itemCount + ',\'' + columnId + '\')" style="width: 90px; height: 30px; float: right; margin-right: 5px;" class="easyui-linkbutton btnAdd">选择企业</a>'
+                    : '<a id="cItemSelect-' + columnId + '" href="javascript:void(0)" onclick="addColumnItem(' + iColumn + ', \'' + type + '\', \'' + itemType + '\', ' + itemCount + ',\'' + columnId + '\')" style="width:70px;height:30px;float:right;margin-right:5px;" class="easyui-linkbutton btnAdd">新增项</a>';
+            // 操作按钮
+            let operatorHtml = '<div id="div-column-opr-' + columnId + '" class="layui-container" style="background: rgba(240, 240, 240, 0.3); ">'
+                + ' <div class="layui-row card-operator" style="vertical-align:middle;">'
+                + '     <div class="layui-col-xs6 layui-col-sm4 layui-col-md6 layui-col-lg6">'
+                + '         <p style="vertical-align:middle;">第   ' + (iColumn + 1) + '  栏</p>'
+                + '     </div>'
+                + '     <div class="layui-col-xs6 layui-col-sm4 layui-col-md6 layui-col-lg6">'
+                + '         <a href="javascript:void(0)" onclick="removeColumn(true, \'' + columnId + '\')" style="width:90px;height:30px;float:right;margin-right:5px;" class="easyui-linkbutton btnDelete">删除栏目</a>'
+                + addOprHtml
+                + '     </div>'
+                + ' </div>'
+                + '</div>';
+            // 栏目标题
+            let columnTitle = '<div class="layui-container group-title">'
+                + ' <h2>'
+                + '     <i></i>'
+                + '         <span class="title">'
+                + '				<input name="WebSiteColumns[' + iColumn + '].Title" value="' + title + '" class="easyui-validatebox easyui-textbox" data-options="required:true,width:280,validType:[\'length[0,20]\'],prompt:\'栏目标题\'">'
+                + '         </span>'
+                + '     <i></i>'
+                + ' </h2>'
+                + ' <span class="subtitle">'
+                + '		<input name="WebSiteColumns[' + iColumn + '].SubTitle" value="' + subtitle + '" class="easyui-validatebox easyui-textbox" data-options="required:true,multiline:true,width:580,height:60,validType:[\'length[0,500]\'],prompt:\'栏目副标题\'">'
+                + ' </span>'
+                + '</div>';
+            //隐藏Input，用于存储对象属性
+            let hiddenHtml = '<input type="hidden" name="WebSiteColumns[' + iColumn + '].WebSitePageId" value="' + pageId + '">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].Id" value="' + columnId + '">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].Title" value="' + title + '">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].SubTitle" value="' + subtitle + '">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].Type" value="' + typeValue + '">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].ItemType" value="' + itemTypeValue + '">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].RowCount" value="1">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].ColumnCount" value="' + itemCount + '">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].IsShow" value="1">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].CanEdit" value="1">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].Index" value="' + iColumn + '">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].Description" value="">';
+            // 栏目项目
+            let itemHtml = getColumnItemHtml(iColumn, type, itemType, itemCount, columnId, itemId);
+            // Page Column
+            let hasTitle = title !== undefined && title !== null && title !== '';
+            let appendDiv = '<div id="div-column-' + columnId + '" class="divGroup">'
+                + hiddenHtml
+                + (hasTitle ? columnTitle : '')
+                + ' <div class="layui-container">'
+                + '     <div class="layui-row card-list">'
+                + itemHtml
+                + '     </div>'
+                + ' </div>'
+                + '</div>';
+            //轮播式
+            if (type === 'Slide') {
+                appendDiv = '<div id="div-column-' + columnId + '" class="divGroup">'
+                    + hiddenHtml
+                    + ' <div class="layui-container">'
+                    + '     <div class="layui-row slide-list">'
+                    + '         <div class="layui-col-xs2 layui-col-sm2 layui-col-md2 layui-col-lg2">'
+                    + '	            <div class="card-left">'
+                    + '		            <span class="card-title">'
+                    + '			            <i class="fa fa-play" aria-hidden="true"></i>'
+                    + '			            <span class="card-subtitle">'
+                    + '				            <input name="WebSiteColumns[' + iColumn + '].Title" value="' + title + '" class="easyui-validatebox easyui-textbox" data-options="width:100,validType:[\'length[0,10]\'],prompt:\'栏目标题\'">'
+                    + '			            </span>'
+                    + '			            <br />'
+                    + '			            <span>'
+                    + '				            <input name="WebSiteColumns[' + iColumn + '].SubTitle" value="' + subtitle + '" class="easyui-validatebox easyui-textbox" data-options="width:180,validType:[\'length[0,25]\'],prompt:\'栏目副标题\'">'
+                    + '			            </span>'
+                    + '		            </span>'
+                    + '	            </div>'
+                    + '         </div>'
+                    + '         <div class="layui-col-xs10 layui-col-sm10 layui-col-md10 layui-col-lg10">'
+                    + '	            <div id="divSlide" class="layui-carousel ">'
+                    + '		            <div carousel-item="">'
+                    + '			            <div class="item-box layui-this">'
+                    + itemHtml
+                    + '			            </div>'
+                    + '		            </div>'
+                    + '	            </div>'
+                    + '         </div>'
+                    + '     </div>'
+                    + ' </div>'
+                    + '</div>';
+            }
+
+            $(".main").append(operatorHtml + appendDiv);
+            $.parser.parse($("#div-column-" + columnId));
+            CommonUtil.buttonStyle();
+
+            if (type === 'Image')
+                initImageUploader(itemId);
+
+            //定位到页面底部
+            window.scrollTo(0, document.body.scrollHeight);
+        };
+
+        //添加栏目项目
+        let addColumnItem = function (iColumn, type, itemType, itemCount, cId, iId) {
+            let columnId = cId ? cId : $.util.guid();
+            let itemId = iId ? iId : $.util.guid();
+            let appendDiv = getColumnItemHtml(iColumn, type, itemType, itemCount, columnId, itemId);
+            if (type === 'Slide')
+                $("#div-column-" + columnId + ' .layui-row .item-box').append(appendDiv);
+            else
+                $("#div-column-" + columnId + ' .layui-row').append(appendDiv);
+
+            $.parser.parse($("#div-column-" + columnId));
+            CommonUtil.buttonStyle();
+
+            if (type === 'Image')
+                initImageUploader(itemId);
+
+            CommonUtil.scrollToControlById("div-column-" + columnId);
+        };
+        let getColumnItemHtml = function (iColumn, type, itemType, itemCount, cId, iId) {
+            let columnId = cId ? cId : $.util.guid();
+            let itemId = iId ? iId : $.util.guid();
+            let layCol = 12 / itemCount;
+            var iCardLeftCount = itemCount == 1 ? 2 : itemCount == 2 ? 4 : 6;
+            var iCardRightCount = 12 - iCardLeftCount;
+            let iCurrItemCount = $("#div-column-" + columnId + " .layui-col").length;
+            //隐藏Input，用于存储对象属性
+            let hiddenHtml = '<input type="hidden" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].WebSiteColumnId" value="' + columnId + '">'
+                + '<input type="hidden" class="clsColumnItemId" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].Id" value="' + itemId + '">'
+                + '<input type="hidden" id="cItemLink-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].Link" value="">'
+                + '<input type="hidden" id="cItemLinkIsOpenNewPage-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].LinkIsOpenNewPage" value="">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].IsShow" value="1">'
+                + '<input type="hidden" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].CanEdit" value="0">'
+                + '<input type="hidden" id="cItemIndex-' + itemId + '"  name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].Index" value="' + iCurrItemCount + '">'
+                + '<input type="hidden" id="cItemDescription-' + itemId + '"  name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].Description" value="">';
+
+            // Column Item
+            //debugger;
+            let appendDiv = '<div id="div-item-' + itemId + '" class="layui-col layui-col-xs' + layCol + ' layui-col-sm' + layCol + ' layui-col-md' + layCol + ' layui-col-lg' + layCol + '">';
+            let cloneDiv = '';
+            if (type == 'Image') {
+                // 图片式
+                cloneDiv = '<div class="image-item image-item-tb">'
+                    + '<input type="hidden" id="cItemIsImage-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].IsImage" value="true">'
+                    + '<input type="hidden" id="cItemImageOrIConCls-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].ImageOrIConCls" value="">'
+                    + '<img id="card-image-' + itemId + '" src="/images/demo/home/home-2.png" style="width:100%">'
+                    + '<a class="closeImg" href="javascript:void(0)" onclick="removeItem(true, \'' + itemId + '\')"><div><i class="fa fa-times fa-1x" aria-hidden="true"></i></div></a>'
+                    + '<br /><div class="fileUploaderEditor imageType" style="display: flex;margin:0 20%;" id="div-uploader-' + itemId + '" cItemId="' + itemId + '">' +
+                    '   <div id="docFileList' + itemId + '" class="webUploader-file-single"></div>' +
+                    '   <a id="btnAddDocFile' + itemId + '" href="javascript:void(0)" class="easyui-linkbutton btnSelect" iconcls="fa fa-pencil">选择图片</a>' +
+                    '</div></div>';
+            } else if (type == 'Card' && itemType == 'LeftRight') {
+                // 卡片式 + 左右结构
+                cloneDiv = '<div class="card-item card-item-lr">'
+                    + '<input type="hidden" id="cItemIsImage-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].IsImage" value="false">'
+                    + '  <div class="layui-col-xs3 layui-col-sm4 layui-col-md' + iCardLeftCount + ' layui-col-lg' + iCardLeftCount + ' card-left">'
+                    + '      <i id="icon-' + itemId + '" class="fa fa-university fa-5x" aria-hidden="true"></i>'
+                    + '      <br /><input id="cItemImageOrIConCls-' + itemId + '" class="easyui-validatebox easyui-iconpicker" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].ImageOrIConCls" data-options="required:true,width:120,lgTimes:2,cellWidth:42,cellHeight:42,target:\'icon-' + itemId + '\'" value="fa fa-picture-o"/>'
+
+                    + '  </div>'
+                    + '  <div class="layui-col-xs9 layui-col-sm8 layui-col-md' + iCardRightCount + ' layui-col-lg' + iCardRightCount + ' card-right">'
+                    + '      <span class="card-title">'
+                    + '         <input id="cItemTitle-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].Title" value="" class="easyui-validatebox easyui-textbox" data-options="required:true,width:140,validType:[\'length[0,10]\'],prompt:\'栏目标题\'">'
+                    + '      </span>'
+                    + '      <span class="card-subtitle">'
+                    + '         <input id="cItemSubTitle-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].SubTitle" value="" class="easyui-validatebox easyui-textbox" data-options="required:true,multiline:true,width:180,height:120,validType:[\'length[0,500]\'],prompt:\'栏目副标题\'">'
+                    + '      </span>'
+                    + '  </div>'
+                    + '  <a class="closeImg" href="javascript:void(0)" onclick="removeItem(true, \'' + itemId + '\')"><div><i class="fa fa-times fa-1x" aria-hidden="true"></i></div></a>'
+                    + '</div>';
+            } else if (type == 'Card' && itemType == 'TopBottom') {
+                // 卡片式 + 上下结构
+                cloneDiv = '<div class="card-item card-item-tb">'
+                    + '<input type="hidden" id="cItemIsImage-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].IsImage" value="false">'
+                    + '<div class="card-top" style="">'
+                    + '    <div class="card-title" style="width:60%;">'
+                    + '         <span><input id="cItemTitle-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].Title" value="" class="easyui-validatebox easyui-textbox" data-options="required:true,multiline:true,width:150,height:80,validType:[\'length[0,10]\'],prompt:\'栏目标题\'"></span>'
+                    + '    </div>'
+                    + '    <div class="card-icon" style="width:40%;">'
+                    + '        <i id="icon-' + itemId + '" class="fa fa-gg-circle fa-5x" aria-hidden="true" style="display:inline-block;margin:6px 0;"></i>'
+                    + '        <br /><input id="cItemImageOrIConCls-' + itemId + '" class="easyui-validatebox easyui-iconpicker" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].ImageOrIConCls" data-options="required:true,width:120,lgTimes:2,cellWidth:42,cellHeight:42,target:\'icon-' + itemId + '\'" value="fa fa-picture-o"/>'
+                    + '    </div>'
+                    + '    <a class="closeImg" href="javascript:void(0)" onclick="removeItem(1, \'' + itemId + '\')"><div><i class="fa fa-times fa-1x" aria-hidden="true"></i></div></a>'
+                    + '</div>'
+                    + '<div class="card-bottom">'
+                    + '      <span class="card-subtitle">'
+                    + '         <input id="cItemSubTitle-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].SubTitle" value="" class="easyui-validatebox easyui-textbox" data-options="required:true,multiline:true,width:280,height:150,validType:[\'length[0,500]\'],prompt:\'栏目副标题\'">'
+                    + '      </span>'
+                    + '</div>'
+                    + '</div>';
+            } else if (type == 'Product') {
+                // 产品式
+                cloneDiv = '<div class="card-item card-item-img">'
+                    + '<input type="hidden" id="cItemIsImage-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].IsImage" value="true">'
+                    + '<input type="hidden" id="cItemImageOrIConCls-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].ImageOrIConCls" value="">'
+                    + '     <img id="card-image-' + itemId + '" class="card-img-' + itemCount + '" src="/images/image_add_small.png">'
+                    + '     <a class="closeImg" href="javascript:void(0)" onclick="removeItem(true, \'' + itemId + '\')"><div><i class="fa fa-times fa-1x" aria-hidden="true"></i></div></a>'
+                    + '    <div style="text-align:center">'
+                    + '         <span class="card-title-' + itemCount + '">'
+                    + '         <span id="card-title-' + itemId + '"></span>'
+                    + '             <input type="hidden" id="cItemTitle-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].Title" value=""></span>'
+                    + '        <br /><span class="card-subtitle-' + itemCount + '">'
+                    + '         <span id="card-subtitle-' + itemId + '"></span>'
+                    + '            <input type="hidden" id="cItemSubTitle-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].SubTitle" value=""></span>'
+                    + '    </div>'
+                    + '</div>';
+            } else if (type == 'Slide') {
+                // 轮播式
+                return '<div id="div-item-' + itemId + '" class="image-Item item">'
+                    + hiddenHtml
+                    + '<input type="hidden" id="cItemIsImage-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].IsImage" value="true">'
+                    + '<input type="hidden" id="cItemImageOrIConCls-' + itemId + '" name="WebSiteColumns[' + iColumn + '].WebSiteItems[' + iCurrItemCount + '].ImageOrIConCls" value="">'
+                    + '     <img id="card-image-' + itemId + '" class="card-img-' + itemCount + '" src="/images/image_add_small.png" style="max-height:80px;">'
+                    + '     <a class="closeImg" href="javascript:void(0)" onclick="removeItem(true, \'' + itemId + '\')"><div><i class="fa fa-times fa-1x" aria-hidden="true"></i></div></a>'
+                    + '</div>';
+            }
+
+            return appendDiv + hiddenHtml + cloneDiv + '</div>';
+        }
+
+    </script>
+    <!--选择产品-->
+    <script>
+        const $dialogOffering = $('#dialogOffering');
+        let openOfferingDialog = function (iColumn, type, itemType, itemCount, cId) {
+            InitOfferingDataGrid();
+            InitOfferingDialog(iColumn, type, itemType, itemCount, cId);
+            $dialogOffering.window('open');
+        }
+
+        const $dgOffering = $('#dgOffering');
+        let reloadDgOffering = function () {
+            $dgOffering.datagrid('unselectAll');
+            $dgOffering.datagrid("reload", {
+                name: $("#txtOfferingName").textbox("getValue"),
+                status: 2,
+            });
+        }
+        let refreshDgOffering = function () {
+            $("#txtOfferingName").textbox('setValue', '');
+            //$('#StatusList').combobox("setValue", '');
+            reloadDatagrid();
+        }
+        function InitOfferingDataGrid() {
+            const loadDataUrl = '@Url.Action(ActionName.RecommendInfo.LoadRedOfferingList, ControllerName.RecommendInfo)';
+            $dgOffering.datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'recommendId',
+                toolbar: "#toolbarOffering",
+                queryParams: { status : 2 },
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: false,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [[
+                    { field: 'offeringImageBlob', title: '商品图片', width: 100, align: 'left', formatter: FormatterUtil.ShowImageBlobFormatter },
+                    { field: 'recommendName', title: '推荐商品', width: 200, align: 'left' },
+                    { field: 'offeringTypeName', title: '推荐商品类型', width: 60, align: 'left' },
+                    { field: 'statusString', title: '状态', width: 80, align: 'left' },
+                    { field: 'isTop', title: '是否置顶', width: 60, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    { field: 'createdDate', title: '创建日期', width: 80, align: 'left', formatter: FormatterUtil.DateTimeFormatter },
+                ]],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    CommonUtil.buttonStyle();
+
+                    $dgOffering.datagrid('unselectAll');
+                    $dgOffering.datagrid('clearSelections');
+                    $dgOffering.datagrid("fixRowHeight");
+                },
+                onLoadError: function(data) {
+                },
+                onSelect: function (index, row) {
+                },
+            });
+        }
+
+        function InitOfferingDialog(iColumn, type, itemType, itemCount, cId) {
+            $dialogOffering.dialog({
+                width: 760,
+                height: 450,
+                modal: true,
+                closed: true,
+                cache: false,
+                buttons: [{
+                    text: '&nbsp;确&nbsp;&nbsp;定&nbsp;',
+                    iconCls: 'icon-save',
+                    handler: function () {
+                        var rows = $dgOffering.datagrid('getSelections');
+                        //debugger;
+                        if (rows) {
+                            for (var i = 0; i < rows.length; i++) {
+                                // 生成Html
+                                let itemId = $.util.guid();
+                                addColumnItem(iColumn, type, itemType, itemCount, cId, itemId);
+
+                                // 填充数据
+                                let showItem = {
+                                    editing: true,
+                                    categoryId: rows[i].categoryId,
+                                    id: rows[i].recommendId,
+                                    name: rows[i].recommendName,
+                                    image: rows[i].offeringImage,
+                                    imageBlob: rows[i].offeringImageBlob,
+                                    price: rows[i].offeringPrice ? rows[i].offeringPrice : "面议",
+                                    description: rows[i].description,
+                                    productUrl: '/Home/ProductDetail/' + rows[i].recommendId,
+                                    index: rows[i].index,
+                                };
+                                $('#cItemIndex-' + itemId).val(showItem.name);
+                                $('#cItemLink-' + itemId).val(showItem.productUrl);
+                                $('#cItemDescription-' + itemId).val(showItem.name);
+                                $('#cItemImageOrIConCls-' + itemId).val(showItem.image);
+                                $('#cItemLinkIsOpenNewPage-' + itemId).val(true);
+                                $('#cItemTitle-' + itemId).val(showItem.name);
+                                $('#cItemSubTitle-' + itemId).val(showItem.price);
+                                $('#card-title-' + itemId).text(showItem.name);
+                                $('#card-subtitle-' + itemId).text(showItem.price);
+                                if (showItem.imageBlob)
+                                    $('#card-image-' + itemId).attr('src', showItem.imageBlob.showImageUrl);
+                                else
+                                    $('#card-image-' + itemId).attr('src', '/images/image_no.jpg');
+                            }
+                        }
+
+                        CommonUtil.buttonStyle();
+                        $dialogOffering.window('close');
+                    }
+                },
+                {
+                    text: '&nbsp;关&nbsp;&nbsp;闭&nbsp;',
+                    iconCls: 'icon-cancel',
+                    handler: function () {
+                        $dialogOffering.window('close');
+                    }
+                }],
+                onClose: function () {
+                    //$(this).dialog('destroy');
+                    $dgOffering.datagrid('unselectAll');
+                    $dgOffering.datagrid('clearSelections');
+                },
+                onLoad: function () {
+                },
+                onBeforeOpen: function () {
+                    var top = $("#cItemSelect-" + cId).offset().top - 100;
+                    var left = $("#cItemSelect-" + cId).offset().left;
+                    //dialog展示之前，使它绝对居中
+                    $dialogOffering.dialog("center").window('resize', { top: top });
+                }
+            });
+        }
+    </script>
+    <!--选择企业-->
+    <script>
+        const $dialogCustomer = $('#dialogCustomer');
+        let openCustomerDialog = function (iColumn, type, itemType, itemCount, cId) {
+            InitCustomerDataGrid();
+            InitCustomerDialog(iColumn, type, itemType, itemCount, cId);
+            $dialogCustomer.window('open');
+        }
+
+        const $dgCustomer = $('#dgCustomer');
+        let reloadDgCustomer = function () {
+            $dgCustomer.datagrid('unselectAll');
+            $dgCustomer.datagrid("reload", {
+                name: $("#txtCustomerName").textbox("getValue"),
+                status: 2,
+            });
+        }
+        let refreshDgCustomer = function () {
+            $("#txtCustomerName").textbox('setValue', '');
+            //$('#StatusList').combobox("setValue", '');
+            reloadDatagrid();
+        }
+        function InitCustomerDataGrid() {
+            const loadDataUrl = '@Url.Action(ActionName.RecommendInfo.LoadRedCustomerList, ControllerName.RecommendInfo)';
+            $dgCustomer.datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'recommendId',
+                toolbar: "#toolbarCustomer",
+                queryParams: { status : 2 },
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: false,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [[
+                    { field: 'offeringImageBlob', title: '商品图片', width: 100, align: 'left', formatter: FormatterUtil.ShowImageBlobFormatter },
+                    { field: 'recommendName', title: '推荐商品', width: 200, align: 'left' },
+                    { field: 'offeringTypeName', title: '推荐商品类型', width: 60, align: 'left' },
+                    { field: 'statusString', title: '状态', width: 80, align: 'left' },
+                    { field: 'isTop', title: '是否置顶', width: 60, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    { field: 'createdDate', title: '创建日期', width: 80, align: 'left', formatter: FormatterUtil.DateTimeFormatter },
+                ]],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    CommonUtil.buttonStyle();
+
+                    $dgCustomer.datagrid('unselectAll');
+                    $dgCustomer.datagrid('clearSelections');
+                    $dgCustomer.datagrid("fixRowHeight");
+                },
+                onLoadError: function(data) {
+                },
+                onSelect: function (index, row) {
+                },
+            });
+        }
+
+        function InitCustomerDialog(iColumn, type, itemType, itemCount, cId) {
+            $dialogCustomer.dialog({
+                width: 760,
+                height: 450,
+                modal: true,
+                closed: true,
+                cache: false,
+                buttons: [{
+                    text: '&nbsp;确&nbsp;&nbsp;定&nbsp;',
+                    iconCls: 'icon-save',
+                    handler: function () {
+                        var rows = $dgCustomer.datagrid('getSelections');
+                        //debugger;
+                        if (rows) {
+                            for (var i = 0; i < rows.length; i++) {
+                                // 生成Html
+                                let itemId = $.util.guid();
+                                addColumnItem(iColumn, type, itemType, itemCount, cId, itemId);
+
+                                // 填充数据
+                                let showItem = {
+                                    editing: true,
+                                    categoryId: rows[i].categoryId,
+                                    id: rows[i].recommendId,
+                                    name: rows[i].recommendName,
+                                    image: rows[i].companyLogo,
+                                    imageBlob: rows[i].companyLogoBlob,
+                                    description: rows[i].description,
+                                    productUrl: '/Home/CompanyInfo/' + rows[i].recommendId,
+                                    index: rows[i].index,
+                                };
+                                $('#cItemIndex-' + itemId).val(showItem.name);
+                                $('#cItemLink-' + itemId).val(showItem.productUrl);
+                                $('#cItemDescription-' + itemId).val(showItem.name);
+                                $('#cItemImageOrIConCls-' + itemId).val(showItem.image);
+                                $('#cItemLinkIsOpenNewPage-' + itemId).val(true);
+                                $('#cItemTitle-' + itemId).val(showItem.name);
+                                $('#cItemSubTitle-' + itemId).val(showItem.description);
+                                if (showItem.imageBlob)
+                                    $('#card-image-' + itemId).attr('src', showItem.imageBlob.showImageUrl);
+                                else
+                                    $('#card-image-' + itemId).attr('src', '/images/image_no.jpg');
+                            }
+                        }
+
+                        CommonUtil.buttonStyle();
+                        $dialogCustomer.window('close');
+                    }
+                },
+                {
+                    text: '&nbsp;关&nbsp;&nbsp;闭&nbsp;',
+                    iconCls: 'icon-cancel',
+                    handler: function () {
+                        $dialogCustomer.window('close');
+                    }
+                }],
+                onClose: function () {
+                    //$(this).dialog('destroy');
+                    $dgCustomer.datagrid('unselectAll');
+                    $dgCustomer.datagrid('clearSelections');
+                },
+                onLoad: function () {
+                },
+                onBeforeOpen: function () {
+                    var top = $("#cItemSelect-" + cId).offset().top - 100;
+                    var left = $("#cItemSelect-" + cId).offset().left;
+                    //dialog展示之前，使它绝对居中
+                    $dialogCustomer.dialog("center").window('resize', { top: top });
+                }
+            });
+        }
+    </script>
+    <!--相关事件-->
+    <script>
+        const saveFormUrl = '@Url.Action(ActionName.PortalDecorator.SaveWebSitePage, ControllerName.PortalDecorator)';
+        const listUrl = '@Url.Action(ActionName.PortalDecorator.PortalPageList, ControllerName.PortalDecorator)';
+        const closeUrl = '@Url.Action(ActionName.PortalDecorator.GetWebSitePageForm, ControllerName.PortalDecorator)';
+        let saveFormInfo = function (status) {
+            //debugger;
+            var d = $("#saveform");
+            var validate = d.form("enableValidation").form("validate");
+            if (!validate) {
+                let errorMsg = '';
+                let invalidComps = d.find(".validatebox-invalid");
+                $.each(invalidComps, function (i, invalidComp) {
+                    errorMsg += 'id=' + invalidComp.id + ', ';
+                });
+                console.error("---验证失败的组件Id：" + errorMsg);
+                return;
+            }
+            let formData = d.form("getData");
+            formData.status = status;
+            // Checkbox多选时，为多个值
+            //let businessModelList = [];
+            //if (formData.BusinessModel)
+            //    businessModelList = $.string.arrayFromCommaDelimitedStrings(formData.BusinessModel);
+            //let businessModel = 0;
+            //businessModelList.forEach(function (value, index, array) {
+            //    businessModel += $.string.toInteger(value);
+            //});
+
+            // RadioButton时，为单个值
+            //let selectBusinessModel = $(".radiobutton-checked>input[name='BusinessModel']").val();
+            //formData.BusinessModel = selectBusinessModel;
+
+            //Razor引擎中的checkbox会自动生成一个隐藏的input，其值为false
+            //传值的时候其值为："true,false"(CheckBox选中)，"false"(CheckBox不选中)
+            //对传值进行判断，赋予后台所需的值：true、false
+            formData.IsTop = $.string.contains(formData.IsTop, "true");
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                async: true,
+                type: "post",
+                dataType: "json",
+                url: saveFormUrl,
+                data: AddAntiForgeryToken(formData),
+                success: function (data) {
+                    if (data.success) {
+                        $.messager.showInfoTopCenter('系统提示', '门户页面保存成功。');
+                        MainPage_PostMessage("refreshPage", listUrl, true);
+                        MainPage_PostMessage("closeSubPage", closeUrl);
+                    } else {
+                        $.messager.showErrorTopCenter('系统提示', data.message);
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+        }
+
+        // 删除页面栏目
+        const removeColumnUrl = '@Url.Action(ActionName.PortalDecorator.RemoveWebSiteColumn, ControllerName.PortalDecorator)';
+        let removeColumn = function (isNew, columnId) {
+            $.messager.confirm('是否确定删除该条记录？', function (r) {
+                if (r) {
+                    if (isNew) {
+                        let divItemId = 'div-column-' + columnId;
+                        let divColumnOprId = 'div-column-opr-' + columnId;
+                        $('#' + divItemId).remove();
+                        $('#' + divColumnOprId).remove();
+                        return;
+                    }
+
+                    $.easyui.loading({ msg: '正在删除数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "get",
+                        dataType: "json",
+                        url: removeColumnUrl + "?id=" + columnId,
+                        success: function (data) {
+                            if (data.success) {
+                                let divItemId = 'div-column-' + columnId;
+                                let divColumnOprId = 'div-column-opr-' + columnId;
+                                $('#' + divItemId).remove();
+                                $('#' + divColumnOprId).remove();
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。');
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+
+
+        };
+
+        // 删除栏目下的项目
+        const removeItemUrl = '@Url.Action(ActionName.PortalDecorator.RemoveWebSiteItem, ControllerName.PortalDecorator)';
+        let removeItem = function (isNew, itemId) {
+            $.messager.confirm('是否确定删除该条记录？', function (r) {
+                if (r) {
+                    if (isNew) {
+                        let divItemId = 'div-item-' + itemId;
+                        $('#' + divItemId).remove();
+                        return;
+                    }
+
+                    $.easyui.loading({ msg: '正在删除数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "get",
+                        dataType: "json",
+                        url: removeItemUrl + "?id=" + itemId,
+                        success: function (data) {
+                            if (data.success) {
+                                let divItemId = 'div-item-' + itemId;
+                                $('#' + divItemId).remove();
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。');
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+
+        };
+    </script>
+}

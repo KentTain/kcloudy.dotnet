@@ -1,0 +1,658 @@
+﻿@using KC.Framework.Tenant
+@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Message.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "消息模板";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--消息管理-保存消息分类-->
+    var canEditCategory = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "82D91217-49F9-490D-8FAE-088F77C2DB63")).Succeeded)
+    {
+        canEditCategory = true;
+    }
+    <!--消息管理-删除消息分类-->
+    var canDeleteCategory = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "0DFD5258-A12C-4424-8C90-61DEB778EB8A")).Succeeded)
+    {
+        canDeleteCategory = true;
+    }
+
+    <!--消息管理-保存消息模板-->
+    var canSaveMessageClass = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "F7936F06-DF2D-4AE7-9B10-046F8B8BC573")).Succeeded)
+    {
+        canSaveMessageClass = true;
+    }
+
+    <!--消息管理-保存短信模板-->
+    var canSaveSmsTemplate = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "2D4E6BBA-CB63-4168-BB2B-DF62D2BC8804")).Succeeded)
+    {
+        canSaveSmsTemplate = true;
+    }
+
+    <!--消息管理-添加通用模板-->
+    var canSaveCommonTemplate = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "8962A908-27AD-40BF-A52B-C537C95E182C")).Succeeded)
+    {
+        canSaveCommonTemplate = true;
+    }
+
+    <!--消息管理-删除消息模板-->
+    var canRemoveTemplatePage = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "D9278B88-342E-4FBE-9AD3-3E2401C1F040")).Succeeded)
+    {
+        canRemoveTemplatePage = true;
+    }
+
+}
+
+<div class="easyui-layout" data-options="fit:true" style="height: auto;">
+    <div data-options="region:'west',collapsible:false" title="消息分类列表" style="width:25%;min-width:350px;">
+        <div id="categoryToolbar">
+            <div>
+            </div>
+
+            <div>
+                <input id="txtSearchbox" class="easyui-textbox" style="width: 140px;height:26px;" data-options="prompt:'请输入分类名称'" />
+                <a href="javascript:void(0)" onclick="reloadCategory()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshCategory()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+                <!--消息模板管理-保存消息分类-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "82D91217-49F9-490D-8FAE-088F77C2DB63")).Succeeded)
+                {
+                    <a id="btnAddCategory" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addCategory()">添加</a>
+                }
+            </div>
+        </div>
+        <table id="cagtegoryTreeGrid"></table>
+    </div>
+    <div data-options="region:'center'" title="消息模板列表">
+        <div id="toolbar">
+            <div>
+                <!--消息模板管理-保存消息分类-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "F7936F06-DF2D-4AE7-9B10-046F8B8BC573")).Succeeded)
+                {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addMessageClass()">添加</a>
+                }
+                <!--消息模板管理-删除消息分类-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "C681B352-292F-4B01-A779-C383FB92D12F")).Succeeded)
+                {
+                    @*<a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeMessageClass()">删除</a>*@
+                }
+            </div>
+
+            <div>
+                <span>
+                    业务类型：
+                    @Html.DropDownList("MessageType", (IEnumerable<SelectListItem>)ViewBag.MessageTypeList, new { @id = "MessageType", @class = "easyui-combobox", @style = "width: 100px;height:26px;" })
+                </span>
+                <input id="txtName" class="easyui-textbox" style="width: 200px;height:26px;" data-options="prompt:'请输入模板名称'" />
+                <a href="javascript:void(0)" onclick="reloadData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshData()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="datagrid"></table>
+    </div>
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <!--消息分类-->
+    <script type="text/javascript">
+
+        $(function () {
+            $("#MessageType").combobox({
+                editable:false
+            });
+
+            $("#toolbar").keydown(function() {
+                if (event.keyCode == "13") {
+                    searchData();
+                }
+
+            });
+
+            InitTreeGrid();
+
+            InitDataGrid();
+        });
+
+        var selectCategoryId = 0;
+        const categoryTreeId = '#cagtegoryTreeGrid';
+        const canEditCategory = '@canEditCategory' === 'True';
+        const canDeleteCategory = '@canDeleteCategory' === 'True';
+        //显示类型列表
+        const LoadMessageCategoryUrl = '@Url.Action(ActionName.Message.LoadCategoryTree, ControllerName.Message)';
+        function InitTreeGrid() {
+            $(categoryTreeId).treegrid({
+                url: LoadMessageCategoryUrl,
+                toolbar: '#categoryToolbar',
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                queryParams: {
+                    excludeId: null,
+                    selectedId: null,
+                    hasAll: true,
+                    hasRoot: false,
+                    maxLevel: 3
+                },
+                striped: true,
+                fit: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                pagination: false,
+                showFooter: false,
+                columns: [[
+                    { field: 'id', title: 'Id', hidden: true },
+                    { field: 'text', title: '分类名称', width: 140 },
+                    //{ field: 'description', title: '描述', width: '40%' },
+                    //{ field: 'level', title: '等级', width: '2%', hidden: true }
+                    {
+                        field: 'c', title: ' 操作', width: 60,
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            let name = row.text;
+                            let parentId = row.parentId;
+                            let hasChild = row.children && row.children.length > 0;
+                            let tdContext = '';
+                            if (canEditCategory && (id != 0 && id != -1)) {
+                                tdContext += '<a class="btnEdit" style="cursor:pointer;margin:0 5px;" onclick="editCategory(\'' + id + '\',\'' + parentId + '\')" > </a>';
+                            }
+                            if (canDeleteCategory && (id != 0 && id != -1) && !hasChild) {
+                                //tdContext += '<a class="btnDelete" style="cursor:pointer;margin:0 5px;" onclick="removeMessageClass(\'' + id + '\',\'' + name + '\', ' + hasChild + ')" > </a>';
+                            }
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (node, data) {
+                    CommonUtil.buttonStyle();
+                    $(categoryTreeId).treegrid('unselectAll');
+                    $(categoryTreeId).treegrid('expandAll');
+                    $(categoryTreeId).treegrid("fixRowHeight");
+
+                    //默认选中第一个节点
+                    if (data.length > 0) {
+                        selectCategoryId = data[0].id;
+                        $(categoryTreeId).treegrid("selectRow", 0);
+                    }
+                },
+                onLoadError: function () {
+                },
+                onSelect: function (row) {
+                    if (selectCategoryId == row.id) return;
+                    //点击左侧消息类型，显示右侧列表信息
+                    let id = row.id;
+                    let level = row.level;
+                    selectCategoryId = id;
+
+                    //只能创建两级分类
+                    if (id == -1 || level > 2) {
+                        $('#btnAddCategory').linkbutton('disable');
+                    } else {
+                        $('#btnAddCategory').linkbutton('enable');
+                    }
+
+                    $(dataGridId).datagrid("load", { categoryId: id });
+                }
+            });
+        }
+
+        function refreshCategory() {
+            $(categoryTreeId).datagrid('unselectAll');
+            $("#txtSearchbox").searchbox('setValue', '');
+            reloadCategory();
+        }
+        function reloadCategory() {
+            $(categoryTreeId).datagrid('unselectAll');
+            $(categoryTreeId).treegrid("load", {
+                name: $("#txtSearchbox").searchbox("getValue"),
+                excludeId: null,
+                selectedId: null,
+                hasAll: true,
+                hasRoot: false,
+                maxLevel: 3
+            });
+        }
+
+        //新增类型
+        function addCategory() {
+            var categorySelectedRow = $(categoryTreeId).treegrid("getSelected");
+            if (categorySelectedRow) {
+                if (categorySelectedRow.level == 3) {
+                    $.messager.showErrorTopCenter("错误", "文件分类只有三级数据，该条数据已经是子级，请选择父级进行添加子级操作。");
+                    return false;
+                }
+                openCategoryForm(null, categorySelectedRow.id);
+            }
+            else {
+                openCategoryForm(null,0);
+            }
+        }
+        //编辑类型
+        function editCategory(id, pid, hasChild) {
+            if (hasChild) {
+                $.messager.showErrorTopCenter('错误消息', '无法删除有子部门的部门，请先删除子部门后再重试。', 1000);
+                return;
+            }
+            if (id == 0) {
+                $.messager.showErrorTopCenter('系统提示', '此消息类型无法编辑', 1000);
+            }
+            else {
+                openCategoryForm(id, pid);
+            }
+        }
+
+        //类型表单
+        const getCategoryFormUrl = '@Url.Action(ActionName.Message.GetMessageCategoryForm,ControllerName.Message)';
+        const saveCategoryUrl = '@Url.Action(ActionName.Message.SaveMessageCategory,ControllerName.Message)';
+        function openCategoryForm(id, parentId) {
+            var dialog = $.easyui.showDialog({
+                title: id == null ? "新增类型" : "编辑类型",
+                width: 400,
+                height: 240,
+                href: getCategoryFormUrl + "?id=" + id + "&parentId=" + parentId,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                modal: true,
+                topMost: false,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveCategoryUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function (data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $(categoryTreeId).treegrid('clearSelections');
+                                        $(categoryTreeId).treegrid('reload');
+
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。',1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。',1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function () {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function () {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+
+            });
+
+        }
+
+        //删除类型
+        const removeCategoryUrl = '@Url.Action(ActionName.Message.RemoveMessageCategory,ControllerName.Message)';
+        function removeCategory(id, name, hasChild) {
+            if (id <= 0) {
+                $.messager.showErrorTopCenter('系统提示', '此消息类型无法删除', 1000);
+                return;
+            }
+            if (hasChild) {
+                $.messager.showErrorTopCenter('错误消息', '无法删除有子分类的分类，请先删除子分类后再重试。', 1000);
+                return;
+            }
+
+            $.messager.confirm("系统提示", '确认要删除分类：'  + name + '?', function (r) {
+                if (r) {
+                    $.ajax({
+                        url: removeCategoryUrl + "?id=" + id,
+                        success: function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $(categoryTreeId).treegrid('reload');
+                                    $(categoryTreeId).treegrid('clearSelections');
+                                    $.messager.showInfoTopCenter("系统提示", "删除成功", 1000);
+                                }
+                                else{
+
+                                    $.messager.showErrorTopCenter("错误提示","删除失败",1000);
+                                }
+                            }
+                            else {
+                                $.messager.showErrorTopCenter("错误提示", data.message, 1000);
+                            }
+                        }
+                    })
+                }
+            })
+        }
+
+    </script>
+    <!--消息模板-->
+    <script type="text/javascript">
+
+        //消息及消息模板表显示
+        const dataGridId = '#datagrid';
+        const canRemoveTemplatePage = '@canRemoveTemplatePage' === 'True';
+        const canSaveSmsTemplate = '@canSaveSmsTemplate' === 'True';
+        const canSaveCommonTemplate = '@canSaveCommonTemplate' === 'True';
+        const canSaveMessageClass = '@canSaveMessageClass' === 'True';
+        const loadDataUrl = '@Url.Action(ActionName.Message.LoadMessageClassList, ControllerName.Message)';
+        const loadMessageTemplateDataUrl = '@Url.Action(ActionName.Message.LoadMessageTemplateList, ControllerName.Message)';
+        function InitDataGrid() {
+            var $dataGrid = $(dataGridId).datagrid({
+                view: detailview,
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#toolbar',
+                queryParams: {
+                    categoryId: selectCategoryId,
+                    name: $("#txtName").textbox("getValue"),
+                    type: $("#MessageType").combobox("getValue")
+                },
+                fit: true,
+                fitColumns: true,
+                striped: true,
+                nowrap: false,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                columns: [
+                    [
+                        { field: 'id', title: 'ID', width: 25, align: 'left', hidden: true },
+                        { field: 'code', title: '编码', width: 100, align: 'left' },
+                        { field: 'name', title: '消息名称', width: 100, align: 'left' },
+                        { field: 'typeStr', title: '业务类型', width: 50, align: 'left' },
+                        { field: 'replaceParametersString', title: '可替换参数', width: 160, align: 'left' },
+                        //{ field: 'index', title: '排序', width: 100, align: 'left', hidden: 'true' },
+                        //{ field: 'createdBy', title: '创建人', width: 100, align: 'left' },
+                        //{ field: 'createdDate', title: '创建时间', width: 100, align: 'left', formatter: FormatterUtil.DateFormatter },
+                        {
+                            field: 'operator', title: '任务操作', width: 120, align: 'center', formatter: function (value, row, index) {
+                                let id = row.id;
+                                let hasSmsTemplate = row.hasSmsTemplate;
+                                let hasCommomTemplate = row.hasCommomTemplate;
+                                let parmString = row.replaceParametersString;
+                                let tdContext = '';
+                                if (canSaveMessageClass)
+                                    tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="opentForm(\'' + row.id + '\')">编辑</a>';
+                                if (canSaveSmsTemplate && !hasSmsTemplate)
+                                    tdContext += '<a href="##" class="btnMobile" style="cursor:pointer" onclick="openSmsTemplateForm(\'' + 0 + '\',\'' + id + '\',\'' + parmString + '\')">添加短信模板</a>';
+                                if (canSaveCommonTemplate && !hasCommomTemplate)
+                                    tdContext += '<a href="##" class="btnEmail" style="cursor:pointer" onclick="openCommonTemplatePage(\'' + 0 + '\',\'' + id + '\',\'' + parmString + '\')">添加通用模板</a>';
+                                return tdContext;
+                            }
+                        }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    CommonUtil.buttonStyle();
+                    $(dataGridId).datagrid('unselectAll');
+                    $(dataGridId).datagrid('fixRowHeight');
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                },
+                onExpandRow: function (index, row) {
+                    //debugger;
+                    let Addclass = "tree" + index;
+                    let ddv = $(this).datagrid('getRowDetail', index).find('table.ddv').attr('id', 'childGrid' + row.id);
+                    $(ddv).removeClass("tree" + index);
+                    $(ddv).addClass("tree" + index);
+                    let parmString = row.replaceParametersString;
+
+                    ddv.datagrid({
+                        url: loadMessageTemplateDataUrl + '?appId=' + row.id,
+                        fitColumns: true,
+                        singleSelect: true,
+                        rowNumbers: true,
+                        loadMsg: '',
+                        height: 'auto',
+                        columns: [
+                            [
+                                { field: 'id', title: '模板Id', width: 60, hidden: true},
+                                { field: 'name', title: '模板名称', width: 150, align: 'left' },
+                                { field: 'templateTypeStr', title: '模板类型', width: 100, align: 'left' },
+                                { field: 'content', title: '模板内容', width: 240, align: 'left' },
+                                //{ field: 'createdBy', title: '创建人', width: 80, align: 'left' },
+                                //{ field: 'createdDate', title: '创建时间', width: 80, align: 'left', formatter: FormatterUtil.DateFormatter },
+                                {
+                                    field: 'detailOperator', title: '任务操作', width: 180, align: 'center', formatter : function(value, row, index) {
+                                        let id = row.id;
+                                        let msgTypeId = row.messageTypeId;
+                                        let tempType = row.templateType;
+
+                                        let tdContext = '';
+                                        if (canSaveSmsTemplate && tempType == 2)
+                                            tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openSmsTemplateForm(' + id + ',' + msgTypeId + ',\'' + parmString + '\')">编辑短信模板</a>';
+                                        if (canSaveCommonTemplate && tempType != 2)
+                                            tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openCommonTemplatePage(' + id + ',' + msgTypeId + ',\'' + parmString + '\')">编辑通用模板</a>';
+                                        if (canRemoveTemplatePage)
+                                            tdContext += '<a href="##" class="btnDelete" style="cursor:pointer" onclick="removeMessageTemplate(' + id + ')">删除消息模板</a>';
+                                        return tdContext;
+                                    }
+                                }
+                            ]
+                        ],
+                        onResize: function() {
+                            $(dataGridId).datagrid('fixDetailRowHeight', index);
+                        },
+                        onLoadSuccess: function() {
+                            //$(".btnEdit").linkbutton({ iconCls: 'fa fa-pencil' });
+                            //$(".btnDelete").linkbutton({ iconCls: 'fa fa-trash' });
+                            CommonUtil.buttonStyle();
+                            setTimeout(function () {
+                                $(dataGridId).datagrid('fixDetailRowHeight', index);
+                            }, 0);
+                        }
+                    });
+                }
+            });
+        }
+
+        function refreshData() {
+            $(dataGridId).datagrid('unselectAll');
+            $("#txtName").textbox("setValue", "");
+            $("#MessageType").combobox("setValue", "");
+            reloadData();
+        }
+        function reloadData() {
+            $(dataGridId).datagrid("load", {
+                categoryId: selectCategoryId,
+                name: $("#txtName").textbox("getValue"),
+                type: $("#MessageType").combobox("getValue")
+            });
+        }
+
+        function addMessageClass() {
+            opentForm(0);
+        }
+
+        const getFormUrl = '@Url.Action(ActionName.Message.GetMessageClassForm, ControllerName.Message)';
+        const saveFormUrl = '@Url.Action(ActionName.Message.SaveMessageClassForm, ControllerName.Message)';
+        function opentForm(id) {
+            var dialog = $.easyui.showDialog({
+                title: id == 0 ? "新增消息模板" : "编辑消息模板",
+                width: 460,
+                height: 380,
+                href: getFormUrl + "?id=" + id + "&pid=" + selectCategoryId,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: false,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl + "?id=" + id,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $(dataGridId).datagrid('clearSelections');
+                                        $(dataGridId).datagrid('reload'); // reload the user data
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function() {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        const removeUrl = '@Url.Action(ActionName.Message.RemoveMessageClass, ControllerName.Message)';
+        function removeMessageClass() {
+            var row = $(dataGridId).datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('系统提示', '是否确定删除该消息分类及相关模板?', function(r) {
+                    if (r) {
+                        $.post(removeUrl, { id: row.id }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $(dataGridId).datagrid('clearSelections');
+                                    $(dataGridId).datagrid('reload'); // reload the user data
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                }
+                            } else {
+                                $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        }, 'json');
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter('系统提示', '请选择需要删除的数据', 1000);
+            }
+        }
+
+        const getSmsTemplateFormUrl = '@Url.Action(ActionName.Message.GetMessageTemplateForm, ControllerName.Message)';
+        const saveSmsTemplateFormUrl = '@Url.Action(ActionName.Message.SaveSmsTemplate, ControllerName.Message)';
+        function openSmsTemplateForm(id, msgTypeId, parmString) {
+            var dialog = $.easyui.showDialog({
+                title: id == 0 ? "添加短信模板" : "编辑短信模板",
+                width: 720, //400,
+                height: 520, //220,
+                modal: true,
+                topMost: false,
+                href: getSmsTemplateFormUrl + "?id=" + id + "&mcId=" + msgTypeId + "&parmString=" + parmString,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        if ($('#Content').textbox('getValue') == "") {
+                            $.messager.showErrorTopCenter('系统提示', "请输入模板内容!");
+                            return false;
+                        }
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveSmsTemplateFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#childGrid' + msgTypeId).datagrid('clearSelections');
+                                        $('#childGrid' + msgTypeId).datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function() {
+                },
+                onClose: function () {
+                }
+            });
+        }
+
+        const getPageUrl = '@Url.Action(ActionName.Message.GetCommonTemplateForm, ControllerName.Message)';
+        function openCommonTemplatePage(id, msgTypeId, parmString) {
+            var queryString = "id=" + id + "&mcId=" + msgTypeId + "&parmString=" + parmString;
+            MainPage_PostMessage("openSubPage", getPageUrl, queryString);
+        }
+
+        const removeMessageTemplateUrl = '@Url.Action(ActionName.Message.RemoveMessageTemplate, ControllerName.Message)';
+        function removeMessageTemplate(id) {
+            $.messager.confirm('系统提示', '是否确定删除该消息模板   ?', function(r) {
+                if (r) {
+                    $.post(removeMessageTemplateUrl, { id: id }, function(data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $(dataGridId).datagrid('clearSelections');
+                                $(dataGridId).datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,47 @@
+{
+  "profiles": {
+    "IIS Express": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev"
+      }
+    },
+    "KC.Web.Account-Product": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      },
+      "applicationUrl": "http://cTest.localhost:2001;https://cTest.localhost:2011"
+    },
+    "KC.Web.Account-Beta": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Beta"
+      },
+      "applicationUrl": "http://cTest.localhost:2001;https://cTest.localhost:2011"
+    },
+    "KC.Web.Account-Test": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Test"
+      },
+      "applicationUrl": "http://cTest.localhost:2001;https://cTest.localhost:2011"
+    },
+    "KC.Web.Account-Dev": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev"
+      },
+      "applicationUrl": "http://cTest.localhost:2001;https://cTest.localhost:2011"
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://cTest.localhost:2001",
+      "sslPort": 2011
+    }
+  }
+}

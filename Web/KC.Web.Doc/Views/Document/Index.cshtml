@@ -1,0 +1,669 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Doc.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "文件管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--文件管理-保存文件类别-->
+    var canEditCategory = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "D9278B88-342E-4FBE-9AD3-3E2401C1F040")).Succeeded)
+    {
+        canEditCategory = true;
+    }
+    <!--文件管理-删除文件类别-->
+    var canDeleteCategory = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "4701B3CA-8BF9-486F-8D57-96355080582D")).Succeeded)
+    {
+        canDeleteCategory = true;
+    }
+
+    <!--文件管理-保存文件-->
+    var canSaveDocument = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "92A2C1B7-C2CA-4E38-AF86-C242428D5B7F")).Succeeded)
+    {
+        canSaveDocument = true;
+    }
+    <!--文件管理-删除文件-->
+    var canRemoveDocument = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "E88D025F-CEFE-48EB-BFE7-8D5DC5CFD6D2")).Succeeded)
+    {
+        canRemoveDocument = true;
+    }
+
+    <!--文件管理-文件移动-->
+    var canMoveDocument = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "0D9C41B3-E679-4FF1-8C9B-D8B8C100448A")).Succeeded)
+    {
+        canMoveDocument = true;
+    }
+    <!--文件管理-文件外发-->
+    var canSendDocument = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "3684ACDF-2851-4424-987E-80D6C6E8D9FD")).Succeeded)
+    {
+        canSendDocument = true;
+    }
+    <!--文件管理-文件下载-->
+    var canDownloadDocument = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "D64C51D6-3E20-4CB5-861F-D7E67B1ED4BB")).Succeeded)
+    {
+        canDownloadDocument = true;
+    }
+}
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',collapsible:false" style="width:30%;min-width:350px;">
+        <div id="categoryToolbar">
+            <div>
+            </div>
+            <div>
+                <input id="txtCategoryName" class="easyui-textbox" style="width: 140px;height:26px;" data-options="prompt:'请输入名称'" />
+                <a href="javascript:void(0)" onclick="reloadCategory()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshCategory()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+                <!--消息模板管理-保存文件分类-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "D9278B88-342E-4FBE-9AD3-3E2401C1F040")).Succeeded)
+                {
+                    <a id="btnAddCategory" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addCategory()">添加</a>
+                }
+            </div>
+        </div>
+        <table id="categoryTreeGrid"></table>
+    </div>
+    <div data-options="region:'center'">
+        <div id="toolbar" class="toolbar-f">
+            <div>
+                <a href="#" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDocument(0, 0)">新增</a>
+                <a href="#" class="easyui-linkbutton" iconcls="fa fa-arrows" onclick="moveDocument(0)">移动文件</a>
+                <a href="#" class="easyui-linkbutton" iconcls="fa fa-envelope" onclick="SendEmail(0)">发送邮件</a>
+            </div>
+            <div>
+                <input id="txtName" class="easyui-textbox" data-options="prompt:'请输入名称'">
+                <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="datagrid"></table>
+    </div>
+</div>
+
+<div id="moveDocumentDiv" style="padding-top:30px;">
+    <h5></h5>
+    <label style="padding-left: 20px;" class="reviewDiv">移动到：</label>
+    <select class="easyui-combotree" name="reviewcategory" id="reviewcategory" style="width:250px; " data-options="required:true,missingMessage:'该输入项为必选项'" />
+</div>
+
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+
+@section styles{
+    @*<link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.css" rel="stylesheet" />*@
+    <style>
+        .reviewDiv {
+            padding-top: 50px;
+        }
+
+        .datagrid-row-selected {
+            background: #00bbee;
+            color: #fff;
+        }
+    </style>
+}
+
+@section scripts{
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <script type="text/javascript">
+        var fileSetting = {
+            fileNumLimit: 1,
+            postUrl: '@(ViewBag.DocWebApiDomain)Resources/UploadFileToTemp',
+            chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+            chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+            fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+            fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+            downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+            imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+            imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+            showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+            //isArchive：归档设置
+            //blobId：用于拷贝其他blob后，所使用新的blobId
+            params: { isArchive: false }
+        };
+        $(document).ready(function () {
+            InitTreeGrid();
+            InitDataGrid();
+        });
+
+    </script>
+
+    <!--文档分类-->
+    <script type="text/javascript">
+        //文件分类（左侧）
+        var selectCategoryId = 0;
+        const categoryTreeId = '#categoryTreeGrid';
+        const canEditCategory = '@canEditCategory' === 'True';
+        const canDeleteCategory = '@canDeleteCategory' === 'True';
+        const loadCategoryTreeUrl = '@Url.Action(ActionName.Document.LoadDocCategoryTree, ControllerName.Document)';
+        function InitTreeGrid() {
+            $(categoryTreeId).treegrid({
+                url: loadCategoryTreeUrl,
+                toolbar: '#categoryToolbar',
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                queryParams: {
+                    excludeId: null,
+                    selectedId: null,
+                    hasAll: true,
+                    hasRoot: false,
+                    maxLevel: 3
+                },
+                striped: true,
+                fit: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                lines: true,
+                showFooter: false,
+                checkbox: false,
+                checkOnSelect: false,
+                cascadeCheck: true,
+                cache: true,
+                pagination: false,
+                columns: [[
+                    { field: 'id', title: 'Id', hidden: true },
+                    { field: 'text', title: '分类名称', width: 140 },
+                    {
+                        field: 'c', title: ' 操作', width: 60,
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            let name = row.text;
+                            let parentId = row.parentId;
+                            let hasChild = row.children && row.children.length > 0;
+                            let tdContext = '';
+                            if (canEditCategory && (id != 0 && id != -1)) {
+                                tdContext += '<a class="btnEdit" style="cursor:pointer;margin:0 5px;" onclick="editCategory(\'' + id + '\',\'' + parentId + '\',' + hasChild + ')" > </a>';
+                            }
+                            if (canDeleteCategory && (id != 0 && id != -1) && !hasChild) {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer;margin:0 5px;" onclick="removeCategory(\'' + id + '\',\'' + name + '\',' + hasChild + ')" > </a>';
+                            }
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (node, data) {
+                    CommonUtil.buttonStyle();
+                    $(categoryTreeId).treegrid('unselectAll');
+                    $(categoryTreeId).treegrid('expandAll');
+                    $(categoryTreeId).treegrid("fixRowHeight");
+                    
+                    //默认选中第一个节点
+                    if (data.length > 0) {
+                        selectCategoryId = data[0].id;
+                        $(categoryTreeId).treegrid("selectRow", 0);
+                    }
+                },
+                onLoadError: function () {
+                },
+                onSelect: function (row) {
+                    if (selectCategoryId == row.id) return;
+                    //点击左侧消息类型，显示右侧列表信息
+                    let id = row.id;
+                    selectCategoryId = id;
+                    if (id == -1) {
+                        $('#btnAddCategory').linkbutton('disable');
+                    } else {
+                        $('#btnAddCategory').linkbutton('enable');
+                    }
+
+                    //只能创建两级流程分类
+                    let level = row.level;
+                    if (level > 2) {
+                        $('#btnAddCategory').linkbutton('disable');
+                    } else {
+                        $('#btnAddCategory').linkbutton('enable');
+                    }
+
+                    $(dataGridId).datagrid("reload", { categoryId: id });
+                }
+            });
+        }
+
+        function refreshCategory() {
+            $(categoryTreeId).treegrid('unselectAll');
+            $("#txtCategoryName").searchbox('setValue', '');
+            reloadCategory();
+        }
+        function reloadCategory() {
+            $(categoryTreeId).treegrid('unselectAll');
+            $(categoryTreeId).treegrid("reload", {
+                name: $("#txtCategoryName").textbox("getValue"),
+                excludeId: null,
+                selectedId: null,
+                hasAll: true,
+                hasRoot: false,
+                maxLevel: 3
+            });
+        }
+
+        //新增/编辑
+        function addCategory() {
+            var categorySelectedRow = $(categoryTreeId).treegrid("getSelected");
+            if (categorySelectedRow) {
+                if (categorySelectedRow.level == 3) {
+                    $.messager.showErrorTopCenter("错误", "文件分类只有三级数据，该条数据已经是子级，请选择父级进行添加子级操作。");
+                    return false;
+                }
+                openCategoryForm(null, categorySelectedRow.id, false);
+            }
+            else {
+                openCategoryForm(null, 0, false);
+            }
+        }
+        //编辑类型
+        function editCategory(id, pid, hasChild) {
+            if (hasChild) {
+                $.messager.showErrorTopCenter('错误消息', '无法删除有子分类的文档类型，请先删除子分类后再重试。', 1000);
+                return;
+            }
+            if (id == 0) {
+                $.messager.showErrorTopCenter('系统提示', '此分类无法编辑', 1000);
+            }
+            else {
+                openCategoryForm(id, pid, hasChild);
+            }
+        }
+
+        //类型表单
+        var getCategoryUrl = '@Url.Action(ActionName.Document.GetDocCategory, ControllerName.Document)';
+        var saveCategoryUrl = '@Url.Action(ActionName.Document.SaveDocCategory, ControllerName.Document)';
+        function openCategoryForm(id, pid, hasChild) {
+            var dialogC = $.easyui.showDialog({
+                title: id == null ? "新增分类" : "编辑分类",
+                width: 450,
+                height: 300,
+                modal: true,
+                topMost: false,
+                href: getCategoryUrl + "?id=" + id + "&pid=" + pid ,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                pagination: true,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (!validate) {
+                        let errorMsg = '';
+                        let invalidComps = d.find(".validatebox-invalid");
+                        $.each(invalidComps, function (i, invalidComp) {
+                            errorMsg += 'id=' + invalidComp.id + ', ';
+                        });
+                        console.error("---验证失败的组件Id：" + errorMsg);
+                        return;
+                    }
+                    var dataInfo = AddAntiForgeryToken(d.form("getData"));
+                    if (hasChild && dataInfo.category != null && dataInfo.category != "") {
+                        $.messager.showErrorTopCenter("错误", "该组下面已有子分类，不能直接移动，请先移动或删除子分类。");
+                        return false;
+                    }
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: saveCategoryUrl,
+                        data: dataInfo,
+                        success: function (data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    d.window('close');
+                                    $(categoryTreeId).treegrid('clearSelections');
+                                    $(categoryTreeId).treegrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter("错误", data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                },
+                onLoad: function () {
+                },
+                onClose: function () {
+                }
+            });
+        }
+
+        //删除文件分类（左侧）
+        var removeCategoryUrl = '@Url.Action(ActionName.Document.RemoveDocCategory, ControllerName.Document)';
+        function removeCategory(id) {
+            if (id <= 0) {
+                $.messager.showErrorTopCenter('系统提示', '此消息类型无法删除', 1000);
+                return;
+            }
+            if (hasChild) {
+                $.messager.showErrorTopCenter('错误消息', '无法删除有子部门的部门，请先删除子部门后再重试。', 1000);
+                return;
+            }
+            $.messager.confirm('确定删除该文件分类：' + name + '?', function (f) {
+                if (f) {
+                    $.post(removeCategoryUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $.messager.showInfoTopCenter("提示", '删除成功。', 1500);
+                                $(categoryTreeId).treegrid('reload');
+                                $(categoryTreeId).treegrid('clearSelections');
+                            }
+                            else {
+                                $.messager.showErrorTopCenter("错误", data.result.message);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter("错误", data.message);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+    </script>
+
+    <!--文档-->
+    <script type="text/javascript">
+        //文件（右侧）'
+        const dataGridId = '#datagrid';
+        const canSaveDocument = '@canSaveDocument' === 'True';
+        const canRemoveDocument = '@canRemoveDocument' === 'True';
+        const canDownloadDocument = '@canDownloadDocument' === 'True';
+        const loadReviewInfoUrl = '@Url.Action(ActionName.Document.FindDocuments, ControllerName.Document)';
+        function InitDataGrid() {
+            $(dataGridId).datagrid({
+                url: loadReviewInfoUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#toolbar',
+                queryParams: {
+                    categoryId: selectCategoryId,
+                    name: $("#txtName").textbox("getValue"),
+                },
+                striped: true,
+                fit: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: false,
+                nowrap: false,
+                lines: true,
+                showFooter: false,
+                pagination: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                columns: [[
+                    { field: 'name', title: '文件名称', width: 150, align: 'left'},
+                    { field: 'typeName', title: '文件类型', width: 80, align: 'left' },
+                    { field: 'canEdit', title: '是否能编辑', width: 60, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    { field: 'isValid', title: '是否归档', width: 60, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    { field: 'comment', title: '描述', width: 120, align: 'left' },
+                    { field: 'modifiedDate', title: '修改时间', width: 80, align: 'left', formatter: FormatterUtil.DateFormatter },
+                    { field: 'createdName', title: '创建人', width: 80, align: 'left' },
+                    {
+                        field: 'operator', title: '任务操作', width: 180, align: 'center', formatter: function (value, row, index) {
+                            let id = row.id;
+                            let canEdit = row.canEdit;
+                            let blobId = row.attachment.blobId;
+                            let tdContext = '';
+                            if (canDownloadDocument)
+                                tdContext += '<a href="##" class="btnDownload" style="cursor:pointer" onclick="Preview(\'' + blobId + '\')">预览</a>';
+                            if (canSaveDocument && canEdit)
+                                tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openForm(\'' + id + '\')">编辑</a>';
+                            if (canRemoveDocument && canEdit)
+                                tdContext += '<a href="##" class="btnDelete" style="cursor:pointer" onclick="removeDocument(\'' + id + '\')">删除</a>';
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $(dataGridId).datagrid('unselectAll');
+                    $(dataGridId).datagrid('clearSelections');
+                    CommonUtil.buttonStyle();
+                },
+                onClickRow: function (row) {
+                    var rows = $(dataGridId).datagrid('getSelections');
+                    if (rows.length > 1) {
+                        $("#btnEdit").linkbutton('disable');
+                        $("#btnPre").linkbutton('disable');
+                        $("#btnEdit").tooltip({
+                            position: 'right',
+                            content: '<span style="color:#fff">只适用于选中单条数据进行编辑</span>',
+                            onShow: function () {
+                                $(this).tooltip('tip').css({
+                                    backgroundColor: 'rgb(255, 126, 0)',
+                                    borderColor: 'rgb(255, 126, 0)'
+                                });
+                            }
+                        });
+                    } else {
+                        $("#btnEdit").linkbutton('enable');
+                        $("#btnPre").linkbutton('enable');
+                        $("#btnEdit").tooltip('destroy');
+                    }
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+
+        //刷新
+        function refreshSearch() {
+            $("#txtName").textbox('setValue', '');
+            reloadDatagrid();
+        }
+        //查询
+        function reloadDatagrid() {
+            $(dataGridId).datagrid("reload", {
+                categoryId: selectCategoryId,
+                name: $("#txtName").textbox("getValue")
+            });
+        }
+
+        //添加/编辑文件
+        function addDocument(k, index) {
+            if (k == 0) {
+                openForm(0, index);
+            }
+            if (k == 1) {
+                var row = $(dataGridId).datagrid('getSelections');
+                if (row.length != 1) {
+                    $.messager.showErrorTopCenter("错误", "请选择需要编辑的一条数据。");
+                } else {
+                     var c=row[0].createdBy;
+                    openForm(row[0].id);
+                }
+            }
+        }
+
+        //右侧文件数据
+        const getReviewUrl = '@Url.Action(ActionName.Document.GetDocumentForm, ControllerName.Document)';
+        const saveReviewUrl = '@Url.Action(ActionName.Document.SaveDocument, ControllerName.Document)';
+        function openForm(id) {
+            var dialogf = $.easyui.showDialog({
+                title: id > 0 ? '编辑文件信息' : '新增文件信息',
+                width: 600,
+                height: 500,
+                modal: true,
+                topMost: false,
+                href: getReviewUrl + "?id=" + id + "&selectCategoryId=" + selectCategoryId,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                pagination: true,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (!validate) {
+                        let errorMsg = '';
+                        let invalidComps = d.find(".validatebox-invalid");
+                        $.each(invalidComps, function (i, invalidComp) {
+                            errorMsg += 'id=' + invalidComp.id + ', ';
+                        });
+                        console.error("---验证失败的组件Id：" + errorMsg);
+                        return;
+                    }
+                    var postData = AddAntiForgeryToken(d.form("getData"));
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        dataType: "json",
+                        url: saveReviewUrl,
+                        data: postData,
+                        success: function (data) {
+                            if (data.success) {
+                                d.window('close');
+                                $(dataGridId).datagrid('reload');
+                                $.messager.showInfoTopCenter("提示", "保存成功。", 1500);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                },
+                onLoad: function () {
+                },
+                onClose: function () {
+                }
+            });
+        }
+
+        //删除文件（右侧）
+        const deleteReviewUrl = '@Url.Action(ActionName.Document.DeleteDocument, ControllerName.Document)';
+        function removeDocument(id) {
+            $.messager.confirm('是否确定删除该条记录？', function (r) {
+                if (r) {
+                    $.post(deleteReviewUrl, { sid: id }, function (result) {
+                        if (result.success) {
+                            $.messager.showInfoTopCenter("提示", "删除成功。", 1500);
+                            $(dataGridId).datagrid('reload');
+                        } else {
+                            $.messager.showErrorTopCenter('错误', result.message);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+        //发邮件
+        var emailResult = false;
+        var emailForm = '@Url.Action(ActionName.Document.GetSendEmailForm, ControllerName.Document)';
+        var blobIds;
+        var emailDialog;
+        var rows;
+        var $Infos;
+        function SendEmail() {
+            $Infos = new Array();
+            rows = $(dataGridId).datagrid('getSelections');
+            var len = rows.length;
+            if (len > 0) {
+                if (len == 1) {
+                    blobIds = rows[0].attachmentBlobId
+                    $Infos.push({ "AttachmentBlobId": rows[0].attachmentBlobId, "Name": rows[0].name });
+                }
+                else
+                {
+                    for (var i = 0; i < len; i++) {
+                        $Infos.push({ "AttachmentBlobId": rows[i].attachmentBlobId, "Name": rows[i].name });
+                    }
+                }
+                emailDialog = $("<div></div>").dialog({
+                    title: '邮箱填写',
+                    width: 420,
+                    height: 163,
+                    modal: true,
+                    topMost: false,
+                    href: emailForm,
+                    enableHeaderContextMenu: false,
+                    enableApplyButton: false,
+                    pagination: true,
+                    onLoad: function () {
+                    },
+                    onClose: function () {
+                        if (emailResult) {
+                        }
+                        emailResult = false;
+                        $(this).dialog('destroy');
+                    }
+                });
+            }
+            else {
+                $.messager.showErrorTopCenter("系统提示", "请选择要发送的文件。");
+            }
+        }
+
+        //移动文件
+        var moveReviewUrl = '@Url.Action(ActionName.Document.MoveDocumentsToCategory, ControllerName.Document)';
+        function moveDocument(index) {
+            var rows = $(dataGridId).datagrid('getSelections');
+            if (rows.length == 0) {
+                $.messager.showErrorTopCenter("错误", "请选择需要移动的数据");
+            } else {
+                $("#moveDocumentDiv").window('open');
+                $('#reviewcategory').combotree({
+                    method: 'get',
+                    url: loadCategoryTreeUrl + '?type=' + index,
+                    editable: false,
+                    valueField: 'id',
+                    textField: 'text',
+                    cache: true,
+                    onLoadSuccess: function () {
+                        $('#reviewcategory').combotree('tree').tree("collapseAll");
+                    },
+                    onChange: function (newValue, oldValue) {
+                        if (newValue) {
+                            var text = $("#reviewcategory").combotree('getText');
+                            $.messager.confirm('是否确定将选中的数据移动到【' + text + '】下?', function (r) {
+                                if (r) {
+                                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                                    var getCategoryid = $("#reviewcategory").combotree('getValue');
+                                    var ids = "";
+                                    for (var i = 0; i < rows.length; i++) {
+                                        ids += rows[i].id + ",";
+                                    }
+                                    ids = ids.substr(0, ids.length - 1);
+                                    $.post(
+                                        moveReviewUrl,
+                                        { oldIds: ids, categoryId: getCategoryid },
+                                        function (data) {
+                                            $.easyui.loaded();
+                                            if (data.success) {
+                                                $("#moveDocumentDiv").window('close');
+                                                $(dataGridId).datagrid('unselectAll');
+                                                $(dataGridId).datagrid('reload');
+                                                $.messager.showInfoTopCenter("提示", "文件转移成功。", 1500);
+                                            } else {
+                                                $.messager.showErrorTopCenter('错误消息', data.message);
+                                            }
+                                        }, 'json');
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
+        //下载
+        const preUrl = '@Url.Action(ActionName.Document.DownloadDocument, ControllerName.Document)';
+        function Preview(blobId) {
+            window.location.href = preUrl + '?blobId=' + blobId;
+            //window.location.href = '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?isTempFile=true&id=' + blobId;
+        }
+    </script>
+}

@@ -1,0 +1,344 @@
+﻿@using KC.Framework.Tenant
+@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Message.Constants
+@using Microsoft.AspNetCore.Authorization
+@model KC.Service.DTO.Message.NewsBulletinDTO
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "新增/编辑新闻公告";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+@section styles{
+    <style>
+        .table-form.tr-col2 > tbody > tr > td:nth-child(odd) {
+            width: 10%;
+            min-width: 120px;
+        }
+
+        .table-form.tr-col2 tr td:nth-child(even) {
+            width: 40%;
+            vertical-align: middle;
+        }
+
+        .webUploader-file-single {
+            width: 86%
+        }
+    </style>
+}
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform" action="@Url.Action(ActionName.Message.SaveSmsTemplate, ControllerName.Message)">
+    @Html.AntiForgeryToken()
+    <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="table table-bordered table-form tr-col2">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="Title">标题：</label></td>
+                <td>
+                    <input id="Title" name="Title" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:'100%',validType:'length[2,200]'"
+                           value="@(null != Model ? Model.Title : string.Empty)" />
+                </td>
+
+                <td><label class="required">*</label><label for="Type">类型：</label></td>
+                <td>
+                    @if (Model.IsEditMode || ViewBag.selectType != null)
+                    {
+                        <select id="Type" name="Type" class="easyui-combobox"
+                                data-options="width:'96%',editable: false, required:true,"
+                                asp-items="ViewBag.TypeList" panelHeight="auto" readonly="true"></select>
+                    }
+                    else
+                    {
+                        <select id="Type" name="Type" class="easyui-combobox"
+                                data-options="width:'96%',editable: false, required:true,"
+                                asp-items="ViewBag.TypeList" panelHeight="auto"></select>
+                    }
+
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required"></label><label for="CategoryId">分类：</label></td>
+                <td>
+                    <input id="CategoryId" name="CategoryId" class="textbox"
+                           data-options="width:'100%'" panelHeight="auto" />
+                </td>
+
+                <td><label class="required"></label><label for="Link">外部链接：</label></td>
+                <td>
+                    <input id="Link" name="Link" class="easyui-validatebox easyui-textbox"
+                           data-options="width:'115%',validType:'length[0,500]'"
+                           value="@(null != Model ? Model.Link : string.Empty)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="IsShow">是否显示：</label></td>
+                <td>
+                    @Html.HiddenFor(model => model.IsShow)
+                    @if (Model.IsShow)
+                    {
+                        <input id="auditStatus1" name="auditStatus" value="1" label="显示" data-options="labelPosition:'after',labelWidth:50,checked:true" />
+                        <input id="auditStatus2" name="auditStatus" value="0" label="隐藏" data-options="labelPosition:'after',labelWidth:50" />
+                    }
+                    else
+                    {
+                        <input id="auditStatus1" name="auditStatus" value="1" label="显示" data-options="labelPosition:'after',labelWidth:50" />
+                        <input id="auditStatus2" name="auditStatus" value="0" label="隐藏" data-options="labelPosition:'after',labelWidth:50,checked:true" />
+                    }
+                </td>
+                <td><label class="required"></label><label for="IsShow">上传相关附件：</label></td>
+                <td>
+                    @Html.HiddenFor(m => m.FileBlob)
+                    <div class="fileUploaderEditor" style="display: flex;">
+                        <div id="fileList" class="webUploader-file-single"></div>
+                        <a id="fileUploader" href="javascript:void(0)" class="easyui-linkbutton"
+                           iconcls="fa fa-pencil">选择</a>
+                    </div>
+                    <label style="padding: 3px;">
+                        文件个数：1个；
+                        文件大小：@KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize M<br />
+                        文件格式：@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required"></label><label for="IsShow">配图：</label></td>
+                <td>
+                    @Html.HiddenFor(m => m.ImageBlob)
+                    <div class="imageUploaderEditor">
+                        <div style="display: flex;height: 110px;">
+                            <div id="imageUploader" class="webuploader-container">
+                                <a href="javascript:void(0)"><i class="fa fa-plus-square fa-5x"></i></a>
+                            </div>
+                            <div id="imageList" class="webUploader-image-list"></div>
+                        </div>
+                        <p id="imagePreviewContainer" class="imagePreview"></p>
+                        <label>
+                            图片个数：1个；
+                            图片大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M<br />
+                            图片格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt
+                        </label>
+                    </div>
+                </td>
+
+                <td><label class="required"></label><label for="IsShow">简述：</label></td>
+                <td>
+                    <input id="Description" name="Description" class="easyui-validatebox easyui-textbox"
+                           data-options="multiline:true,width:'100%',height:150,validType:'length[0,500]'"
+                           value="@(null != Model ? Model.Description : string.Empty)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Content">内容：</label></td>
+                <td colspan="3">
+                    <textarea id="Content" name="Content" data-options="multiline:true,required:true,">@(null != Model ? Model.Content : "")</textarea>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+<div style="height: 40px;"></div>
+<div class="bottom">
+    <!--项目列表-保存项目数据-->
+    @if ((await AuthorizationService.AuthorizeAsync(User, "2B05A70D-8542-4F36-905A-B96035E8AED7")).Succeeded)
+    {
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-floppy-o" onclick="saveForm()">保存</a>
+    }
+</div>
+
+@section scripts
+{
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <script src="/js/ueditor/ueditor.config.js"></script>
+    <script src="/js/ueditor/ueditor.all.min.js"></script>
+    <!--初始化-->
+    <script type="text/javascript">
+        var fileSetting = {
+            fileNumLimit: 1,
+            postUrl: '@(ViewBag.DocWebApiDomain)Resources/UploadFileToTemp',
+            chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+            chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+            fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+            fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+            downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+            imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+            imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+            showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+            params: { isArchive: true }
+        };
+        $(function () {
+            $("input[name='auditStatus']").radiobutton({
+                onChange: function (ck) {
+                    //debugger;
+                    if (ck) {
+                        let status = $(this).val();
+                        $('#IsShow').val(status === '1' ? true : false);
+                    }
+                }
+            });
+
+            InitTypeCombobox();
+
+            InitUEditor();
+
+            InitCategoryTree();
+
+            let imageWebUploader = defaultInitImageUploader('ImageBlob', 'imageUploader', 'imageList', fileSetting, false);
+            let fileWebUploader = defaultInitFileUploader('FileBlob', 'fileUploader', 'fileList', fileSetting, false);
+        });
+
+        //显示类型下拉框
+        var selectType = '@Model.Type';
+        function InitTypeCombobox(){
+            $('#Type').combobox({
+                onChange: function (newValue, oldValue) {
+                    //debugger;
+                    selectType = newValue;
+                    let params = {
+                        name: null,
+                        pType: selectType,
+                        excludeId: null,
+                        selectedId: 0,
+                        hasAll: false,
+                        hasRoot: false,
+                        maxLevel: 3
+                    };
+                    $('#CategoryId').combotree("tree").tree("options").queryParams = params;
+                    $('#CategoryId').combotree('reload');
+                }
+            });
+        }
+
+        //显示分类列表
+        const treeId = '#CategoryId';
+        var selectCategoryId = '@ViewBag.selectCategoryId';
+        const url = '@Url.Action(ActionName.NewsBulletin.LoadCategoryTree, ControllerName.NewsBulletin)';
+        function InitCategoryTree() {
+            $(treeId).combotree({
+                url: url,
+                queryParams: {
+                    name: null,
+                    pType: selectType,
+                    excludeId: null,
+                    selectedId: selectCategoryId,
+                    hasAll: false,
+                    hasRoot: false,
+                    maxLevel: 3
+                },
+                required: false,
+                editable: false,
+                valueField: 'id',
+                textField: 'text',
+                cache: false,
+                onLoadSuccess: function (node, data) {
+                    $(treeId).combotree('tree').tree('expandAll');
+                    let categoryId = '@(Model != null ? Model.CategoryId : 0)';
+                    if (data != null && data.length == 0) {
+                        $(treeId).combotree('setValue', null);
+                    } else if (categoryId && categoryId != '-1' && categoryId != '0') {
+                        //编辑时，设置模型中的值（Model.MessageCategoryId）为选中值
+                        $(treeId).combotree('setValues', categoryId);
+                    } else if (selectCategoryId && selectCategoryId !== -1 && selectCategoryId !== 0) {
+                        //主页面选中左侧分类后（selectCategoryId），设置弹出框中分类为其选中值
+                        $(treeId).combotree('setValues', selectCategoryId);
+                    } else if (data != null && data.length > 0) {
+                        //默认选中第一个树的值
+                        $(treeId).combotree('setValue', { id: data[0].id, text: data[0].text });
+                    }
+                }
+            });
+        }
+
+        //解决UEditor跨域上传问题
+        let uploadUrl = '@(ViewBag.DocWebApiDomain)Resources/Upload';
+        UE.Editor.prototype._bkGetActionUrl = UE.Editor.prototype.getActionUrl;
+        UE.Editor.prototype.getActionUrl = function (action) {
+            //debugger;
+            if (action == 'uploadimage'
+                || action == 'uploadfile'
+                || action == 'listimage'
+                || action == 'uplistfile') {
+                return uploadUrl + "?parm=" + action;
+            } else {
+                return this._bkGetActionUrl.call(this, action);
+            }
+        }
+        var ueditorContent = null;
+        function InitUEditor() {
+            ueditorContent = UE.getEditor('Content', {
+                serverUrl: '/Home/Upload',
+                initialFrameWidth: '100%',
+            });
+
+            ueditorContent.ready(function () {
+                ueditorContent.setHeight(420);
+                //设置编辑器的内容
+                // ue.setContent('hello');
+                // //获取html内容，返回: <p>hello</p>
+                // var html = ue.getContent();
+                // //获取纯文本内容，返回: hello
+                // var txt = ue.getContentTxt();
+            });
+        }
+
+        let getContent = function () {
+            return ueditorContent.getContent();
+        }
+    </script>
+    <!--保存流程定义-->
+    <script type="text/javascript">
+        const formId = "#saveform";
+        const saveFormUrl = '@Url.Action(ActionName.NewsBulletin.SaveNewsBulletin, ControllerName.NewsBulletin)';
+        const getPageUrl = '@Url.Action(ActionName.NewsBulletin.GetNewsBulletinForm, ControllerName.NewsBulletin)';
+        function saveForm() {
+            //验证
+            let validate = $(formId).form("enableValidation").form("validate");
+            if (!validate) {
+                let errorMsg = '';
+                let invalidComps = $(formId).find(".validatebox-invalid");
+                $.each(invalidComps, function (i, invalidComp) {
+                    errorMsg += 'id=' + invalidComp.id + ', ';
+                });
+                console.error("---验证失败的组件Id：" + errorMsg);
+                return;
+            }
+
+            //debugger;
+            //获取表单数据
+            let formData = $(formId).form("getData");
+            formData.Content = ueditorContent.getContent();;
+            let postData = AddAntiForgeryToken(formData);
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                async: false,
+                url: saveFormUrl,
+                type: 'POST',
+                dataType: 'json',
+                data: postData,
+                success: function (data) {
+                    if (data.success) {
+                        if (data.result) {
+                            $('#IsEditMode').val('true');
+                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                            MainPage_PostMessage("closeSubPage", getPageUrl);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                    } else {
+                        $.messager.showInfoTopCenter('系统提示', data.message);
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,205 @@
+﻿@using KC.Framework.Extension
+@using KC.Web.Pay.Constants
+@using KC.Enums.Pay;
+@model KC.Service.DTO.Pay.BankAccountDTO
+@{
+    var list = ViewBag.BankTypelist;
+    var isCanEdit = (Model.BankState == BankAccountState.UnAuthenticated || Model.BankState == BankAccountState.AuthenticateFailed);
+}
+
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform" action="@Url.Action(ActionName.BankAccount.SaveBankForm, ControllerName.BankAccount)">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    @Html.HiddenFor(model => model.MemberId)
+    @Html.HiddenFor(model => model.AccountType)
+    @Html.HiddenFor(model => model.BankAccountType)
+    @Html.HiddenFor(model => model.CrossMark)
+    @Html.HiddenFor(model => model.BankState)
+    @Html.HiddenFor(model => model.CardType)
+    @Html.HiddenFor(model => model.CardNumber)
+
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="AccountName">户名：</label></td>
+                <td>
+                    <input id="AccountName" readonly="readonly" name="AccountName" class="easyui-textbox easyui-textbox" data-options="required:true,validType:['unSpace']" style="width: 325px;" value="@(null != Model ? Model.AccountName : string.Empty)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="AccountNum">银行账号：</label></td>
+                <td><input id="AccountNum" name="AccountNum" class="easyui-textbox easyui-textbox" data-options="required:true,width:325" value="@(null != Model ? Model.AccountNum : string.Empty)" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="BankId">开户银行：</label></td>
+                <td>
+                    <input id="BankName" name="BankName" type="hidden" value="@(null != Model ? Model.BankName : string.Empty)" />
+                    <select id="BankId" data-options="required:true,editable: true,width:325,validType:'length[2,150]'" name="BankId" style="width:325px;">
+                        <option value="@(null != Model.BankId ? Model.BankId : string.Empty)" selected="selected">@(null != Model.BankId ? Model.BankId : string.Empty)</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td><label class="required">*</label><label for="ProvinceCode">所在省份：</label></td>
+                <td>
+                    <input id="ProvinceName" type="hidden" name="ProvinceName" value="@(null != Model ? Model.ProvinceName : string.Empty)" />
+                    @Html.DropDownListFor(m => m.ProvinceCode, ViewBag.Provicnce as SelectList, "选择省", new { id = "ProvinceCode", name = "ProvinceCode" })
+                    <label for="CityCode">所在城市：</label>
+                    <input id="CityName" type="hidden" name="CityName" value="@(null != Model ? Model.CityName : string.Empty)" />
+                    <select id="CityCode" name="CityCode" data-options="required:true,editable: false,validType:'length[2,150]'" style="width:129px;">
+                        <option value="@(null != Model.CityCode ? Model.CityCode : string.Empty)" selected="selected">@(null != Model.CityCode ? Model.CityCode : string.Empty)</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="OpenBank">开户行网点名称：</label></td>
+
+                @* <td><input id="OpenBankName" name="OpenBankName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:325,validType:'length[2,150]'" value="@(null != Model ? Model.OpenBankName : string.Empty)" /></td>*@
+                <td>
+                    <input id="OpenBankName" type="hidden" name="OpenBankName" value="@(null != Model ? Model.OpenBankName : string.Empty)" />
+
+                    <select id="OpenBank" data-options="required:true,validType:'length[2,150]'" style="width:325px;">
+                        <option value="@(null != Model.OpenBankCode ? Model.OpenBankCode : string.Empty)" selected="selected">@(null != Model.OpenBankCode ? Model.OpenBankCode : string.Empty)</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td><label class="required">*</label><label for="OpenBankCode">开户行网点编号：</label></td>
+                <td><input id="OpenBankCode" name="OpenBankCode" readonly="readonly" class="easyui-validatebox easyui-textbox" data-options="required:true,width:325,validType:'length[2,150]'" value="@(null != Model ? Model.OpenBankCode : string.Empty)" /></td>
+            </tr>
+
+            <tr>
+                <td><label for="Remark">备注：</label></td>
+                <td><input id="Remark" name="Remark" class="easyui-validatebox easyui-textbox" data-options="required:false,width:325,validType:'length[2,150]'" value="@(null != Model ? Model.Remark : string.Empty)" /></td>
+            </tr>
+            @if (Model.BankState == BankAccountState.UnAuthenticated)
+            {
+                <tr>
+                    <td><label for="IsUnVerify">不验证银行卡：</label></td>
+                    <td><input id="IsUnVerify" name="IsUnVerify" type="checkbox" value="@Model.IsUnVerify" /></td>
+                </tr>
+            }
+
+
+        </tbody>
+    </table>
+</form>
+<script type="text/javascript">
+    var city = '@Model.CityCode';
+    var openBankCode = '@Model.OpenBankCode';
+    var bankId = '@Model.BankId';
+    var id = '@Model.Id';
+    var getTypeUrl = '@Url.Action(ActionName.BankAccount.GetBankAccountType, ControllerName.BankAccount)';
+    var getCardTypeUrl = '@Url.Action(ActionName.BankAccount.GetCardType, ControllerName.BankAccount)';
+
+    $(function () {
+        if ('@isCanEdit' === 'False') {
+            $("#AccountNum").attr("readonly", "readonly");
+            $("#BankId").attr("readonly", "readonly");
+        }
+
+        $('#AccountName').textbox({ required: true });
+        $('#ProvinceCode').combobox({
+            required: true, width: 129, validType: 'length[2,150]', editable: false, onChange: function (newValue, oldValue) {
+                var text = $("#ProvinceCode").combobox('getText');;
+                $("#ProvinceName").val(text);
+                if (newValue) {
+                    $("#CityCode").combobox({
+                        required: true,
+                        url: "/Payment/GetCityList?provinceCode=" + newValue,
+                        valueField: 'Value',
+                        textField: 'Text',
+                    }).combobox('clear');
+                } else {
+                    $("#CityCode").combobox('clear');
+                    $("#CityCode").combobox('loadData', []);
+                }
+            }
+        });
+
+        $('#BankId').combobox({
+            onChange: function () {
+                var text = $("#BankId").combobox('getText');
+                $("#BankName").val(text);
+                var value = $("#CityCode").combobox('getValue');
+                var bankCodeValue = $("#BankId").combobox('getValue');
+                $('#OpenBank').combobox({
+                    url: "/Payment/GetPayBankList?cityCode=" + value + "&bankCode=" + bankCodeValue,
+                    valueField: 'Value',
+                    textField: 'Text'
+                });
+            }
+        });
+
+        $("#BankId").combobox({
+            url: "/Payment/GetBankList",
+            valueField: 'UBankId',
+            textField: 'BankName',
+        });
+
+        if (city) {
+            $("#CityCode").combobox({
+                url: "/Payment/GetCityList?provinceCode=" + $('#ProvinceCode').val() ,
+                valueField: 'Value',
+                textField: 'Text',
+                onChange: function() {
+                    var text = $("#CityCode").combobox('getText');
+                    $("#CityName").val(text);
+                    var value = $("#CityCode").combobox('getValue');
+                    var bankCodeValue = $("#BankId").combobox('getValue');
+                    $('#OpenBank').combobox({
+                        url: "/Payment/GetPayBankList?cityCode=" + value + "&bankCode=" + bankCodeValue,
+                        valueField: 'Value',
+                        textField: 'Text',
+                    });
+
+                }
+            });
+        } else {
+            $("#CityCode").combobox({
+                onChange: function () {
+                    var text = $("#CityCode").combobox('getText');
+                    var value = $("#CityCode").combobox('getValue');
+                    var bankCodeValue = $("#BankId").combobox('getValue');
+                    $("#CityName").val(text);
+                    $('#OpenBank').combobox({
+                        url: "/Payment/GetPayBankList?cityCode=" + value + "&bankCode=" + bankCodeValue,
+                        valueField: 'Value',
+                        textField: 'Text',
+                    });
+                }
+            });
+        }
+
+        if (openBankCode) {
+            $("#OpenBank").combobox({
+                url: "/Payment/GetPayBankList?cityCode=" + city + "&bankCode=" + bankId,
+                valueField: 'Value',
+                textField: 'Text',
+                onChange: function () {
+                    var text = $("#OpenBank").combobox('getText');
+                    $("#OpenBankName").val(text);
+                    $("#OpenBankCode").val($("#OpenBank").combobox('getValue'));
+                }
+            });
+        }
+        else {
+            $("#OpenBank").combobox({
+                onChange: function () {
+                    var text = $("#OpenBank").combobox('getText');
+                    $("#OpenBankName").val(text);
+                    $("#OpenBankCode").val($("#OpenBank").combobox('getValue'));
+                }
+            });
+        }
+
+    });
+
+</script>

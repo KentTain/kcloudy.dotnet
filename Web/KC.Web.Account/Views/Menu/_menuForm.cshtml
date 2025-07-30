@@ -1,0 +1,165 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Account.Constants
+@model KC.Service.DTO.Account.MenuNodeDTO
+
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform" action="@Url.Action(ActionName.Menu.SaveMenu, ControllerName.Menu)">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.ApplicationId)
+    @Html.HiddenFor(model => model.ApplicationName)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <style>
+        span.textbox.combo.textbox-readonly input.textbox-text.validatebox-text.validatebox-readonly.validatebox-f {
+            background-color: darkgrey;
+        }
+    </style>
+    <table class="dialog-form-table">
+        <tbody>
+            <tr id="tdTenantType" style="display: none;">
+                <td><label class="required"></label><label for="TenantType">系统类型：</label></td>
+                <td>
+                    <select id="TenantType" name="TenantType" class="easyui-combobox"
+                            data-options="width:260,editable: false, required:true,"
+                            asp-items="ViewBag.TenantTypeList" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="ParentId">父节点：</label></td>
+                <td>
+                    <input id="ParentId" name="ParentId" class="easyui-combotree"  
+                           data-options="required:true,width:260,"
+                           value="@(null != Model ? Model.ParentId : null)">
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Text">名称：</label></td>
+                <td><input id="Text" name="Text" class="easyui-validatebox easyui-textbox" 
+                           data-options="required:true,width:260,validType:['length[2,15]','isSpace',
+                           'existName[\'@Url.Action(ActionName.Menu.ExistMenuName, ControllerName.Menu)\',\'@Model.ParentId\',\'@Model.IsEditMode\',\'@Model.Text\',\'系统已存在菜单名称\']']"
+                           value="@(null != Model ? Model.Text : string.Empty)" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Version">版本类型(多选)：</label></td>
+                <td>
+                    <select id="Version" name="Version" class="easyui-combobox"
+                            data-options="width:260,editable: false, required:true,"
+                            asp-items="ViewBag.SystemVersionList" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required"></label><label for="AreaName">AreaName名称：</label></td>
+                <td><input id="AreaName" name="AreaName" class="easyui-validatebox easyui-textbox" 
+                           data-options="width:260,validType:'length[3,64]'" 
+                           value="@(null != Model ? Model.AreaName : string.Empty)" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="ControllerName">Controller名称：</label></td>
+                <td><input id="ControllerName" name="ControllerName" class="easyui-validatebox easyui-textbox" 
+                           data-options="required:true,width:260,validType:'length[3,64]'" 
+                           value="@(null != Model ? Model.ControllerName : string.Empty)" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="ActionName">Action名称：</label></td>
+                <td><input id="ActionName" name="ActionName" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:260,validType:'length[3,64]'"
+                           value="@(null != Model ? Model.ActionName : string.Empty)" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="SmallIcon">小图标:</label></td>
+                <td>
+                    <input id="SmallIcon" name="SmallIcon" class="easyui-textbox easyui-textbox"
+                           data-options="required:true,width:260,height:26" 
+                           value="@(null == Model ? "" : Model.SmallIcon)">
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Index">排序:</label></td>
+                <td><input id="Index" name="Index" class="easyui-numberspinner easyui-textbox" 
+                           data-options="required:true,width:260,height:26,min:1,max:100" 
+                           value="@(null != Model ? Model.Index : 0)"></td>
+            </tr>
+            <tr>
+                <td><label for="Description">描述:</label></td>
+                <td>
+                    <input class="easyui-textbox" id="Description" name="Description" 
+                           data-options="multiline:true,width:250,height:60" 
+                           value="@(null != Model ? Model.Description : "")" >
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+<script>
+    $(function () {
+        $('.textbox').bind('blur', function () {
+            $(this).validatebox('enableValidation').validatebox('validate');
+        });
+
+        $('#ParentId').combotree({
+            url: '@Url.Action(ActionName.Menu.LoadMenuTree, ControllerName.Menu)',
+            queryParams: {
+                excludeId: "@Model.Id",
+                selectedId: "@Model.ParentId",
+                hasAll: false,
+                hasRoot: true,
+                maxLevel: 2
+            },
+            required: true,
+            editable: false,
+            valueField: 'id',
+            textField: 'text',
+            cache: false,
+            onLoadSuccess: function (node, data) {
+                $('#ParentId').combotree('tree').tree('expandAll');
+                let categoryId = '@(Model != null ? Model.ParentId : 0)';
+                if (categoryId != "0") {
+                    $('#ParentId').combotree('setValues', categoryId);
+                } else if (data != null && data.length > 0) {
+                    //默认选中第一个
+                    $('#ParentId').combotree('setValue', { id: data[0].id, text: data[0].text });
+                }
+            }
+        });
+
+        $('#Version').combobox({
+            required: true,
+            multiple: true,
+            formatter: function (row) {
+                var opts = $(this).combobox('options');
+                return '<input type="checkbox" class="combobox-checkbox">' + row[opts.textField];
+            },
+            onLoadSuccess: function (node, data) {
+                $(this).combobox('setValues', [@ViewBag.SelectedVersionIds]);
+
+                var opts = $(this).combobox('options');
+                var target = this;
+                var values = $(target).combobox('getValues');
+                $.map(values, function (value) {
+                    var el = opts.finder.getEl(target, value);
+                    el.find('input.combobox-checkbox')._propAttr('checked', true);
+                });
+            },
+            onSelect: function (row) {
+                console.log(row)
+                var opts = $(this).combobox('options');
+                var el = opts.finder.getEl(this, row[opts.valueField]);
+                el.find('input.combobox-checkbox')._propAttr('checked', true);
+            },
+            onUnselect: function (row) {
+                var opts = $(this).combobox('options');
+                var el = opts.finder.getEl(this, row[opts.valueField]);
+                el.find('input.combobox-checkbox')._propAttr('checked', false);
+            }
+        });
+
+        $("#TenantType").combobox('setValue', @ViewBag.SelectedTenantType);
+    });
+
+</script>

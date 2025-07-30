@@ -1,0 +1,41 @@
+﻿@using KC.Enums.Pay;
+@{
+
+    ViewBag.Title = "账户信息";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+<table class="dialog-form-table moneytable">
+    <tbody>
+
+        <tr class="charge-money-tr">
+            <td width="34%" style="text-align: left;"><label>账号：</label></td>
+            <td>
+                <label>@Model.BankEId</label>
+            </td>
+        </tr>
+        @*@if (Model.PaymentType == ThirdPartyType.CPCNConfigSign)
+        {
+            <tr class="charge-money-tr">
+                <td width="34%" style="text-align: left;"><label>开户行：</label></td>
+                <td>
+                    <label>@Model.OpenBankName</label>
+                </td>
+            </tr>
+        }*@
+
+
+        @if (Model.PaymentType == ThirdPartyType.CPCNConfigSign)
+        {
+            <tr class="charge-money-tr">
+                <td colspan="2"><label>此账户由第三方<a class="c_1B7CF8" href="http://www.cpcn.com.cn/about_us.html" target="_blank">中金支付</a>提供</label></td>
+            </tr>
+        }
+        else if (Model.PaymentType == ThirdPartyType.BoHaiConfigSign)
+        {
+            <tr class="charge-money-tr">
+                <td colspan="2"><label> 此账户由 <a class="c_1B7CF8" href="http://www.cbhb.com.cn/" target="_blank">渤海银行云账本</a> 提供</label></td>
+            </tr>
+        }
+    </tbody>
+</table>

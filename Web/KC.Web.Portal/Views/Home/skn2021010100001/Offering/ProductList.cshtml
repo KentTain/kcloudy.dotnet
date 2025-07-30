@@ -1,0 +1,117 @@
+﻿@using KC.Web.Portal.Constants
+@using KC.Framework.Extension
+@using Microsoft.AspNetCore.Authorization
+@*@inject Tenant tenant*@
+@{
+    ViewBag.Title = "鑫亚科技平台-商品信息";
+    Layout = "../_HomeLayout.cshtml";
+    /*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*/
+}
+@section styles{
+    <style>
+.main .content{padding:20px 0}
+.main .product:nth-child(even){background-color:rgba(230,230,230,.1)}
+.main .content .content-img img{max-width:100%;text-align:center;border:1px solid #e8e8e8}
+.main .content .label{color:#666;font-size:24px;margin-bottom:10px}
+.main .content .detail{font-size:18px;color:#9d9d9d;margin:0 0 10px 0;max-height:100px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.main .content .price{font-size:20px;color:#666;margin:20px 0 10px 0}
+.main .content .price span{color:red}
+.main .content a{color:#fff;background-color:#2277DD;padding:10px 25px;margin:0;font-size:16px;letter-spacing:3px;line-height:38px;border:1px solid #2277DD;border-radius:3px;cursor:pointer}
+       
+    </style>
+}
+@section Scripts {
+
+    <script>
+        let pageIndex = 1;
+        let pageSize = 10;
+        let total = '@ViewBag.total';
+        let name = '@ViewBag.name';
+        $(function () {
+            handleData(pageIndex, pageSize); //刚进页面初始化表格
+            topage(total); //分页
+        })
+
+        const loadDataUrl = '@Url.Action(ActionName.Home.LoadProductData, ControllerName.Home)';
+        function handleData(pageIndex, pageSize) {
+            let cName = name != undefined || name != null ? name : '';
+            $.ajax({
+                async: false,
+                url: loadDataUrl + "?pageIndex=" + pageIndex + "&pageSize=" + pageSize + "&name=" + cName,
+                type: "GET",
+                dataType: "json",
+                contentType: "application/json;charset=UTF-8",
+                success: function (data) {
+                    if (data) {
+                        renderData(data.rows)
+                    }
+                }
+            })
+        }
+
+        function renderData(data) {                //渲染表格数据，获取datalist
+            let divProduct = "<div class='product' id='product-{0}'>" +
+                "<div class='layui-container'>" +
+                    "<div class='layui-row content'>" +
+                        "<div class='layui-col-xs12 layui-col-sm6 layui-col-md4 layui-col-lg4 content-img'>" +
+                            "<img src='{1}' width='289' height='212'>" +
+                        "</div>" +
+                        "<div class='layui-col-xs12 layui-col-sm6 layui-col-md8 layui-col-lg8 right'>" +
+                            "<p class='label'>{2}</p>" +
+                            "<p class='detail'>" +
+                                "{3}" +
+                            "</p>" +
+                            "<p class='price'>价格：<span>￥{4}</span></p>" +
+                            "<div>&nbsp;</div>" +
+                            "<div><a href='/Home/ProductDetail?id={5}'>查看详情 >&nbsp;</a></div>" +
+                        "</div>" +
+                    "</div>" +
+                "</div>" +
+                "</div>";
+            for (var i = 0; i < data.length; i++) {
+                //sdebugger;
+                let id = data[i].recommendId;
+                let name = data[i].recommendName;
+                let refId = data[i].recommendRefId;
+                let image = data[i].recommendImage != null && data[i].recommendImage != null ? data[i].recommendImage.showImageUrl : '/images/image_no.jpg';
+                let price = data[i].recommendPrice != null ? data[i].recommendPrice : '面议';
+                let detail = data[i].description;
+                let product = $.string.format(divProduct, id, image, name, detail, price, refId);
+
+                $('#divProductList').append(product);
+            }
+        }
+        //分页操作
+        function topage(total) {
+            layui.use('laypage', function () {
+                let laypage = layui.laypage;
+                //总页数大于页码总数
+                laypage.render({
+                    theme: '#FFB800',
+                    elem: 'divPager',
+                    //curr: pageIndex,
+                    limit: pageSize,
+                    count: total,     //数据总数，从服务端得到
+                    jump: function (obj, first) {
+                        //obj包含了当前分页的所有参数，比如：
+                        pageIndex = obj.curr
+                        pageSize = obj.limit;
+                        // console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                        // console.log(obj.limit); //得到每页显示的条数
+                        if (!first) {
+                            handleData(pageIndex, pageSize)
+                        }
+                    }
+                });
+            });
+        }
+
+    </script>
+}
+
+<!-- main部分 -->
+<div id="divProductList" class="main home main-content" layout:fragment="content">
+
+</div>
+<div id="divPager" style="text-align: center;margin-top:30px;"></div>
+

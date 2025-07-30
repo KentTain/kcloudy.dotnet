@@ -1,0 +1,41 @@
+﻿
+@using KC.Web.WeChat.Constants
+@model KC.Service.DTO.Config.ConfigAttributeDTO
+
+@{
+    Layout = null;
+}
+
+@using (Html.BeginForm(ActionName.ConfigManager.SaveConfigAttribute, ControllerName.ConfigManager, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+@Html.AntiForgeryToken()
+@Html.HiddenFor(model => model.ConfigId)
+@Html.HiddenFor(model => model.PropertyAttributeId)
+@Html.HiddenFor(model => model.IsDeleted)
+@Html.HiddenFor(model => model.CreatedBy)
+@Html.HiddenFor(model => model.CreatedDate)
+@Html.HiddenFor(model => model.ModifiedBy)
+@Html.HiddenFor(model => model.ModifiedDate)
+<table class="dialog-form-table">
+    <tbody>
+        <tr>
+            <td><label class="required">*</label><label for="DisplayName">显示名称：</label></td>
+            <td><input id="DisplayName" name="DisplayName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[1,50]'" value="@Model.DisplayName" /></td>
+        </tr>
+        <tr>
+            <td><label class="required">*</label><label for="Name">系统名：</label></td>
+            <td><input id="Name" name="Name" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[1,50]'" value="@Model.Name" /></td>
+        </tr>
+        <tr>
+            <td><label for="Value">值：</label></td>
+            <td><input id="Value" name="Value" class="easyui-validatebox easyui-textbox" data-options="required:false,width:200,validType:'length[0,200]'" value="@Model.Value" /></td>
+        </tr>
+        <tr>
+            <td><label for="Description">说明：</label></td>
+            <td><input id="Description" name="Description" class="easyui-validatebox easyui-textbox" data-options="width:200,validType:'length[0,500]'" value="@Model.Description" /></td>
+        </tr>
+    </tbody>
+</table>
+}
+
+

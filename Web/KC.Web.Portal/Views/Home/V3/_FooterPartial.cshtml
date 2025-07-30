@@ -1,0 +1,59 @@
+﻿<style>
+.footer{width:100%;background-color:rgba(230,230,230);color:#333;bottom:0;left:0}
+.footer .footer-web{padding-top:15px;padding-bottom:0}
+.footer .footer-web a:hover{color:#00aae5;transition:.3s}
+.footer dl dt strong{margin-left:5px;font-family:'Noto Sans SC'}
+.footer dl dd{font-family:'Noto Sans SC'}
+.footer dl{text-align:center}
+.fixed-bottom{position:fixed;bottom:0;width:100%}
+.fixed-body-bottom{padding-bottom:110px}
+</style>
+
+<!-- footer部分 -->
+<footer class="footer">
+    <div class="layui-container" style="height:60px;">
+        <div class="layui-row footer-web">
+            <!--<div class="layui-col-sm3">
+        <img src="/images/logo-noname.png" style="height:40px;">
+        <img src="~/images/home/logo-name.png" style="height:40px;" />-->
+            @*<span style="font-family:Noto Sans SC;font-size:36px;font-weight:400;vertical-align:middle;text-align:center;">众筑云联</span>*@
+            <!--</div>-->
+            <div class="layui-col-sm3">
+                <dl>
+                    <dd class="text-center"><a href="/Home/Introduction?showCarousel=1&type=1">操作流程V2</a></dd>
+                    <dd><a href="/Home/Feedback">问题反馈</a></dd>
+                </dl>
+            </div>
+            <div class="layui-col-sm3">
+                <dl>
+                    <dd><a href="/Home/CompanyProfile">公司介绍</a></dd>
+                    <dd><a href="/Home/Member?showCarousel=1&type=3">联系我们</a></dd>
+                </dl>
+
+            </div>
+            <div class="layui-col-sm3">
+                <dl>
+                    <dd><a href="/Home/ArticleList">新闻动态</a></dd>
+                    <dd><a href="/Home/LegalNotices">法律声明</a></dd>
+                </dl>
+                
+            </div>
+            <div class="layui-col-sm-3">
+                <p style="text-align:center" >
+                    <a id="qcode" title="点击放大"  href="javascript:void(0)"><img src="~/images/qcode.png" style="width: 40px; transform: scale(1.25,1.25);" /></a>
+                    <img id="t" src="~/images/qcode.png" style="display:none" />
+                </p>
+            </div>
+          
+        </div>
+    </div>
+    <div class="layui-row footer-address" style="text-align:center;margin:10px 0 0 0;padding:10px;background-color:#00aae5;height:20px;">
+        <div class="layui-col-sm12">
+            <span>
+                <a href="https://beian.miit.gov.cn/" target="_blank"><span style="font-size: 14px;color:#fff;">©&nbsp;2020&nbsp; 鑫亚（深圳）企业管理咨询有限公司&nbsp;版权所有&nbsp;| 粤ICP备2021043258号</span></a>
+            </span>
+        </div>
+    </div>
+</footer>
+
+

@@ -1,0 +1,35 @@
+﻿@using KC.Web.Pay.Constants
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Type = 1;
+    ViewBag.Min = 100;
+    
+}
+
+<div class="panel panel-default  panel-boot">
+    <div class="panel-heading">
+        <h3 class="panel-title">请选择充值方式</h3>
+    </div>
+    <div class="panel-body">
+        @Html.PartialAsync("_CashPayment")
+    </div>
+</div>
+
+@section scripts
+{
+    <script src="~/js/layer/layer.js"></script>
+    <script>
+        payment.goodsName = '充值';
+        var chargeFlowUrl = '@Url.Action(ActionName.OnlinePayment.ChargeFlow, ControllerName.OnlinePayment)';
+        function jumpChargeFlow() {
+            //if (parent.window.mainpage) {
+            //    parent.window.mainpage.mainTabs.setTitle('充值', '充值流水');
+            //    location.href = chargeFlowUrl;
+            //} else {
+            //    window.open(chargeFlowUrl);
+            //}
+            window.location.href = chargeFlowUrl;
+        }
+    </script>
+}

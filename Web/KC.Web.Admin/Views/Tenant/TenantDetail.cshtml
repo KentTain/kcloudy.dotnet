@@ -1,0 +1,487 @@
+﻿@using KC.Enums.App
+@using KC.Framework.Extension
+@using KC.Framework.Tenant
+@using KC.Framework.Base;
+@using KC.Web.Admin.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.DTO.Admin.TenantUserDTO
+@{
+    ViewBag.Title = "租户信息";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var canSetNickName = string.IsNullOrWhiteSpace(Model.NickName) || !Model.NickNameLastModifyDate.HasValue || Model.NickNameLastModifyDate.Value.AddDays(15) <= DateTime.UtcNow;
+    var timeMessage = Model.NickNameLastModifyDate.HasValue ? "，上次设置时间：" + Model.NickNameLastModifyDate.Value.ToLocalDateTimeStr("yyyy-MM-dd HH:mm") + "，下次可修改时间:" + Model.NickNameLastModifyDate.Value.AddDays(15).ToLocalDateTimeStr("yyyy-MM-dd HH:mm") + "." : ".";
+
+    @*租户管理-修改租户邮箱或手机*@
+    var editPhonenumberEmail = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "43377989-D92F-4166-BF5E-0894BB3D6315")).Succeeded)
+    {
+        editPhonenumberEmail = true;
+    }
+    @*租户管理-设置租户别名*@
+    var setNickNameurl = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "租户管理-设置租户别名")).Succeeded)
+    {
+        setNickNameurl = true;
+    }
+
+    var accAddress = GlobalConfig.GetTenantWebDomain(GlobalConfig.AccWebDomain, Model.TenantName) + "connect/token";;
+    var nickAddress = GlobalConfig.GetTenantWebDomain(GlobalConfig.AccWebDomain, Model.NickName);
+    var oauthAddress = GlobalConfig.SSOWebDomain;
+    var oauthKey = TenantConstant.GetClientIdByTenantName(Model.TenantName);
+    var oauthSecret = TenantConstant.GetClientSecretByTenantNameAndKey(Model.TenantName, Model.PrivateEncryptKey);
+}
+<style>
+    body {
+        background: #fff;
+        overflow: auto
+    }
+
+    span {
+        word-break: normal;
+        width: auto;
+        display: block;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow: hidden;
+    }
+
+        span.state {
+            color: #f00
+        }
+
+    table {
+        border-collapse: collapse;
+    }
+
+        table td {
+            border: 1px solid #ddd;
+            line-height: 40px;
+            padding-left: 5px
+        }
+
+        table tr td:first-child {
+            width: 150px;
+            text-align: right
+        }
+
+    #tenantUserDetailTab ul li {
+        list-style: none
+    }
+
+        #tenantUserDetailTab ul li > span:first-child {
+            width: 115px;
+            display: inline-block;
+            text-align: right
+        }
+
+    .dns_li {
+        padding-left: 120px
+    }
+
+        .dns_li span {
+            display: inline !important;
+        }
+
+        .dns_li .comma_span + .comma_span {
+            display: none !important;
+        }
+
+        .dns_li .comma_span:last-child {
+            display: none !important;
+        }
+
+    .domain_span {
+        color: red
+    }
+</style>
+<div id="tenantUserDetailTab">
+    <div title="租户基本信息" style="padding: 5px; height: auto">
+        <table class="table table-bordered table-form  tr-col3">
+            <tr>
+                <td>租户代码：</td>
+                <td>@Model.TenantName</td>
+                <td>公司名称：</td>
+                <td>@Model.TenantDisplayName</td>
+            </tr>
+            <tr>
+                <td>联系人：</td>
+                <td>@Model.ContactName</td>
+                <td>联系人手机号：</td>
+                <td>
+                    <label id="tenantUserContactPhone">@(Model.ContactPhone)</label>
+                    @*@if (editPhonenumberEmail)
+                {
+                    <a class="easyui-linkbutton" data-options="iconCls:'icon-edit'" onclick="opentForm('Phone')">修改手机号</a>
+                }*@
+                </td>
+            </tr>
+            <tr>
+                <td>联系人邮箱：</td>
+                <td>
+                    <label id="tenantUserContactEmail">@(Model.ContactEmail)</label>
+                    @*@if (editPhonenumberEmail)
+                {
+                    <a class="easyui-linkbutton" data-options="iconCls:'icon-edit'" onclick="opentForm('Email')">修改邮箱</a>
+                }*@
+                </td>
+                <td>后台管理系统地址：</td>
+                <td>
+                    <a href="@(accAddress)" target="_blank">@(accAddress)</a>
+                    @if (!string.IsNullOrWhiteSpace(Model.NickName))
+                    {
+                        <a href="@(nickAddress)" target="_blank" style="margin-left: 10px">@(nickAddress)</a>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td>加密密钥：</td>
+                <td colspan="3"><span>@Model.PrivateEncryptKey</span></td>
+            </tr>
+            <tr>
+                <td>WebApi的OAuth安全认证地址：</td>
+                <td colspan="3"><span style="width:660px;">@oauthAddress</span></td>
+            </tr>
+            <tr>
+                <td>WebApi的OAuth安全认证Key：</td>
+                <td colspan="3"><span style="width:660px;">@oauthKey</span></td>
+            </tr>
+            <tr>
+                <td>WebApi的OAuth安全Secret：</td>
+                <td colspan="3"><span style="width:660px;">@oauthSecret</span></td>
+            </tr>
+            <tr>
+                <td>自定义域名前缀：</td>
+                <td colspan="3">
+                    <input id="NickName" class="easyui-validatebox easyui-textbox" data-options="width:220,height:26,validType: ['maxLength[40]','NickName','NotUrName','WWW']@(!canSetNickName?",disabled:true":"")" value="@Model.NickName" />
+                    @if (setNickNameurl)
+                    {
+                        <a class="easyui-linkbutton" data-options="width:80,iconCls:'fa fa-edit'" onclick="setNickName()">设置</a>
+                        <br />
+                    }
+                    <span class="state">1.15天可设置一次，设置成功后30分钟内生效，旧自定义域名前缀将不可用，如有员工正使用旧自定义域名前缀访问页面，设置成功后可能导致页面加载失败和操作失败，请使用新的自定义域名前缀访问页面和操作@(timeMessage)</span>
+                    <span class="state">2.用途，自定义域名前缀值假如为:test，电商系统(@(GlobalConfig.PortalWebDomain.Replace(TenantConstant.SubDomain, "test") + "，" + GlobalConfig.PortalWebDomain.Replace(TenantConstant.SubDomain, Model.TenantName)))都可访问，其他系统也可以用自定义域名前缀访问,域名不区分大小写.</span>
+
+                </td>
+            </tr>
+
+        </table>
+    </div>
+    <div title="租户数据存储信息" style="padding: 5px; height: auto">
+        <table class="table table-bordered table-form  tr-col3">
+            <tr><td>数据库服务器：</td><td>@Model.Server</td><td>数据库实例：</td><td>@Model.Database</td></tr>
+            <tr><td>数据库密码：</td><td colspan="3">@ViewBag.DatabasePassword</td></tr>
+            <tr><td>存储服务器：</td><td>@Model.StorageEndpoint</td><td>存储服务器Key：</td><td>@Model.StorageAccessName</td></tr>
+            <tr><td>存储服务器SecuryKey：</td><td colspan="3">@ViewBag.StorageDeString</td></tr>
+            <tr><td>Vod服务器：</td><td>@Model.VodEndpoint</td><td>Vod服务器Key：</td><td>@Model.VodAccessName</td></tr>
+            <tr><td>Vod服务器SecuryKey：</td><td colspan="3">@ViewBag.VodDeString</td></tr>
+            <tr><td>代码仓库服务器：</td><td>@Model.CodeEndpoint</td><td>代码仓库服务器Key：</td><td>@Model.CodeAccessName</td></tr>
+            <tr><td>代码仓库服务器SecuryKey：</td><td colspan="3">@ViewBag.CodeDeString</td></tr>
+        </table>
+    </div>
+</div>
+@section scripts{
+    <script>
+
+        var editPhonenumberEmail = '@editPhonenumberEmail' === 'True';
+        var setNickNameurl = '@setNickNameurl' === 'True';
+        $.extend($.fn.validatebox.defaults.rules, {
+            NickName: {
+                validator: function(value) {
+                    var reg = /^[a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,38}[a-zA-Z0-9]{1}$/;
+                    return reg.test(value) || /^[a-zA-Z0-9]{1}$/.test(value);
+                },
+                message: '自定义域名前缀(可以为数字,英文字符和"-",首尾不能有"-")'
+            },
+            NotUrName: {
+                validator: function(value) {
+                    var reg = /^UR[0-9]{1,38}$/;
+                    return !reg.test(value);
+                },
+                message: '自定义域名前缀格式不能为UR开头,后面全为数字'
+            },
+            WWW: {
+                validator: function(value) {
+                    var reg = /^[wW]{3}$/;
+                    return !reg.test(value);
+                },
+                message: '自定义域名前缀值不能为www'
+            },
+            IsDomain: {
+                validator: function (value) {
+
+                    $(".dns_li").hide();
+                    var reg = /^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$/;
+                    var valid = reg.test(value);
+                    if (!valid) {
+                        $.fn.validatebox.defaults.rules.IsDomain.message = '主域名格式不正确';
+                        $(".SubOwnDomainName").textbox({ disabled: true, prompt: '请先输入正确的主域名' });
+                        $(".dns_li").hide();
+                        return false;
+                    }
+                    var dot = value.split(".").length - 1;
+                    if (dot > 3) {
+                        $.fn.validatebox.defaults.rules.IsDomain.message = '主域名需小于三级域名';
+                        $(".SubOwnDomainName").textbox({ disabled: true, prompt: '请先输入正确的主域名' });
+                        $(".dns_li").hide();
+                        return false;
+                    }
+                    initDnsLi(value);
+                    $(".SubOwnDomainName").textbox({ disabled: false, prompt: '' });
+                    return true;
+                }
+            },
+            SubOwnDomainName: {
+                validator: function (value) {
+                    debugger;
+                    //$("#OwnDomainName").textbox('getValue')不要用，因为OwnDomainName没有失去焦点的话，还是取得旧值
+                    var ownDomain = $.trim($($("#OwnDomainName+span input")[0]).val());
+                    var endStr = "." + ownDomain;
+                    var d = value.length - endStr.length;
+                    var valid = (d > 0 && value.lastIndexOf(endStr) == d);
+                    if (!valid) {
+                        $.fn.validatebox.defaults.rules.SubOwnDomainName.message = '域名格式不正确，需以主域名结尾'
+                        initSubdomainDnsLi(this, value, false)
+                        return false;
+                    }
+                    var dot = value.split(".").length - 1;
+                    if (dot > 4) {
+                        $.fn.validatebox.defaults.rules.SubOwnDomainName.message = '域名格式不正确，不能超过四级域名';;
+                        initSubdomainDnsLi(this, value, false)
+                        return false;
+                    }
+                    var equal = false;;
+                    var item = this;
+                    $(".SubOwnDomainName").each(function () {
+                        if (item != $(this).textbox('textbox')[0]) {
+                            var subValue = $(this).textbox('getValue');
+                            if ($.trim(subValue) == $.trim(value)) {
+                                equal = true;
+                                $.fn.validatebox.defaults.rules.SubOwnDomainName.message = "子域名重复";
+                                initSubdomainDnsLi(this, value, false)
+                                return false;
+                            }
+                        }
+                    });
+                    initSubdomainDnsLi(this, value, true)
+                    return !equal
+                }
+            }
+        });
+        var canSetNickName = '@canSetNickName';
+        var oldNickName = '';
+        var oldOwnDomainName = '@Model.OwnDomainName';
+        $(function () {
+            $('#OwnDomainName').textbox({
+                width: 220,
+                height: 26,
+                validType: ['maxLength[40]', 'IsDomain'],
+                onChange: function (newValue, oldValue) {
+                    if ($.trim(newValue) == '') {
+                        $(".dns_li").hide();
+                        $(".SubOwnDomainName").textbox({ disabled: true, prompt: '请先输入正确的主域名' });
+                    }
+                }
+            });
+            $(".SubOwnDomainName").each(function () {
+                var appId = $(this).data("appid");
+                $(this).textbox({
+                    appId: appId, width: 220, height: 26, validType: ['maxLength[40]', 'SubOwnDomainName']
+                });
+            });
+            oldNickName = $("#NickName").textbox('getValue');
+            if ('@Model.OwnDomainName' == '') {
+                $(".SubOwnDomainName").textbox({ disabled: true, prompt: '请先输入正确的主域名' });
+            } else {
+                oldOwnDomainNme = '@Model.OwnDomainName';
+            }
+        });
+        var appIds = '@(string.Join(",", Model.Applications.Select(m => m.ApplicationId.ToString())))'.split(",");
+        var appPreFix = '@(string.Join(",", Model.Applications.Select(m => m.DomainName)))'.split(",");
+        function initDnsLi(domain) {
+            if ($.trim(domain) == '') {
+                $(".dns_li").hide();
+                return;
+            }
+            $(".dns_li").show();
+            for (var i = 0; i < appIds.length; i++) {
+                $("." + appIds[i] + "_span").text(appPreFix[i] + "." + domain)
+            }
+            $(".SubOwnDomainName").each(function () {
+                var isValid = $(this).textbox('isValid');
+
+                if (isValid) {
+                    var subAppId = $(this).textbox('options').appId;
+                    var domainName = $.trim($(this).textbox('getValue'));
+                    if (domainName != '')
+                        $("." + subAppId + "_span").text(domainName)
+                }
+            });
+        }
+        function initSubdomainDnsLi(textinput,value, valid) {
+            $(".SubOwnDomainName").each(function () {
+                if (textinput == $(this).textbox('textbox')[0]) {
+                    var subAppId = $(this).textbox('options').appId;
+                    if (valid) {
+                        $("." + subAppId + "_span").text(value);
+                    } else {
+                        for (var i = 0; i < appIds.length; i++) {
+                            if (appIds[i] == subAppId) {
+                                var ownDomain = $.trim($($("#OwnDomainName+span input")[0]).val());
+                                $("." + subAppId + "_span").text(appPreFix[i] + "." + ownDomain);
+                                return false;
+                            }
+                        }
+                    }
+                    return false;
+                }
+            });
+        }
+        function setNickName() {
+            if (canSetNickName != 'True') {
+                $.messager.showErrorTopCenter('系统提示', '距离上一次设置小于15天,不可设置.');
+                return;
+            }
+            if (!$("#NickName").textbox('isValid'))
+                return;
+            var nickName = $("#NickName").textbox('getValue');
+            if (nickName.length == 0)
+                return;
+            if (nickName.toLocaleLowerCase() == oldNickName.toLocaleLowerCase()) {
+                $.messager.showErrorTopCenter('系统提示', '自定义域名前缀未发生改变,请重新输入新的值.');
+                return;
+            }
+            $.messager.confirm('系统提示', '确认设置自定义域名前缀为<span style="color:#f00">' + nickName + '</span>,设置成功15天后可重新设置?', function (flag) {
+                if (flag) {
+                    $.easyui.loading({ msg: '设置中,请稍等......' });
+                    $.post('/Account/SetNickName', { nickName: nickName }, function (result) {
+                        $.easyui.loaded();
+                        if (result.success) {
+                            if (!result.Result) {
+                                $.messager.showErrorTopCenter('系统提示', '设置失败,请稍后重试.');
+                            } else {
+                                canSetNickName = false;
+                                $("#NickName").textbox({ disabled: true });
+                                $.messager.showInfoTopCenter('系统提示', '设置成功,30分钟内生效.');
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('系统提示', result.message, 3000);
+                        }
+                    });
+                }
+            });
+        }
+
+        function SaveOwnDomainName() {
+            var ownDomainName = $.trim($("#OwnDomainName").textbox('getValue'));
+            if (ownDomainName == ''&&oldOwnDomainName=='') {
+                $.messager.showErrorTopCenter('系统提示', '请输入主域名');
+                return;
+            }
+            var subApplicationId = [];
+            var subOwnDomainName = [];
+            if (ownDomainName != '') {
+                if (!$("#OwnDomainName").textbox('isValid')) {
+                    $($("#OwnDomainName").textbox('textbox')).focus();
+                    return;
+                }
+
+                var subValid = true;
+                $(".SubOwnDomainName").each(function () {
+                    if (!$(this).textbox('isValid')) {
+                        $($(this).textbox('textbox')).focus();
+                        subValid = false;
+                        return false;
+                    }
+                });
+                if (!subValid)
+                    return;
+                $(".SubOwnDomainName").each(function () {
+                    var subValue = $.trim($(this).textbox('getValue'));
+                    if (subValue != '') {
+                        subOwnDomainName.push(subValue);
+                        subApplicationId.push($(this).textbox('options').appId);
+                    }
+                });
+            }
+            $.easyui.loading();
+            $.post("/Account/SetOwnDomainName", { ownDomainName: ownDomainName, appId: subApplicationId, subDomain: subOwnDomainName }, function (data) {
+                $.easyui.loaded();
+                if (data.success && data.result) {
+                    oldOwnDomainName = ownDomainName;
+                    $.messager.showInfoTopCenter('系统提示', '独立域名设置成功.');
+                } else {
+                    $.messager.showErrorTopCenter('系统提示', data.message);
+                }
+            });
+        }
+    </script>
+    <script>
+        var getFormUrl = "@Url.Action(ActionName.Tenant.ModifyPhoneAndEmailForm, ControllerName.Tenant)";
+        var modifyPhoneUrl = "@Url.Action(ActionName.Tenant.ModifyTenantUserContactPhone, ControllerName.Tenant)";
+        var modifyEmailUrl = "@Url.Action(ActionName.Tenant.ModifyTenantUserContactEmail, ControllerName.Tenant)";
+
+        function opentForm(modifyType) {
+            var saveUrl = modifyPhoneUrl;
+            var title = "修改联系人手机号";
+            if (modifyType === "Email") {
+                saveUrl = modifyEmailUrl;
+                title = "修改联系人邮箱";
+            }
+            var dialog = $.easyui.showDialog({
+                title: title,
+                width: 500,
+                height: 260,
+                href: getFormUrl + "?modifyType=" + modifyType,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    var postData = d.form("getData");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveUrl,
+                            data: postData,
+                            success: function(data) {
+                                if (data.success) {
+                                    $('#tenantUserContactEmail').html($('#email').val());
+                                    $('#tenantUserContactPhone').html($('#phone').val());
+                                    d.window('close');
+                                    if (data.result) {
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', data.message);
+                                    }
+                                } else {
+                                    $.messager.showInfoTopCenter('系统提示', data.message);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function() {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                },
+                onBeforeClose: function() {
+                    clearInterval(timer);
+                }
+            });
+        }
+
+    </script>
+}
+

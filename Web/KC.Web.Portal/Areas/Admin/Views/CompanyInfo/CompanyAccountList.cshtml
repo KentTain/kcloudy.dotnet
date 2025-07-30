@@ -1,0 +1,325 @@
+﻿@using KC.Framework.Tenant
+@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "企业银行账户";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--企业银行账户-保存企业银行账户-->
+    var canEdit = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "47D69147-7F33-4677-8038-34608CDC1516")).Succeeded)
+    {
+        canEdit = true;
+    }
+    <!--企业银行账户-删除企业银行账户-->
+    var canRemove = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "22B8D7F1-4B6E-4AF4-8F1A-743A6D079345")).Succeeded)
+    {
+        canRemove = true;
+    }
+}
+
+<div id="toolbar">
+    <div>
+        @*企业银行账户-保存企业银行账户*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "47D69147-7F33-4677-8038-34608CDC1516")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addCompanyAccount()">添加</a>
+        }
+    </div>
+    <div>
+        <span>
+            地址类型：
+            @Html.DropDownList("BankAccountType", (IEnumerable<SelectListItem>)ViewBag.BankAccountTypes, new { @id = "BankAccountType", @class = "easyui-combobox", @style = "width: 120px;height:26px;" })
+        </span>
+        <input id="txtBankName" class="easyui-textbox" data-options="prompt:'请输入开户行名称'" style="width:140px;height:26px;" />
+        <input id="txtBankAccount" class="easyui-textbox" data-options="prompt:'请输入银行账号'" style="width:140px;height:26px;" />
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid" title=""></table>
+
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+
+@section scripts {
+    <!--选人控件-->
+    <script>
+        const selectUserUrl = '@Url.Action(ActionName.GetOrgsWithUsersByRoleIdsAndOrgids, ControllerName.Home, new { Area = "admin" })';
+        const saveContactsUrl = '@Url.Action(ActionName.CompanyInfo.SaveCompanyContacts, ControllerName.CompanyInfo, new { Area = "admin" })';
+        let selectUserForm = function () {
+            let organization = new OrganizationVM();
+            organization.InitializeData({
+                selectUserUrl: selectUserUrl,
+                type: 4,                  //7(1+2+4): 组织+角色+用户
+                title: "选择现有人员",
+                orgIds: [],               //需要查询的组织Id列表
+                roleIds: [],              //需要查询的角色Id列表
+                exceptOrgIds: [],         //需要排除的部门Id列表
+                exceptRoleIds: [],        //需要排除的角色Id列表
+                selectOrgCodes: null,     //已选中的组织Id列表
+                selectOrgNames: null,     //已选中的组织名称列表
+                selectRoleIds: null,      //已选中的角色Id列表
+                selectRoleNames: null,    //已选中的角色名称列表
+                selectUserIds: null,      //已选中的人员Id列表
+                selectUserNames: null,    //已选中的人员名称列表
+                selectExceptUserIds: null,
+                selectExceptUserNames: null,
+                isSingleSelect: true,
+                referenceId: null,
+                callback: function (data) {
+                    if (data.users === 0)
+                        return;
+
+                    //debugger;
+                    let orgs = data.orgs;
+                    let roles = data.roles;
+                    let users = data.users;
+                    let exceptUsers = data.exceptUsers;
+                    let user = users[0];
+                    $("#ContactId").val(user.userId);
+                    $("#ContactName").textbox('setValue', user.displayName);
+                }
+            });
+        }
+    </script>
+    <!--选城市控件-->
+    <script>
+        function queryCitys(selectProvinceId, selectCityId) {
+            $("[name='ProvinceId']").validatebox({ required: true, missingMessage: "请选择省" });
+            $("[name='ProvinceId']").removeClass('validatebox-text');
+
+            $("#ProvinceId").combobox({
+                valueField: 'provinceId',
+                textField: 'name',
+                required: true,
+                editable: false,
+                onSelect: function (row) {
+                    //debugger;
+                    selectProvinceId = $.string.toInteger(row.provinceId);
+                    selectCityId = null;
+                    $("#CityId").val();
+                    $("#CityId").combobox('reload');
+                    $('#ProvinceName').val(row.name);
+                },
+                onLoadSuccess: function () { //默认选中第一条数据
+                    var data = $(this).combobox("getData");
+                    if (data.length > 0) {
+                        if (selectProvinceId) {
+                            $(this).combobox('select', selectProvinceId);
+                        } else {
+                            $(this).combobox('select', data[0].provinceId);
+                        }
+                    }
+                }
+            })
+
+            $("#CityId").combobox({
+                url: '/Admin/Home/LoadCityList',
+                valueField: 'id',
+                textField: 'name',
+                required: true,
+                editable: false,
+                loadFilter: function (data) {
+                    if (data.success && data.result) {
+                        if (selectProvinceId) {
+                            return data.result.filter(function (value, index, array) {
+                                return value.provinceId === selectProvinceId;
+                            });
+                        }
+                    }
+
+                    return [];
+                },
+                onSelect: function (row) {
+                    $('#CityName').val(row.name);
+                },
+                onLoadSuccess: function () { //默认选中第一条数据
+                    var data = $(this).combobox("getData");
+                    if (data.length > 0) {
+                        if (selectCityId) {
+                            $(this).combobox('select', selectCityId);
+                        } else {
+                            $(this).combobox('select', data[0].id);
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+    <!--列表-->
+    <script type="text/javascript">
+        const canEdit = ('@canEdit' === 'True');
+        const canRemove =  ('@canRemove' === 'True');
+        $(function() {
+            InitDataGrid();
+        });
+
+        const loadDataUrl = '@Url.Action(ActionName.CompanyInfo.LoadCompanyAccountList, ControllerName.CompanyInfo, new { Area = "admin" })';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [20, 30, 50, 100],
+                showFooter: false,
+                toolbar: "#toolbar",
+                //toolbar: [{ text: document.getElementById('toolbar') }],
+                columns: [[
+                    { field: 'id', title: 'Id', hidden: true, width: 20, align: 'left' },
+                    { field: 'bankTypeString', title: '账户类型', width: 80, align: 'left' },
+                    { field: 'displayName', title: '账户名', width: 160, align: 'left' },
+                    { field: 'bankName', title: '开户行', width: 160, align: 'left' },
+                    { field: 'bankNumber', title: '银行账号', width: 160, align: 'left' },
+                    {
+                        field: 'address', title: '开户行所在地', width: 260, align: 'left',
+                        formatter: function (value, row, index) {
+                            return row.provinceName + "  " + row.cityName + "  "+ row.bankAddress;
+                        }
+                    },
+                    {
+                        field: 'operator', title: '操作', width: 120, align: 'center',
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            //debugger;
+                            let tdContext = '';
+                            if (canEdit) {
+                                tdContext += '<a class="btnEdit" style="cursor:pointer" onclick="editCompanyAccount(\'' + id + '\')" >编辑</a>';
+                            }
+                            if (canRemove) {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer" onclick="removeCompanyAccount(\'' + id + '\')" >删除</a>';
+                            }
+
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function(param) {
+                    /*var bId = $("#txtBId").val();
+                var AllSearchKey = $("#txtAllSearchKey").val();
+                param.bId = bId;
+                param.AllSearchKey = AllSearchKey;*/
+                },
+                onLoadSuccess: function (data) {
+                    $dataGrid.datagrid('unselectAll');
+                    $dataGrid.datagrid('clearSelections');
+                    $dataGrid.datagrid("fixRowHeight");
+                    CommonUtil.buttonStyle();
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function (index,row) {
+                },
+                onExpandRow: function (index, row) {
+                }
+            });
+        }
+
+        const getFormUrl = '@Url.Action(ActionName.CompanyInfo.GetCompanyAccountForm, ControllerName.CompanyInfo, new { Area = "admin" })';
+        const saveFormUrl = '@Url.Action(ActionName.CompanyInfo.SaveCompanyAccountForm, ControllerName.CompanyInfo, new { Area = "admin" })';
+        function opentForm(id) {
+            var dialog = $.easyui.showDialog({
+                title: "保存数据",
+                width: 560,
+                height: 490,
+                href: getFormUrl + "?id=" + id,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#datagrid').datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                }
+            });
+        }
+
+        function refreshSearch() {
+            $("#BankAccountTypes").combobox("setValue", '');
+            $("#txtBankName").textbox('setValue', '');
+            $("#txtBankAccount").textbox('setValue', '');
+            reloadDatagrid('', '');
+        }
+        function reloadDatagrid() {
+            $('#datagrid').datagrid('unselectAll');
+            var type = $('#BankAccountTypes').combobox("getValue");
+            $("#datagrid").datagrid("load", {
+                name: $("#txtBankName").searchbox("getValue"),
+                bankNumber: $("#txtBankAccount").searchbox("getValue"),
+                type: type
+            });
+        }
+
+        function addCompanyAccount() {
+            opentForm(0);
+        }
+        function editCompanyAccount(id) {
+            opentForm(id);
+        }
+
+        const removeUrl = '@Url.Action(ActionName.CompanyInfo.RemoveCompanyAccount, ControllerName.CompanyInfo, new { Area = "admin" })';
+        function removeCompanyAccount() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('确认', '是否确定删除该条记录?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUrl, { id: row.CompanyAccountId }, function(data) {
+                            $.easyui.loaded();
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                }
+                            } else {
+                                $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        }, 'json');
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter('系统提示', '请选择需要删除的数据！', 2000);
+            }
+        }
+
+    </script>
+}
+

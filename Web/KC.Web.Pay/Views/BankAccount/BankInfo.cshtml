@@ -1,0 +1,419 @@
+﻿@using KC.Web.Pay.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "绑定银行账户";
+    Layout = "~/Views/Shared/_PaymentLayout.cshtml";
+
+    @*银行账户管理-更新密码：BankInfo*@
+    var canSet = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canSet = true;
+    }
+}
+
+
+<div id="toolbar" style="padding:5px;height:auto">
+    <a href="#" class="easyui-linkbutton @(canSet ? "" : "NoAuth")" iconcls="icon-add" plain="true" onclick="addDatabasePool()">新增</a>
+    <a href="#" class="easyui-linkbutton @(canSet ? "" : "NoAuth")" iconcls="icon-edit" plain="true" onclick="editDatabasePool()">编辑</a>
+    <a href="#" class="easyui-linkbutton @(canSet ? "" : "NoAuth")" iconcls="icon-remove" plain="true" onclick="removeDatabasePool()">删除</a>
+    <input id="searchName" class="easyui-textbox" style="width: 200px;" data-options="prompt:'请输入开户银行'">
+    <a href="#" onclick="searchMenu()" style="margin-left: 10px;" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'icon-search'">查询</a>
+
+</div>
+<table id="datagrid" height="600" data-options=" iconCls: 'icon-standard-text-list-bullets' "></table>
+<div style="height:auto">
+    <table>
+        <tr>
+            <td>
+                <p style="font-size: 13px;">注：1、只能绑定一个银行账户，请确认该账号是贵司的常用账户。</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p style="font-size: 13px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2、绑定新的银行账户前，需要先解绑当前绑定账户。</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p style="font-size: 13px;">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3、新增银行账户时，若无法查询出准确开户网点名称，可选择所属市分行。（例：若无法查询出“中国银行深圳中兴分行”，可直接选择“中国银行深圳分行。”）
+                </p>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="easyui-dialog" closed="true" id="dlg" title="认证金额" style="display: none;width:380px;height:200px;padding:10px;text-align: center" data-options="iconCls:'icon-edit'">
+    <table style="margin:10px auto;width: 100%">
+        <tr>
+            <td style="height: 30px;color:red" colspan="2"><p style="text-align:left;">我司已向贵司申请认证的银行账户中转入一笔随机金额的款项，请确认金额后将数字填入方框内。</p></td>
+        </tr>
+        <tr>
+            <td style="width:20%;text-align: right"><label class="required">*</label> <label>金额：</label></td>
+            <td style="height: 40px;line-height: 40px;width:80%;float:left">
+                <input id="amount" name="amount" class="easyui-numberbox" precision="2" style="width:100%" data-options="prompt:'请输入金额'" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20%;text-align: right"></td>
+            <td style="text-align: left;padding-left: 15px;">
+                <input type="submit" class="easyui-linkbutton c1" style="width: 80px;padding:6px 0;" id="btnAuthenthentication" value=" 提交认证" />
+                <input type="button" class="easyui-linkbutton c1" style="width: 80px;padding:6px 0;margin-left:5px;" id="btnNext" value=" 过会再填" />
+                <input id="accountId" hidden="hidden" />
+            </td>
+        </tr>
+
+    </table>
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        $(function(){
+            InitDataGrid();
+        });
+        $("#toolbar").keydown(function () {
+            if (event.keyCode == "13") {  //keyCode=13是回车键
+                searchMenu();
+            }
+        });
+        var authenApplicationurl = '@Url.Action(ActionName.BankAccount.AuthenApplication, ControllerName.BankAccount)';
+        var bankAuthenthenticationurl = '@Url.Action(ActionName.BankAccount.BankAuthenthentication, ControllerName.BankAccount)';
+        var bindBankAccounturl = '@Url.Action(ActionName.BankAccount.BindBankAccount, ControllerName.BankAccount)';
+
+        $("#btnAuthenthentication").click(function () {
+            var id = $("#accountId").val();
+            var amount = $("#amount").val();
+            if (amount == "") {
+                $.messager.showErrorTopCenter('错误消息', '请输入金额。');
+                return;
+            }
+            if (amount <= 0) {
+                $.messager.showErrorTopCenter('错误消息','输入的金额必须大于0,认证校验失败。');
+                return;
+            }
+            $.easyui.loading({ msg: '正在提交认证校验，请稍等...' });
+            $.ajax({
+                async: true,
+                type: "post",
+                dataType: "json",
+                url: bankAuthenthenticationurl,
+                data: { accountId: id, amount: amount },
+                success: function (data) {
+                    if (data) {
+                        if (data.success) {
+                            if (data.result.Success) {
+                                $.messager.showInfoTopCenter('信息','认证校验成功。');
+                                $('#datagrid').datagrid('reload');
+                                $('#datagrid').datagrid('unselectAll');
+                                $("#dlg").dialog("close");
+                            } else {
+                                var errorMessage = data.result.ErrorMessage;
+                                $.messager.showErrorTopCenter('错误消息', data.result.ErrorMessage);
+                                if (errorMessage.indexOf("次数0") >= 0) {
+                                    $('#datagrid').datagrid('reload');
+                                    $('#datagrid').datagrid('unselectAll');
+                                    $("#dlg").dialog("close");
+                                }
+                            }
+                        }
+                        else {
+                            $.messager.showErrorTopCenter('错误消息','认证校验失败。');
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息','认证校验失败。');
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+
+        });
+
+        $("#btnNext").click(function () {
+            $('#datagrid').datagrid('reload');
+            $('#datagrid').datagrid('unselectAll');
+            $("#dlg").dialog("close");
+        });
+
+        function searchMenu() {
+            $("#datagrid").datagrid("load", {
+                name: $("#searchName").searchbox("getValue"),
+            });
+        }
+
+        var canSet = '@canSet' === "True";
+        var loadurl = '@Url.Action(ActionName.BankAccount.LoadBankInfo, ControllerName.BankAccount)';
+        function InitDataGrid() {
+            $('#datagrid').datagrid({
+                url: loadurl,
+                method: 'get',
+                idField: 'Id',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                //fit: true,
+                showFooter: false,
+                columns: [[
+                    { field: 'Id', title: '序号', width: 50, align: 'center', hidden: 'true' },
+                    { field: 'AccountName', title: '户名', width: 100, align: 'center' },
+                    { field: 'AccountNum', title: '银行账号', width: 100, align: 'center' },
+                    { field: 'BankName', title: '开户银行', width: 100, align: 'center' },
+                    { field: 'OpenBankName', title: '开户行名称', width: 100, align: 'center' },
+                    { field: 'BankAccountStateStr', title: '银行账号状态', width: 100, align: 'center' },
+                    { field: 'Remark', title: '备注', width: 100, align: 'center' },
+                    {
+                        field: 'BankState',
+                        title: "操作",
+                        width: 100,
+                        align: 'left',
+                        formatter: function (value, row) {
+                            if (canSet) {
+                                if (value == 1 || value == 4) {
+                                    return "<a style='cursor:pointer' href='#' onclick='authenApplication(" + row.Id + ")'>认证申请</a>";
+                                }
+                                else if (value == 2) {
+                                    return "<a style='cursor:pointer' href='#' onclick='bankAuthenthentication(" + row.Id + ")'>输入认证金额</a>";
+                                }
+                                else if (value == 3) {
+                                    return "<a style='cursor:pointer' href='#' onclick='bindBankAccount(" + row.Id + ",1)'>绑定</a>";
+                                }
+                                else if (value == 6) {
+                                    return "<a style='cursor:pointer' href='#' onclick='bindBankAccount(" + row.Id + ",3)'>取消绑定</a>";
+                                }
+                            }
+
+                        }
+                    }
+                ]],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    $('#datagrid').datagrid('unselectAll');
+                },
+                onLoadError: function() {
+                },
+                toolbar: '#toolbar'
+            });
+
+            $('#txtSearchbox').searchbox({
+                menu: '#divSearchMenu',
+                prompt: '请输入查询值',
+                searcher: searchData
+            });
+        }
+
+        function searchData(value, name) {
+            $('#datagrid').datagrid('unselectAll');
+            $('#datagrid').datagrid('load', { "searchKey": name, "searchValue": value });
+        }
+
+        function authenApplication(id) {
+            $.messager.confirm('是否确定提交申请认证?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在提交申请认证，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: authenApplicationurl,
+                        data: { accountId: id },
+                        success: function (data) {
+                            if (data) {
+                                if (data.success) {
+                                    if (data.result.Success) {
+                                        //$.messager.showInfoTopCenter('信息', '申请认证成功。');
+                                        bankAuthenthentication(id);
+                                        $('#datagrid').datagrid('reload');
+                                        $('#datagrid').datagrid('unselectAll');
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息',data.result.ErrorMessage);
+                                    }
+                                }
+                                else {
+                                    $.messager.showErrorTopCenter('错误消息','申请认证失败。');
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息','申请认证失败。');
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+
+        }
+        $("#dlg").dialog({
+            onClose: function () {
+                $('#datagrid').datagrid('reload');
+                $('#datagrid').datagrid('unselectAll');
+            }
+        });
+
+        function bankAuthenthentication(id) {
+            $("#accountId").val(id);
+            $("#amount").numberbox('setValue','');
+            $("#dlg").dialog("open");
+        }
+
+        function bindBankAccount(id, state) {
+            var message = state == 1 ? "是否绑定该银行账户?" : "是否取消绑定该银行账户?";
+            $.messager.confirm(message, function (r) {
+                if (r) {
+                    var msg = state == 1 ? "正在提交绑定，请稍等..." : "正在取消绑定，请稍等...";
+                    $.easyui.loading({ msg: msg });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: bindBankAccounturl,
+                        data: { accountId: id, state: state},
+                        success: function (data) {
+                            if (data) {
+                                if (data.success) {
+                                    if (data.result.Success) {
+                                        $.messager.showInfoTopCenter('信息',state == 1 ? "绑定银行账户成功" : "取消绑定银行账户成功");
+                                        $('#datagrid').datagrid('reload');
+                                        $('#datagrid').datagrid('unselectAll');
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息',data.result.ErrorMessage);
+                                    }
+                                }
+                                else {
+                                    $.messager.showErrorTopCenter('错误消息',state == 1 ? "绑定银行账户失败" : "取消绑定银行账户失败");
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息',state == 1 ? "绑定银行账户失败" : "取消绑定银行账户失败");
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.BankAccount.GetBankForm, ControllerName.BankAccount)';
+        var saveFormUrl = '@Url.Action(ActionName.BankAccount.SaveBankForm, ControllerName.BankAccount)';
+        function opentForm(id) {
+            $.easyui.showDialog({
+                title: "银行账户信息",
+                width: 530,
+                height: 330,
+                href: getFormUrl + "?id=" + id,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                pagination: true,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    var postData = AddAntiForgeryToken(d.form("getData"));
+                    if (validate) {
+                        var banknum = $('#AccountNum').val();
+                        //if (isNaN(banknum)) {
+                        //    $.messager.showErrorTopCenter('错误消息',"银行账号不正确");
+                        //     return false;
+                        // }
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            url: "/Payment/CheckBankNumber",
+                            data: { bankNumber: banknum, id: id },
+                            success: function (result) {
+                                if (result.success && result.Result) {
+                                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                                    $.ajax({
+                                        async: true,
+                                        type: "post",
+                                        dataType: "json",
+                                        url: saveFormUrl,
+                                        data: postData,
+                                        success: function(data) {
+                                            if (data) {
+                                                if (data.success) {
+                                                    d.window('close');
+                                                    $.messager.showInfoTopCenter('信息','保存成功。');
+                                                    $('#datagrid').datagrid('reload');
+                                                    $('#datagrid').datagrid('unselectAll');
+                                                } else {
+                                                    $.messager.showErrorTopCenter('错误消息',data.message);
+                                                }
+                                            } else {
+                                                $.messager.showErrorTopCenter('错误消息','数据保存失败。');
+                                            }
+                                        },
+                                        complete: function() {
+                                            $.easyui.loaded();
+                                        }
+                                    });
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息','已存在此卡号');
+                                }
+                            }
+                        });
+                    }
+                    return false;
+                }
+            });
+        }
+
+        function addDatabasePool() {
+            opentForm(0);
+        }
+
+        function editDatabasePool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                var state = row.BankState;
+                if (state != 6) {
+                    opentForm(row.Id);
+                }
+                else {
+                    $.messager.showErrorTopCenter('错误消息',"银行卡已绑定不可编辑！", 1000);
+                }
+
+            } else {
+                $.messager.showErrorTopCenter('错误消息',"请选择需要编辑的数据", 1000);
+            }
+        }
+
+        var removeUrl = '@Url.Action(ActionName.BankAccount.RemoveBank, ControllerName.BankAccount)';
+        function removeDatabasePool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                var state = row.BankState;
+                if (state == 1 || state == 4) {
+                    $.messager.confirm('是否确定删除该条记录?', function (r) {
+                        if (r) {
+                            $.post(removeUrl, { id: row.Id }, function (result) {
+                                if (result.success) {
+                                    $.messager.showInfoTopCenter('信息',"删除成功.", 1000);
+                                    $('#datagrid').datagrid('unselectAll');
+                                    $('#datagrid').datagrid('reload'); // reload the user data
+
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息',result.message, 1000);
+                                }
+                            }, 'json');
+                        }
+                    });
+                }
+                else {
+                    $.messager.showErrorTopCenter('错误消息',"银行卡已认证或正在认证中不可删除！", 1000);
+                }
+
+            } else {
+                $.messager.showErrorTopCenter('错误消息',"请选择一条记录进行删除。", 1000);
+            }
+        }
+    </script>
+}

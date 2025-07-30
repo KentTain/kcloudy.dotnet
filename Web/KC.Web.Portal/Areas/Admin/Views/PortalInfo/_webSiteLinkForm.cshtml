@@ -1,0 +1,86 @@
+﻿@using KC.Web.Portal.Constants
+@model KC.Service.DTO.Portal.WebSiteLinkDTO
+@{
+    Layout = null;
+}
+@using (Html.BeginForm(ActionName.PortalInfo.SaveWebSiteLink, ControllerName.PortalInfo, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td>
+                    <div>
+                        <label class="required">*</label>
+                        <span for="Name">链接名称：</span>
+                    </div>
+                </td>
+                <td id="dia-name">
+                    @Html.TextBoxFor(m => m.Title, new { placeholder = "请输入链接名称!", @class = "easyui-textbox", @style = "width: 280px;height:30px;", type = "text", value = "" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="LinkType">链接类型：</span>
+                    </div>
+                </td>
+                <td>
+                    <select id="LinkType" name="LinkType" class="easyui-combobox"
+                            data-options="width:280,editable: false, required:true,"
+                            asp-items="ViewBag.LinkTypes" panelHeight="auto"></select>
+
+                    @*@Html.DropDownList("LinkType", (IEnumerable<SelectListItem>)ViewBag.LinkTypes, new { @id = "LinkType", @class = "easyui-combobox", @style = "width: 280px;height:30px;", @DropDownStyle = "DropDownList" })*@
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <label class="required">*</label>
+                        <span for="Links">链接地址：</span>
+                    </div>
+                </td>
+                <td id="dia-name">
+                    @Html.TextBoxFor(m => m.Links, new { placeholder = "请输入链接地址!", @class = "easyui-textbox", @style = "width: 280px;height:30px;", type = "text", value = "" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="Content">描述：</span>
+                    </div>
+                </td>
+                <td>
+                    <input class="easyui-textbox" id="Remark" name="Remark"
+                           data-options="multiline:true,width:280,height:120"
+                           value="@(null != Model ? Model.Content : "")">
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+}
+
+<script>
+    var id = '@Model.Id';
+    var level = '@Model.LinkTypeString';
+    $(function () {
+        $("#LinkType option").each(function (e, i) {
+            var val = $(this).text();
+            if (val == level) {
+                $("#LinkType").val($(this).val());
+                return;
+            }
+        });
+
+        $('#LinkType').combobox({ editable: false });
+
+    });
+</script>
+

@@ -1,0 +1,206 @@
+﻿@using KC.Web.Portal.Constants
+@using KC.Framework.Extension
+@using KC.Enums.Portal 
+@model KC.Enums.Portal.RequirementType?
+@*@inject Tenant tenant*@
+@{
+    ViewBag.Title = "采购信息";
+    Layout = "../_HomeLayout.cshtml";
+    /*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*/
+}
+@section styles{
+    <style>
+.layui-table td, .layui-table th{padding:5px;font-size:16px;}
+.layui-table tbody tr{background-color:white!important;height:60px;}
+.layui-table tbody tr:hover{color:#2277DD;cursor:pointer;}
+
+.nav-con{font-size:18px;color:#666;}
+.nav-con .mallSearch{float: right; }
+.nav-con .mallSearch input{height: 38px; line-height: 38px; width: 220px; float: left; position: relative; z-index: 2; background: none;border-radius: 0; border: 1px solid #666;}
+.nav-con .mallSearch button{width: 60px; height: 34px; line-height: 34px; float: left; background: #666; border-radius:0;}
+
+.filter-con .title{font-size:18px;font-weight:500;color:#333;}
+.filter-con .layui-btn-group .layui-btn{background-color:transparent;color:#333;font-size:18px;}
+.filter-con .layui-btn-group .layui-btn.active{background-color:#2277DD;color:#fff;font-size:18px;}
+
+.table-con .project-con {border-width:0px;}
+.table-con .project-con tr th{font-size:18px;line-height: 30px;height:30px; }
+.table-con .project-con tr td{font-size:16px;}
+.table-con .project-con tr td:first-child{font-size:18px;font-weight:500;color:#333;}
+    </style>
+}
+@section Scripts {
+
+    <script>
+        let pageIndex = 1;
+        let pageSize = 10;
+        let total = 0;
+        $(function () {
+            handleData(pageIndex, pageSize); //刚进页面初始化表格
+            topage(total);
+            $('.layui-btn-group').on('click', '.layui-btn', function () {
+                $(this).addClass('active').siblings().removeClass('active');
+                handleData(pageIndex, pageSize);
+            });
+        })
+
+        const loadDataUrl = '@Url.Action(ActionName.Home.LoadRequirementData, ControllerName.Home)';
+        function handleData(pageIndex, pageSize) {
+            let name = $('#txtName').val();
+            let nameType = $('.nameType .active').val();
+            let area = $('.area .active').val();
+            let type = $('.type .active').val();
+            $.ajax({
+                async: false,
+                url: loadDataUrl + "?pageIndex=" + pageIndex + "&pageSize=" + pageSize + "&name=" + name + "&nameType=" + nameType + "&area=" + area + "&type=" + type,
+                type: "GET",
+                dataType: "json",
+                contentType: "application/json;charset=UTF-8",
+                success: function (data) {
+                    if (data) {
+                        total = data.total;
+                        renderData(data.rows)
+                        topage(total);
+                    }
+                }
+            })
+        }
+
+        function renderData(data) {                //渲染表格数据，获取datalist
+            let divProduct = "<tr id='{0}'>" +
+                "<td class='name' title='{1}'>{1}</td>" +
+                "<td class='content' title='{2}'>{2}</td>" +
+                "<td class='date'>{3}</td>" +
+                "<td class='addres'>{4}</td>" +
+                "<td class='more'><a href='/Home/RequirementDetail?id={5}'>查看详情 >&nbsp;</a></td>" +
+                "</tr>";
+            $('#divProductList').empty();
+            for (var i = 0; i < data.length; i++) {
+                let id = data[i].recommendId;
+                let name = data[i].recommendName;
+                let date = data[i].createdDate;
+                let detail = data[i].description;
+                let add = data[i].recommendAddress != null ? data[i].recommendAddress : '未填写'
+                let product = $.string.format(divProduct, id, name, detail, date, add, id);
+
+                $('#divProductList').append(product);
+            }
+        }
+        //分页操作
+        function topage(total) {
+            layui.use('laypage', function () {
+                let laypage = layui.laypage;
+                //总页数大于页码总数
+                laypage.render({
+                    theme: '#FFB800',
+                    elem: 'divPager',
+                    curr: pageIndex,
+                    limit: pageSize,
+                    count: total,     //数据总数，从服务端得到
+                    jump: function (obj, first) {
+                        //obj包含了当前分页的所有参数，比如：
+                        pageIndex = obj.curr
+                        pageSize = obj.limit;
+                        if (!first) {
+                            handleData(pageIndex, pageSize)
+                        }
+                    }
+                });
+            });
+        }
+
+    </script>
+}
+<div class="layui-container">
+    <div class="layui-row nav-con" style="margin:10px auto;">
+        <div class="layui-col-md5" style="margin-top:5px;">
+            <a href="/"><span>首页</span></a> >
+            <a href="/Home/Project"><span>工程信息</span></a> >
+            <a href="/Home/RequirementList"><span>推荐信息</span></a>
+        </div>
+        <div class="layui-col-md7 mallSearch">
+            <input type="text" id="txtName" required lay-verify="required" autocomplete="off" class="layui-input" placeholder="请输入相关信息">
+            <button id="btnSearch" class="layui-btn" lay-submit lay-filter="formDemo" onclick="handleData(1,10);">
+                <i class="layui-icon layui-icon-search"></i>
+            </button>
+        </div>
+    </div>
+    <div class="layui-row filter-con">
+        <div class="layui-row" style="margin:10px auto;">
+            <div class="layui-col-md1">
+                <span class="title">分&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;类：</span>
+            </div>
+            <div class="layui-col-md11">
+                <div class="layui-btn-group nameType">
+                    <button type="button" class="layui-btn @(Model ==null?"active":"" )" value="">所有</button>
+                    <button type="button" class="layui-btn @(Model ==KC.Enums.Portal.RequirementType.Inquiry?"active":"" )" value="@KC.Enums.Portal.RequirementType.Inquiry">询价</button>
+                    <button type="button" class="layui-btn @(Model ==KC.Enums.Portal.RequirementType.Tenders?"active":"" )" value="@KC.Enums.Portal.RequirementType.Tenders">招标</button>
+                    <button type="button" class="layui-btn @(Model ==KC.Enums.Portal.RequirementType.Bidding?"active":"" )" value="@KC.Enums.Portal.RequirementType.Bidding">竞价</button>
+                </div>
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-col-md1">
+                <span class="title">地&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;区：</span>
+            </div>
+            <div class="layui-col-md11">
+                <div class="layui-btn-group area">
+                    <button type="button" class="layui-btn active" value="">所有</button>
+                    <button type="button" class="layui-btn" value="北京">北京</button>
+                    <button type="button" class="layui-btn" value="天津">天津</button>
+                    <button type="button" class="layui-btn" value="上海">上海</button>
+                    <button type="button" class="layui-btn" value="重庆">重庆</button>
+                    <button type="button" class="layui-btn" value="河北">河北</button>
+                    <button type="button" class="layui-btn" value="山西">山西</button>
+                    <button type="button" class="layui-btn" value="辽宁">辽宁</button>
+                    <button type="button" class="layui-btn" value="吉林">吉林</button>
+                    <button type="button" class="layui-btn" value="黑龙江">黑龙江</button>
+                    <button type="button" class="layui-btn" value="江苏">江苏</button>
+                    <button type="button" class="layui-btn" value="浙江">浙江</button>
+                    <button type="button" class="layui-btn" value="安徽">安徽</button>
+                    <button type="button" class="layui-btn" value="福建">福建</button>
+                    <button type="button" class="layui-btn" value="江西">江西</button>
+                    <button type="button" class="layui-btn" value="山东">山东</button>
+                    <button type="button" class="layui-btn" value="河南">河南</button>
+                    <button type="button" class="layui-btn" value="湖北">湖北</button>
+                    <button type="button" class="layui-btn" value="湖南">湖南</button>
+                    <button type="button" class="layui-btn" value="广东">广东</button>
+                    <button type="button" class="layui-btn" value="海南">海南</button>
+                    <button type="button" class="layui-btn" value="四川">四川</button>
+                    <button type="button" class="layui-btn" value="贵州">贵州</button>
+                    <button type="button" class="layui-btn" value="云南">云南</button>
+                    <button type="button" class="layui-btn" value="陕西">陕西</button>
+                    <button type="button" class="layui-btn" value="青海">青海</button>
+                    <button type="button" class="layui-btn" value="台湾">台湾</button>
+                    <button type="button" class="layui-btn" value="内蒙">内蒙</button>
+                    <button type="button" class="layui-btn" value="广西">广西</button>
+                    <button type="button" class="layui-btn" value="西藏">西藏</button>
+                    <button type="button" class="layui-btn" value="宁夏">宁夏</button>
+                    <button type="button" class="layui-btn" value="新疆">新疆</button>
+                    <button type="button" class="layui-btn" value="香港">香港</button>
+                    <button type="button" class="layui-btn" value="澳门">澳门</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row table-con" style="min-height:580px;">
+        <div class="layui-col-md12">
+            <table class="layui-table project-con project-list" lay-even lay-skin="line">
+                <thead>
+                    <tr>
+                        <th style="width:30%">采购标题</th>
+                        <th style="width:30%">采购内容</th>
+                        <th style="width:20%">发布日期</th>
+                        <th style="width:20%">采购地点</th>
+                        <th class="more"></th>
+                    </tr>
+                </thead>
+                <tbody id="divProductList">
+                </tbody>
+            </table>
+        </div>
+        <div id="divPager" style="text-align: center;margin-top:30px;"></div>
+    </div>
+</div>

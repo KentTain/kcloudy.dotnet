@@ -1,0 +1,216 @@
+﻿@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@using KC.Web.Extension
+
+@{
+    ViewBag.Title = "联系人";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var id = ViewBag.CustomerId;
+
+    var controllerName = ControllerName.CustomerInfo;
+    var saveAction = ActionName.CustomerInfo.SaveCustomerContactForm;
+    var removeAction = ActionName.CustomerInfo.RemoveCustomerContactSoft;
+}
+<div id="toolbar">
+    <div>
+        <!--配置管理-保存配置-->
+        @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+        {
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDatabasePool()">添加</a>
+        }
+        <!--配置管理-保存配置-->
+        @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+        {
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editDatabasePool()">编辑</a>
+        }
+        <!--配置管理-删除配置-->
+        @*@if ((await AuthorizationService.AuthorizeAsync(User, "51DE1887-5C57-4C17-984D-F23456499652")).Succeeded)*@
+        {
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeDatabasePool()">删除</a>
+        }
+    </div>
+
+    <div>
+        <div id="divSearchMenu" class="easyui-menu" style="width:120px">
+            <div data-options="name:'ContactName',selected:true">联系人</div>
+            <div data-options="name:'ContactPhoneMumber'">联系人手机</div>
+            <div data-options="name:'ContactQQ'">联系人QQ</div>
+        </div>
+        <input id="txtSearchbox" class="easyui-searchbox" style="width:300px" />
+        <a href="javascript:void(0)" onclick="RefreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        var customerId = @id;
+        var defaultGuid = 0;
+        //move to com.common.js
+        $(function() {
+            InitDataGrid();
+        });
+        var loadDataUrl = '@Url.Action(ActionName.CustomerInfo.GetCustomerContactByCustomerId, ControllerName.CustomerInfo)';
+        var loadModuleDataUrl = '@Url.Action(ActionName.CustomerInfo.LoadCustomerTracingLogList, ControllerName.CustomerInfo)';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                //view: detailview,
+                url: loadDataUrl + '?customerId=' + customerId,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                columns: [[
+                    { field: 'contactName', title: '联系人', width: 100, align: 'left' },
+                    { field: 'contactPhoneMumber', title: '联系人手机', width: 100, align: 'left' },
+                    { field: 'contactTelephone', title: '联系人座机', width: 100, align: 'left' },
+                    { field: 'contactQQ', title: 'QQ', width: 100, align: 'left' },
+                    { field: 'contactEmail', title: '邮箱', width: 150, align: 'left' },
+                    { field: 'createdBy', title: '创建人', width: 100, align: 'left' },
+                    { field: 'createdDate', title: '创建时间', width: 100, align: 'left', formatter: FormatterUtil.DateFormatter }
+                ]],
+                onBeforeLoad: function(param) {
+
+                },
+                onLoadSuccess: function(data) {
+
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                }
+            });
+
+            $('#txtSearchbox').searchbox({
+                menu: '#divSearchMenu',
+                prompt: '请输入查询值',
+                searcher: searchData
+            });
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.CustomerInfo.CustomerContactForm, ControllerName.CustomerInfo)';
+        var saveFormUrl = '@Url.Action(ActionName.CustomerInfo.SaveCustomerContactForm, ControllerName.CustomerInfo)';
+        var getCustomerDetailsUrl = '@Url.Action(ActionName.CustomerInfo.GetCustomerInfoById, ControllerName.CustomerInfo)';
+        function opentForm(id) {
+            var result = false;
+            var dialog = $.easyui.showDialog({
+                title: "保存数据",
+                width: 500,
+                height: 400,
+                href: getFormUrl + "?id=" + id + "&&customerId=" + customerId,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    result = true;
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#datagrid').datagrid('clearSelections');
+                                        $('#datagrid').datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onBeforeClose: function() {
+                    if (!result) {
+                        $.messager.confirm("系统提示", "你确定要关闭窗口吗?",
+                            function(r) {
+                                if (r) {
+                                    result = true;
+                                    dialog.dialog("close", true);
+                                }
+                            });
+                    }
+                    return result;
+                },
+                onLoad: function() {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        function searchData(value, name) {
+            $('#datagrid').datagrid('load', { "searchKey": name, "searchValue": value });
+        }
+
+        function addDatabasePool() {
+            opentForm(0);
+        }
+
+        function editDatabasePool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                opentForm(row.id);
+            }else {
+                $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行编辑！', 2000);
+            }
+        }
+
+        var removeUrl = '@Url.Action(ActionName.CustomerInfo.RemoveCustomerContactSoft, ControllerName.CustomerInfo)';
+        function removeDatabasePool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('系统提示', '是否确定删除该条记录?', function(r) {
+                    if (r) {
+                        $.post(removeUrl, { id: row.id }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        }, 'json');
+                    }
+                });
+            }else {
+                $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行删除！', 2000);
+            }
+        }
+
+    </script>
+
+}
+

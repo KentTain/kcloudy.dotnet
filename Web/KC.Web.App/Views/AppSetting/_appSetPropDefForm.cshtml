@@ -1,0 +1,106 @@
+﻿@using KC.Web.App.Constants
+@model KC.Service.DTO.App.AppSettingPropertyDTO
+@{
+    Layout = null;
+}
+
+@using (Html.BeginForm(ActionName.AppSetting.SaveAppSettingProperty, ControllerName.AppSetting, FormMethod.Post,
+new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.PropertyAttributeId)
+    @Html.HiddenFor(model => model.AppSettingId)
+    @Html.HiddenFor(model => model.IsRequire)
+    @Html.HiddenFor(model => model.CanEdit)
+    @Html.HiddenFor(model => model.Ext1)
+    @Html.HiddenFor(model => model.Ext2)
+    @Html.HiddenFor(model => model.Ext3)
+
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label class="required"></label><label for="AppSettingCode">配置编码：</label></td>
+                <td>
+                    <input asp-for="@Model.AppSettingCode" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,readonly:true,width:260" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required"></label><label for="AppSettingName">配置名称：</label></td>
+                <td>
+                    <input asp-for="@Model.AppSettingName" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,readonly:true,width:260" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Name">配置属性名称：</label></td>
+                <td>
+                    <input asp-for="@Model.Name" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:260,prompt:'请输入配置属性名称',
+                                validType:['length[1,100]','isSpace','existAppSetPropName[\'@Url.Action(ActionName.AppSetting.ExistAppSetPropName, ControllerName.AppSetting)\',\'@Model.PropertyAttributeId\',\'@Model.AppSettingId\',\'@Model.IsEditMode\',\'@Model.Name\',\'已存在该配置属性名称\']']" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Name">配置属性显示名：</label></td>
+                <td>
+                    <input asp-for="@Model.DisplayName" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:260,prompt:'请输入配置属性显示名',
+                                validType:['length[1,200]','isSpace']" />
+                </td>
+            </tr>
+            <tr>
+                <td><label for="DataType">数据类型：</label></td>
+                <td>
+                    @Html.DropDownList("DataType", (IEnumerable<SelectListItem>)ViewBag.DataTypeList,
+                        new { @id = "DataType", @class = "easyui-combobox", @style = "width: 260px;height:26px;" })
+                </td>
+            </tr>
+            <tr>
+                <td><label for="IsRequire">是否必填：</label></td>
+                <td>
+                    <input id="sbIsRequire" class="easyui-switchbutton"
+                           data-options="onText:'是',offText:'否',checked:@Json.Serialize(Model.IsRequire)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label for="CanEdit">是否能编辑：</label></td>
+                <td>
+                    <input id="sbCanEdit" class="easyui-switchbutton"
+                           data-options="onText:'是',offText:'否',checked:@Json.Serialize(Model.CanEdit)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Value">配置属性默认值：</label></td>
+                <td>
+                    <input asp-for="@Model.Value" class="easyui-validatebox easyui-textbox"
+                           data-options="width:260" />
+                </td>
+            </tr>
+
+            <tr>
+                <td><label for="Index">排序：</label></td>
+                <td>
+                    <input asp-for="@Model.Index" class="easyui-numberspinner easyui-textbox"
+                           data-options="required:true,width:260,min:1,max:100" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+}
+
+<script>
+    $(function () {
+        initSwitchButton('sbIsRequire', 'IsRequire', @Json.Serialize(Model.IsRequire));
+        initSwitchButton('sbCanEdit', 'CanEdit', @Json.Serialize(Model.CanEdit));
+    });
+</script>

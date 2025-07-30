@@ -1,0 +1,274 @@
+﻿@using KC.Web.Config.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "配置管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--配置管理-新增/编辑配置-->
+    var canEdit = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "448C6519-A303-404F-9EB6-6B15601E7E6A")).Succeeded)
+    {
+        canEdit = true;
+    }
+    <!--配置管理-删除配置-->
+    var canDelete = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "51DE1887-5C57-4C17-984D-F23456499652")).Succeeded)
+    {
+        canDelete = true;
+    }
+    <!--配置管理-删除配置属性-->
+    var canRemoveAtt = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "8542C34A-C616-4534-A17F-615B873C5A46")).Succeeded)
+    {
+        canRemoveAtt = true;
+    }
+}
+
+<div id="toolbar">
+    <div>
+        <!--配置管理-新增/编辑配置-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "448C6519-A303-404F-9EB6-6B15601E7E6A")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="openForm(0)">添加</a>
+        }
+    </div>
+
+    <div>
+        配置类型：
+        @Html.DropDownList("ConfigType", (IEnumerable<SelectListItem>)ViewBag.ConfigTypeList, new { @id = "ConfigType", @class = "easyui-combobox", @style = "width: 200px;height:26px;", @data_options = "editable: false" })
+        <input id="searchboxName" class="easyui-textbox" data-options="prompt:'请输入配置名称'" style="width:200px">
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+        const canEdit = '@canEdit' === 'True';
+        const canDelete = '@canDelete' === 'True';
+        const canRemoveAtt = '@canRemoveAtt' === 'True';
+
+        $(function() {
+            IniDataGrid();
+        });
+
+        function refreshSearch() {
+            $("#searchboxName").searchbox('setValue', '');
+            $('#ConfigType').combobox("setValue", '所有类型');
+            reloadDatagrid();
+        }
+        function reloadDatagrid() {
+            $("#datagrid").datagrid("load", {
+                searchValue: $("#searchboxName").searchbox("getValue"),
+                searchType: $('#ConfigType').combobox("getValue"),
+            });
+        }
+
+        //主表
+        var ddv;
+        var loadDataUrl = '@Url.Action(ActionName.ConfigManager.LoadConfigList, ControllerName.ConfigManager)';
+        var loadPropertyDataUrl = '@Url.Action(ActionName.ConfigManager.LoadPropertyList, ControllerName.ConfigManager)';
+        function IniDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                view: detailview,
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'configId',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                columns: [
+                    [
+                        //{ field: 'configId', title: 'Id', width: 20, align: 'left' },
+                        { field: 'configCode', title: '配置代码', width: 80, align: 'left' },
+                        { field: 'configName', title: '配置名称', width: 100, align: 'left' },
+                        { field: 'configTypeStr', title: '配置类型', width: 50, align: 'left' },
+                        { field: 'stateStr', title: '配置状态', width: 100, align: 'left' },
+                        { field: 'configDescription', title: '配置描述', width: 200, align: 'left' },
+                        //{ field: 'createdBy', title: '创建人', width: 80, align: 'left' },
+                        //{ field: 'createdDate', title: '创建时间', width: 100, align: 'left' },
+                        {
+                            field: 'operator', title: '操作', width: 100, align: 'center', formatter : function (value, row, index) {
+                                var tdContext = '';
+                                if (canEdit)
+                                    tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openForm(\'' + row.configId + '\')">编辑</a>';
+                                if (canDelete)
+                                    tdContext += '<a href="##" class="btnDelete" style="cursor:pointer" onclick="removeById(\'' + row.configId + '\')">删除</a>';
+
+                                return tdContext;
+                            }
+                        }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    //$(".btnAdd").linkbutton({ iconCls: 'fa fa-plus' });
+                    CommonUtil.buttonStyle();
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function(data) {
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                },
+                onExpandRow: function(index, row) {
+                    let id = row.configId;
+                    ddv = $(this).datagrid('getRowDetail', index).find('table.ddv').attr('id', 'childGrid' + id);
+
+                    $(ddv).removeClass("tree" + index);
+                    $(ddv).addClass("tree" + index);
+
+                    ddv.datagrid({
+                        url: loadPropertyDataUrl + '?configId=' + id,
+                        fitColumns: true,
+                        singleSelect: true,
+                        rowNumbers: true,
+                        loadMsg: '',
+                        height: 'auto',
+                        columns: [
+                            [
+                                //{ field: 'propertyAttributeId', title: 'Id', width: 20 },
+                                { field: 'displayName', title: '显示名', width: 80, align: 'left' },
+                                { field: 'name', title: '属性名', width: 100, align: 'left' },
+                                { field: 'value', title: '属性值', width: 180, align: 'left' },
+                                { field: 'description', title: '说明', width: 250, align: 'left' },
+                                //{ field: 'createdBy', title: '创建人', width: 80, align: 'left' },
+                                //{ field: 'createdDate', title: '创建时间', width: 80, align: 'left' },
+                            ]
+                        ],
+                        onResize: function () {
+                            $('#datagrid').datagrid('fixDetailRowHeight', index);
+                        },
+                        onLoadSuccess: function() {
+                            //$(".btnEdit").linkbutton({ iconCls: 'fa fa-pencil' });
+                            //$(".btnDelete").linkbutton({ iconCls: 'fa fa-trash' });
+                            CommonUtil.buttonStyle();
+
+                            $(ddv).datagrid('fixRowHeight');
+
+                            setTimeout(function() {
+                                $('#datagrid').datagrid('fixDetailRowHeight', index);
+                            }, 0);
+                        }
+                    });
+                },
+            });
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.ConfigManager.GetConfigForm, ControllerName.ConfigManager)';
+        function openForm(id) {
+            var queryString = "id=" + id;
+            MainPage_PostMessage("openSubPage", getFormUrl, queryString);
+        }
+
+        const removeUrl = '@Url.Action(ActionName.ConfigManager.RemoveConfig, ControllerName.ConfigManager)';
+        function removeById(id) {
+            $.messager.confirm('确认', '是否确定删除该配置及相关属性记录?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '配置及相关属性已成功移除。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '配置及相关属性已成功移除失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+
+        var getPropertyDataUrl = '@Url.Action(ActionName.ConfigManager.GetPropertyForm, ControllerName.ConfigManager)';
+        var savePropertyDataUrl = '@Url.Action(ActionName.ConfigManager.SaveConfigAttribute, ControllerName.ConfigManager)';
+        function openPropertyForm(id, configId) {
+            var dialog = $.easyui.showDialog({
+                title: id == 0 ? "添加配置属性" : "编辑配置属性",
+                width: 400,
+                height: 300,
+                modal: true,
+                topMost: false,
+                href: getPropertyDataUrl + "?id=" + id + "&cId=" + configId,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: savePropertyDataUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#childGrid' + configId).datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function() {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        var removePropertyDataUrl = '@Url.Action(ActionName.ConfigManager.RemoveConfigAttribute, ControllerName.ConfigManager)';
+        function removeProperty(id) {
+            $.messager.confirm('确认', '是否确定删除该配置属性记录?', function(r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removePropertyDataUrl, { pId: id }, function(data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+
+    </script>
+}

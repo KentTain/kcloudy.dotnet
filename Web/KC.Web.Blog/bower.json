@@ -1,0 +1,11 @@
+{
+  "name": "asp.net",
+  "private": true,
+  "dependencies": {
+    "font-awesome": "4.7.0",
+    "showdown": "1.6.4"
+  },
+  "resolutions": {
+    "jquery": "3.3.1"
+  }
+}

@@ -1,0 +1,68 @@
+﻿
+@using KC.Framework.Base
+@using KC.Web.Training.Constants
+@model KC.Service.DTO.Training.ConfigEntityDTO
+
+@{
+    Layout = null;
+}
+@using (Html.BeginForm(ActionName.ConfigManager.SaveConfig, ControllerName.ConfigManager, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.ConfigId)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    @Html.HiddenFor(model => model.ConfigSign)
+    @Html.HiddenFor(model => model.State)
+    @Html.HiddenFor(model => model.ConfigImgUrl)
+    
+    <table class="dialog-form-table">
+        <tbody>
+            @if (Model.IsEditMode)
+            {
+                <tr>
+                    <td><label class="required">*</label><label for="ConfigCode">配置代码：</label></td>
+                    <td><input id="ConfigCode" name="ConfigCode" readonly="readonly" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200" value="@Model.ConfigCode" /></td>
+                </tr>
+            }
+            else
+            {
+                @Html.HiddenFor(model => model.ConfigCode)
+            }
+            <tr>
+                <td><label class="required">*</label><label for="ConfigName">配置名称：</label></td>
+                <td><input id="ConfigName" name="ConfigName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[1,50]'" value="@Model.ConfigName" /></td>
+            </tr>
+            <tr>
+                <td><label for="ConfigDescription">配置描述：</label></td>
+                <td><input id="ConfigDescription" name="ConfigDescription" class="easyui-validatebox easyui-textbox" data-options="width:200,validType:'length[0,500]'" value="@Model.ConfigDescription" /></td>
+            </tr>
+
+            @if (Model.ConfigType == ConfigType.PaymentMethod)
+            {
+                @Html.HiddenFor(model => model.ConfigType)
+            }
+            else
+            {
+                <tr>
+                    <td><label class="required">*</label><label for="ConfigType">配置类型：</label></td>
+                    <td>
+                        @Html.DropDownList("ConfigType", (IEnumerable<SelectListItem>)ViewBag.ConfigTypeList, new { @id = "ConfigType", @class = "easyui-combobox", @style = "width: 200px;height:26px;" })
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td><label class="required">*</label><label for="State">状态：</label></td>
+                <td>
+                    @Html.DropDownList("State", (IEnumerable<SelectListItem>)ViewBag.StateList, new { @id = "State", @class = "easyui-combobox", @style = "width: 200px;height:26px;" })
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+}
+
+

@@ -1,0 +1,146 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Workflow.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "我的待办列表";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+<div id="toolbar">
+    <div>
+        <a id="btnStatusAll" href="javascript:void(0)" onclick="statusOnChanged('')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-tasks',width:120,selected:true">所有任务 </a>
+        @*<a id="btnStatusUnProcee" href="javascript:void(0)" onclick="statusOnChanged('0')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-tasks',width:120">未办任务 </a>*@
+        <a id="btnStatusProcee" href="javascript:void(0)" onclick="statusOnChanged('1')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-tasks',width:120">待办任务</a>
+        <a id="btnStatusFinished" href="javascript:void(0)" onclick="statusOnChanged('2')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-tasks',width:120">已完成任务</a>
+        <a id="btnStatusBack" href="javascript:void(0)" onclick="statusOnChanged('3')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-tasks',width:120">退回任务</a>
+    </div>
+    <div>
+        <input id="txtTitle" class="easyui-textbox" data-options="width:260,prompt:'请输入标题'">
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section styles{
+
+}
+
+@section scripts{
+    <!--组件初始化-->
+    <script type="text/javascript">
+        var selectStatus = '@ViewBag.selectStatus';
+        $(function () {
+            //debugger;
+            if (selectStatus) {
+                switch (selectStatus) {
+                    case '0':
+                        $('#btnStatusUnProcee').linkbutton('select');
+                        break;
+                    case '1':
+                        $('#btnStatusProcee').linkbutton('select');
+                        break;
+                    case '2':
+                        $('#btnStatusFinished').linkbutton('select');
+                        break;
+                    case '3':
+                        $('#btnStatusBack').linkbutton('select');
+                        break;
+                    default:
+                        $('#btnStatusAll').linkbutton('select');
+                        break;
+                }
+            }
+            InitDataGrid();
+        });
+    </script>
+
+    <!--我的任务列表-->
+    <script type="text/javascript">
+        const dataGridId = '#datagrid';
+        const loadReviewInfoUrl = '@Url.Action(ActionName.WorkflowProcess.LoadMyTasks, ControllerName.WorkflowProcess)';
+        function InitDataGrid() {
+            $(dataGridId).datagrid({
+                url: loadReviewInfoUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#toolbar',
+                queryParams: {
+                    status: selectStatus,
+                    title: $("#txtTitle").textbox("getValue")
+                },
+                fit: true,
+                fitColumns: true,
+                striped: true,
+                nowrap: false,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                showFooter: false,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                columns: [[
+                    //{ field: 'processCode', title: '流程编码', width: 110, align: 'left' },
+                    //{ field: 'processVersion', title: '当前版本号', width: 110, align: 'left' },
+                    { field: 'code', title: '任务编码', width: 120, align: 'left' },
+                    { field: 'processName', title: '流程名称', width: 140, align: 'left' },
+                    {
+                        field: 'name', title: '任务名称', width: 150, align: 'left',
+                        formatter: function (value, row, index) {
+                            let code = row.processCode;
+                            let tdContext = '<a href="##" style="cursor:pointer" onclick="openPage(\'' + code + '\')">' + value + '</a>';
+                            return tdContext;
+                        }
+                    },
+                    { field: 'taskStatusString', title: '任务状态', width: 60, align: 'left' },
+                    { field: 'createdDate', title: '创建时间', width: 150, align: 'left', formatter: FormatterUtil.DateTimeFormatter }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $(dataGridId).datagrid('unselectAll');
+                    $(dataGridId).datagrid('clearSelections');
+                    CommonUtil.buttonStyle();
+                },
+                onClickRow: function (row) {
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+
+        //状态选择
+        let statusOnChanged = function (status) {
+            if (selectStatus !== status) {
+                selectStatus = status;
+                reloadDatagrid();
+            }
+        }
+        //刷新
+        let refreshSearch = function (index) {
+            $("#txtTitle").textbox('setValue', '');
+            //$("#txtStatus").combobox('setValue', '');
+            $('#btnStatusAll').linkbutton('select');
+            selectStatus = '';
+            reloadDatagrid(index);
+        }
+        //查询
+        let reloadDatagrid = function () {
+            $(dataGridId).datagrid("reload", {
+                title: $("#txtTitle").textbox("getValue"),
+                status: selectStatus,
+                //status: $("#txtStatus").combobox("getValue")
+            });
+        }
+
+        //任务详情
+        var getPageUrl = '@Url.Action(ActionName.WorkflowProcess.WorkflowTaskInfo, ControllerName.WorkflowProcess)';
+        function openPage(id) {
+            //debugger;
+            var queryString = "code=" + id;
+            MainPage_PostMessage("openPage", getPageUrl, queryString);
+        }
+    </script>
+}

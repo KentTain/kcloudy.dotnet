@@ -1,0 +1,65 @@
+﻿@using KC.Enums.CRM
+@using KC.Web.Customer.Constants
+@using KC.Web.Extension
+@{
+    ViewBag.Title = "CustomerInfoList";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+@section styles
+    {
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.css" rel="stylesheet" />
+    <link href="~/css/upload.css" rel="stylesheet" />
+    <style>
+        .webuploader-pick {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            padding: 0px 0px;
+            color: #2779AA;
+            text-align: center;
+            vertical-align: middle;
+            border-radius: 3px;
+            overflow: hidden;
+            background: transparent;
+        }
+    </style>
+}
+
+<div id="customerInfoTab" class="easyui-tabs" data-options="fit:true,plain:true">
+    <div title="企业客户列表" style="padding: 5px; height: auto">
+        @await Html.PartialAsync("_CustomerIndex", (int)CompanyType.Supplier)
+    </div>
+    <div title="机构客户列表" style="padding: 5px; height: auto">
+        @await Html.PartialAsync("_CustomerIndex", (int)CompanyType.Institute)
+    </div>
+    <div title="个人客户列表" style="padding: 5px; height: auto">
+        @await Html.PartialAsync("_CustomerIndex", (int)CompanyType.Customer)
+    </div>
+    
+</div>
+
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.config.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.all.min.js"></script>
+    <script type="text/javascript">
+        var organization = new OrganizationVM();
+        $(function () {
+            organization.HideDialog();
+
+
+        });
+    </script>
+
+    @await Html.PartialAsync("_CustomerManagerInfo")
+    @await Html.PartialAsync("_CustomerIndexScript", (int)CompanyType.Institute)
+    @await Html.PartialAsync("_CustomerIndexScript", (int)CompanyType.Customer)
+    @await Html.PartialAsync("_CustomerAssignScript", (int)CompanyType.Institute)
+    @await Html.PartialAsync("_CustomerAssignScript", (int)CompanyType.Customer)
+}

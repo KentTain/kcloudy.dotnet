@@ -1,0 +1,85 @@
+﻿@using KC.Web.Portal.Constants
+@model KC.Service.DTO.Portal.CompanyAccountDTO
+
+@using (Html.BeginForm(ActionName.CompanyInfo.SaveCompanyAccountForm, ControllerName.CompanyInfo, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.CompanyCode)
+    @Html.HiddenFor(model => model.CompanyName)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="BankType">账户类型：</label></td>
+                <td>
+                    @*@Html.DropDownList("BankType", (IEnumerable<SelectListItem>)ViewBag.BankAccountTypes, new { @id = "BankType", @class = "easyui-combobox", @style = "width: 260px;", @DropDownStyle = "DropDownList", @panelHeight = "auto" })*@
+                    <select id="BankType" name="BankType" class="easyui-combobox"
+                        data-options="width:260,editable:false,required:true,"
+                        asp-items="ViewBag.BankAccountTypes" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="ContactName">联系人姓名：</label></td>
+                <td>
+                    <input type="hidden" name="ContactId" id="ContactId" value="@(Model.ContactId)">
+                    <input id="ContactName" name="ContactName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:180,validType:'length[1,64]'" value="@Model.ContactName" readonly="readonly" />
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-users " onclick="selectUserForm()">选择人员</a>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="AccountName">开户名：</label></td>
+                <td><input id="AccountName" name="AccountName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:260,validType:'length[3,64]'" value="@Model.AccountName" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="BankName">开户行：</label></td>
+                <td><input id="BankName" name="BankName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:260,validType:'length[3,64]'" value="@Model.BankName" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="BankNumber">银行账号：</label></td>
+                <td><input id="BankNumber" name="BankNumber" class="easyui-validatebox easyui-textbox" data-options="required:true,width:260,validType:'length[3,64]'" value="@Model.BankNumber" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Address">开户行地址：</label></td>
+                <td>
+                    <select id="ProvinceId" name="ProvinceId" class="easyui-combobox"
+                            data-options="width:130,editable:false,required:true,"
+                            asp-items="ViewBag.ProvinceList"></select>
+                    <select name="CityId" id="CityId" class="easyui-combobox" style="width: 130px;"></select>
+                    <br />
+                    @Html.HiddenFor(m => m.ProvinceName)
+                    @Html.HiddenFor(m => m.CityName)
+                    <input name="BankAddress" id="BankAddress" class="easyui-validatebox easyui-textbox" data-options="required:true,width:260,validType:'length[1,200]'" sytle="margin-top:5px;" value="@(Model.BankAddress)">
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Remark">备注：</label></td>
+                <td>
+                    <input class="easyui-textbox" id="Remark" name="Remark"
+                           data-options="multiline:true,width:260,height:100"
+                           value="@(null != Model ? Model.Remark : "")">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+<script type="text/javascript">
+
+    $(function () {
+        $("#BankType").combobox({
+            required: true,
+            editable: false
+        })
+
+        queryCitys('@Model.ProvinceId', '@Model.CityId');
+
+    });
+</script>

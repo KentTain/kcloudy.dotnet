@@ -1,0 +1,129 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Account.Constants
+@using KC.Framework.Extension
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.DTO.Account.UserSimpleDTO
+@{
+    ViewBag.Title = "用户详情";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var rId = ViewBag.roleId;
+}
+
+<style>
+    #tblUser tr td:nth-child(odd) {
+        font-weight: bold;
+    }
+    #tblUser tr td:nth-child(even) {
+        /*background-color: #fff;*/
+        font-size: 14px;
+    }
+</style>
+
+<div class="easyui-layout" style="width:100%;height:100%;">
+    <div data-options="region:'north',collapsed:false" style="height:120px;">
+        <table id="tblUser" class="table table-bordered table-form  tr-col3">
+            <tr>
+                <td>用户名：</td>
+                <td>@Model.UserName</td>
+                <td>姓名：</td>
+                <td>@Model.DisplayName</td>
+                <td>邮箱：</td>
+                <td>@Model.Email</td>
+            </tr>
+            <tr>
+                <td>手机：</td>
+                <td>@Model.PhoneNumber</td>
+                <td>QQ：</td>
+                <td>@Model.ContactQQ</td>
+                <td>座机：</td>
+                <td>@Model.Telephone</td>
+            </tr>
+            <tr>
+                <td>所属部门：</td>
+                <td>@Model.UserOrgNames.ToCommaSeparatedString()</td>
+                <td>所属角色：</td>
+                <td colspan="3">@Model.UserRoleNames.ToCommaSeparatedString()</td>
+            </tr>
+        </table>
+    </div>
+    <div data-options="region:'west',split:false,collapsed:false" title="角色下的菜单" style="width: 300px;">
+        <table id="dgMenu"></table>
+    </div>
+    <div data-options="region:'center',split:false,collapsed:false" title="角色下的权限">
+        <table id="dgPermission"></table>
+    </div>
+
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        $(function () {
+            InitMenuTree();
+
+            InitPermissionTree();
+        });
+        var menuData = '@ViewBag.Menus'.replace(new RegExp('&quot;', "gm"),'"');
+        function InitMenuTree() {
+            var data = JSON.parse(menuData);
+            var $dataTreeGrid = $('#dgMenu').tree({
+                idField: 'id',
+                treeField: 'text',
+                striped: true,
+                pagination: false,
+                fitColumns: false,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                lines: true,
+                showFooter: false,
+                checkbox: false,
+                checkOnSelect: false,
+                cascadeCheck: false,
+                data: data,
+                columns: [[
+                    { field: 'text', title: '名称', align: 'left' }
+                ]],
+                onBeforeLoad: function (row, param) {
+                },
+                onLoadSuccess: function (row, data) {
+                    $('#dgMenu').tree('expandAll');
+                }
+            });
+        }
+
+        var permissionData = '@ViewBag.Permissions'.replace(new RegExp('&quot;', "gm"),'"');
+        function InitPermissionTree() {
+            var data = JSON.parse(permissionData);
+            var $dataTreeGrid = $('#dgPermission').treegrid({
+                idField: 'id',
+                treeField: 'text',
+                striped: true,
+                fit: true,
+                fitColumns: false,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                lines: true,
+                showFooter: false,
+                checkbox: false,
+                checkOnSelect: false,
+                cascadeCheck: false,
+                pagination: false,
+                data: data,
+                columns: [[
+                    { field: 'text', title: '名称', width: '45%', align: 'left' },
+                        { field: 'level', title: '等级', width: '10%', align: 'left' },
+                        { field: 'description', title: '描述', width: '45%', align: 'left' }
+                    ]],
+                onBeforeLoad: function (row, param) {
+                },
+                onLoadSuccess: function (row, data) {
+                    $('#dgPermission').treegrid('expandAll');
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,32 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@model KC.Service.DTO.Message.NewsBulletinDTO
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "新闻公告详情";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+@section styles{
+    <style>
+    .main{min-height:600px;}
+    .main .detail{font-size: 18px; color: #333;padding: 10px 20px;margin: 0;}
+    .main .detail .title{font-size: 20px; text-align:center;}
+    .main .detail .author{font-size: 16px; text-align:center; padding:10px 0 10px 160px; }
+    
+    </style>
+}
+<div class="main">
+    <div class="easyui-layout detail" data-options="fit:true,border:false,collapsible:true,closable:false,refreshable:false">
+        <p class="title">@(Model != null ? Model.Title : "")</p>
+        <p class="author">
+            <span class="name">@(Model != null ? Model.Author : "")</span>
+            <span class="datetime">@(Model != null ? Model.CreatedDate.ToLongDateString() : "")</span>
+        </p>
+        <br />
+        @Html.Raw(Model != null ? Model.Content : "")
+    </div>
+</div>
+
+
+@section scripts {
+    
+}

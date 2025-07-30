@@ -1,0 +1,213 @@
+﻿@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "门户友情链接";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--会员门户友情链接管理-保存会员门户友情链接-->
+    var canEdit = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "39CA9039-0CCB-42B2-A33B-DEE85A4B0B9A")).Succeeded)
+    {
+        canEdit = true;
+    }
+    <!--会员门户友情链接管理-删除会员门户友情链接-->
+    var canRemove = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "B31AFD53-5251-4BEF-8CD3-BC02E65FBF98")).Succeeded)
+    {
+        canRemove = true;
+    }
+}
+
+@if (ViewBag.CompanyIsAuth != null && !ViewBag.CompanyIsAuth)
+{
+    <input id="hiddenAuthRedirectUrl" type="hidden" value="/Home/CompanyInfo" />
+    <input id="hiddenClosePageUrl" type="hidden" value="/Home/CompanyPortal" />
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/companyAuth-redirect.js"></script>
+}
+
+<div id="toolbar">
+    <div>
+        <!--门户友情链接管理-保存门户友情链接-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "39CA9039-0CCB-42B2-A33B-DEE85A4B0B9A")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDocument()">新增</a>
+        }
+    </div>
+
+    <div>
+        <input id="searchbox" class="easyui-textbox" data-options="prompt:'请输入名称'">
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section scripts {
+    <script type="text/javascript">
+        const canEdit = ('@canEdit' === 'True');
+        const canRemove =  ('@canRemove' === 'True');
+        $(function () {
+            InitDataGrid();
+        });
+
+        //门户友情链接
+        var loadReviewInfoUrl = '@Url.Action(ActionName.PortalInfo.LoadWebSiteLinks, ControllerName.PortalInfo)';
+        function InitDataGrid(status) {
+            var $dataGrid = $("#datagrid");
+            $dataGrid.datagrid({
+                url: loadReviewInfoUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                showFooter: false,
+                columns: [[
+                    { field: 'title', title: '链接名称', width: 150, align: 'left'},
+                    { field: 'linkTypeString', title: '链接类型', width: 150, align: 'center' },
+                    { field: 'links', title: '链接地址', width: '20%', align: 'center' },
+                    { field: 'content', title: '描述', width: '20%', align: 'center' },
+                    {
+                        field: 'operator', title: '操作', width: 80, align: 'center',
+                        formatter: function (value, row, index) {
+                            let id = row.recommendId;
+                            //debugger;
+                            let tdContext = '';
+                            if (canEdit) {
+                                tdContext += '<a class="btnEdit" style="cursor:pointer" onclick="openForm(\'' + id + '\')" >编辑</a>';
+                            }
+                            if (canRemove) {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer" onclick="removeDocument(\'' + id + '\')" >删除</a>';
+                            }
+
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $dataGrid.datagrid('unselectAll');
+                    $dataGrid.datagrid('clearSelections');
+                    $dataGrid.datagrid("fixRowHeight");
+                    CommonUtil.buttonStyle();
+                },
+                onClickRow: function (row) {
+                    var rows = $dataGrid.datagrid('getSelections');
+                    if (rows.length > 1) {
+                        $("#btnEdit").linkbutton('disable');
+                        $("#btnPre").linkbutton('disable');
+                        $("#btnEdit").tooltip({
+                            position: 'right',
+                            content: '<span style="color:#fff">只适用于选中单条数据进行编辑</span>',
+                            onShow: function () {
+                                $(this).tooltip('tip').css({
+                                    backgroundColor: 'rgb(255, 126, 0)',
+                                    borderColor: 'rgb(255, 126, 0)'
+                                });
+                            }
+                        });
+                    } else {
+                        $("#btnEdit").linkbutton('enable');
+                        $("#btnPre").linkbutton('enable');
+                        $("#btnEdit").tooltip('destroy');
+                    }
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+
+        //查询
+        function reloadDatagrid() {
+            $("#datagrid").datagrid("reload", {
+                cateid: null,
+                name: $("#searchbox").searchbox("getValue")
+            });
+        }
+
+        //刷新
+        function refreshSearch() {
+            $("#searchbox").searchbox('setValue', '');
+            reloadDatagrid();
+        }
+
+        //添加/编辑门户友情链接（我的门户友情链接）
+        function addDocument() {
+            openForm(0);
+        }
+
+        //右侧门户友情链接数据
+        const getFormUrl = '@Url.Action(ActionName.PortalInfo.GetWebSiteLinkForm, ControllerName.PortalInfo)';
+        const saveFormUrl = '@Url.Action(ActionName.PortalInfo.SaveWebSiteLink, ControllerName.PortalInfo)';
+        function openForm(id) {
+            var dialogf = $.easyui.showDialog({
+                title: id > 0 ? '编辑门户友情链接信息' : '新增门户友情链接信息',
+                href: getFormUrl + "?id=" + id,
+                width: 500,
+                height: 380,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                pagination: true,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        var postData = AddAntiForgeryToken(d.form("getData"));
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: postData,
+                            success: function (data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    $.messager.showInfoTopCenter("提示", "保存成功。", 1500);
+                                    $('#datagrid').datagrid('reload');
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message);
+                                }
+                            },
+                            complete: function () {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function () {
+                },
+                onClose: function () {
+                }
+            });
+        }
+
+        //删除门户友情链接（右侧）
+        const deleteUrl = '@Url.Action(ActionName.PortalInfo.DeleteWebSiteLink, ControllerName.PortalInfo)';
+        function removeDocument(id) {
+            $.messager.confirm('是否确定删除该条记录？', function (r) {
+                if (r) {
+                    $.post(deleteUrl, { id: id }, function (result) {
+                        if (result.success) {
+                            $.messager.showInfoTopCenter("提示", "删除成功。", 1500);
+                            $('#datagrid').datagrid('reload');
+                        } else {
+                            $.messager.showErrorTopCenter('错误', result.message);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+    </script>
+}

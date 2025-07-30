@@ -1,0 +1,390 @@
+﻿@using KC.Web.Pay.Constants
+@using KC.Framework.Base
+@using KC.Service.Pay.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.DTO.Pay.PaymentBankAccountDTO
+@{
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    @*银行账户管理-充值：AddChargeRecord*@
+    var canAddChargeRecord = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canAddChargeRecord = true;
+    }
+    @*银行账户管理-取消充值：CencelChargeRecord*@
+    var canCencelChargeRecord = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canCencelChargeRecord = true;
+    }
+
+    @*银行账户管理-创建充值数据：CreateChargeDataUrl*@
+    var canCreateChargeDataUrl = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canCreateChargeDataUrl = true;
+    }
+    @*银行账户管理-查看银行卡：/Payment/BankInfo*@
+    var canBankInfo = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canBankInfo = true;
+    }
+}
+<style>
+    p.recharge {
+        padding: 15px;
+        font-size: 100%;
+        background: #fafafa;
+        line-height: 25px;
+        text-align: center;
+    }
+
+    .recharge label {
+        font-weight: 400;
+        text-align: right;
+    }
+
+    .recharge b {
+        margin-left: 10px;
+    }
+
+    .moneyInput {
+        width: 350px;
+        display: inline-block;
+    }
+
+    .basicTable {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .dialog-form-table {
+        margin: 0 auto;
+        margin-top: 5px;
+        margin-bottom: 20px;
+    }
+
+        .dialog-form-table tr {
+            line-height: 34px;
+        }
+
+    .basicTable td:nth-child(odd) {
+        width: 240px;
+        background-color: #F5F5F5;
+        text-align: center;
+    }
+
+    .basicTable td {
+        padding: 5px;
+        border: 1px solid #ddd;
+        text-align: center;
+    }
+
+    .zjTips {
+        color: #e4393c;
+    }
+
+    .zjAccounts {
+        width: 100%;
+        padding-top: 20px;
+        text-align: center;
+    }
+
+    .charging > tr > td {
+        font-size: 16px;
+        display: table-cell;
+        vertical-align: middle !important;
+    }
+
+    .table > tbody + tbody {
+        border-top: 1px solid #ddd;
+    }
+
+    .paginationlocal > .pagination > .list {
+        line-height: 28px;
+        padding: 2px;
+    }
+</style>
+<div class="panel panel-default  panel-boot">
+    <div class="panel-body" style="font-size:14px;">
+        @if (Model == null)
+        {
+            <label class="zjTips"> 您还未开通财富共赢钱包，请先开通后再进行操作.</label>
+        }
+        else if (string.IsNullOrEmpty(Model.BindBankAccount))
+        {
+            <label class="zjTips"> 您还未绑定银行账户，请先绑定银行账户后再进行操作.</label>
+        }
+        else
+        {
+            <table id="datagrid" data-options=" iconCls: 'icon-standard-text-list-bullets'" class="dialog-form-table basicTable">
+                <tr>
+                    <td><label>银行账户</label></td>
+                    <td>@Model.BindBankAccount</td>
+                    <td rowspan="2"> <a href="#" onclick="showBanks();" class="easyui-linkbutton @(canBankInfo ? "" : "NoAuth")" data-options="iconCls:'icon-standard-lock-edit'" id="btn_addmoney"> 更换绑定账户 </a></td>
+                </tr>
+                <tr>
+                    <td><label>户名</label></td>
+                    <td>@Model.BindBankAccountName</td>
+                </tr>
+            </table>
+
+            <p class="recharge">
+                <span>
+                    <label>充值金额：</label>
+                    <input type="hidden" id="payOrderId" />
+                    <input type="hidden" id="orderRequestDatetime" />
+                    <input class="easyui-numberspinner moneyInput cashNumber" id="cashInput" name="cashInput" data-options="required:true,precision:2,groupSeparator:',',decimalSeparator:'.',prefix:'￥',spinAlign:'horizontal',min:100,max:1000000">
+                    <a href="javascript:confirmchargePay()" class="easyui-linkbutton button-line-green @(canCreateChargeDataUrl ? "" : "NoAuth")" data-options="iconCls:'icon-standard-money-yen'" id="btn_addmoney"> 提交充值 </a>
+                    <a class="btn btn-default" href="javascript:showChargeFlow()" role="button"><i class="glyphicon glyphicon-menu-hamburger"></i> 充值记录</a>
+                </span>
+            </p>
+
+            <div class="zjAccounts">
+                <form id="chargeForm" method="post" style="display: none">
+                    <input name="MemberId" id="MemberId" value="" type="hidden" />
+                    <input name="UserName" id="UserName" type="hidden" />
+                    <input name="Amount" id="Amount" type="hidden" />
+                    <input name="OrderType" id="OrderType" type="hidden" />
+                    <input name="PaymentOrderId" id="PaymentOrderId" type="hidden" />
+                    <input name="Usage" id="Usage" type="hidden" />
+                    <input name="Timestamp" id="Timestamp" type="hidden" />
+                    <input name="EncryptString" id="EncryptString" type="hidden" />
+                    <input type="submit" id="btnchargeSubmit" />
+                </form>
+                @*<table class="table table-bordered">
+                        <thead>
+                            <tr><td colspan="3" style="background-color:#F5F5F5;">待审核充值列表</td></tr>
+                            <tr>
+                                <td style="width: 33%;font-weight: bold;">充值金额</td>
+                                <td style="width: 33%;font-weight: bold;">日期</td>
+                                <td style="width: 33%;font-weight: bold;">操作</td>
+                            </tr>
+                        </thead>
+                        <tbody id="zjAccounts" class="charging"></tbody>
+                        <tfoot style="background-color: whitesmoke;">
+                            <tr>
+                                <td colspan="3">
+                                    <div class="paginationlocal">
+                                    </div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>*@
+                <label style="text-align: left;" class="zjTips">
+                    <p>说明：</p>
+                    <p>1、100元小于等于单笔充值金额大于等于1000000元；</p>
+                    <p>2、充值金额需为正数，精确到小数点后两位；</p>
+                    <p>3、提交充值后，您将跳转至绑定账户网银中完成后续操作，请先插入制单员UKEY再进行提交。</p>
+                </label>
+            </div>
+
+
+            <form id="postForm" target="_blank" method="post">
+                <input id="message" name="message" type="hidden" />
+                <input id="signature" name="signature" type="hidden" />
+            </form>
+        }
+
+    </div>
+</div>
+
+@section scripts
+    {
+    <script src="~/js/layer/layer.js"></script>
+    <script>
+
+        var pageIndex = 1;
+        var pageSize = 6;
+
+        $(function () {
+            //loadCharging();
+        });
+
+       var queryChargings =
+            '@Url.Action(ActionName.CapitalManager.FindChargingList, ControllerName.CapitalManager)';
+       var ckChargePhone =
+            '@Url.Action(ActionName.CapitalManager.IsOpenPaymentPhone, ControllerName.CapitalManager)';
+        var AddChargeRecord =
+            '@Url.Action(ActionName.CapitalManager.AddChargeRecord, ControllerName.CapitalManager)';
+        var CencelChargeRecord =
+            '@Url.Action(ActionName.CapitalManager.CencelChargeRecord, ControllerName.CapitalManager)';
+
+
+        var postUrl = '@ViewBag.PostUrl";
+        var createChargeDataUrl = '@Url.Action(ActionName.CapitalManager.CreateChargeDataUrl, ControllerName.CapitalManager)';
+        function confirmchargePay() {
+            var isNumber = /^(?!(0[0-9]{0,}$))[0-9]{1,}[.]{0,}[0-9]{0,}$/;
+            var $orderAmount = $('#cashInput');
+            var inputAmount = new Number($orderAmount.val());
+            if (!isNumber.test($.trim($orderAmount.val())) || inputAmount <= 0) {
+                layer.alert('请输入合法的金额', {
+                    icon: 2,
+                    title: '系统提示',
+                    skin: 'layer-ext-moon',
+                });
+                return;
+            }
+            var amount = new Number(inputAmount * 100).toFixed(0);
+            layer.confirm('<table style="height:120px" class="table table-striped table-bordered table-hover payTipsTable"><tr><td colspan="2">请确认以下信息</td></tr><tr><td> '
+                + '充值金额（元）：</td><td> <lable class="payTips">' + fmoney(amount / 100, 2) + '</lable></td></tr><tr></table>', {
+                    title: '系统提示',
+                    btn: ['确认', '取消'],
+                    btnAlign: 'c',
+                    area: ['450px', '300px']
+                }, function () {
+                    layer.close(layer.index);
+                    $.easyui.loading({ msg: '正在处理，请稍等...' });
+                    $.ajax({
+                        url: createChargeDataUrl,
+                        async: true,
+                        data: { chargeAmount: $("#cashInput").val() },
+                        success: function (data) {
+                            if (data) {
+                                if (data.success && data.result) {
+                                    layer.close(layer.index);
+                                    $('#MemberId').val(data.result.MemberId);
+                                    $('#UserName').val(data.result.UserName);
+                                    $('#Amount').val(data.result.Amount);
+                                    $('#OrderType').val(data.result.OrderType);
+                                    $('#PaymentOrderId').val(data.result.PaymentOrderId);
+                                    $('#Usage').val(data.result.Usage);
+                                    $('#Timestamp').val(data.result.Timestamp);
+                                    $('#EncryptString').val(data.result.EncryptString);
+
+
+                                    layer.msg('正在提交数据，请稍等•••', { icon: 16, shade: 0.01 });
+                                    var postData = $("#chargeForm").serialize();
+                                    $.ajax({
+                                        async: true,
+                                        type: "post",
+                                        dataType: "json",
+                                        url: postUrl,
+                                        data: postData,
+                                        success: function (data) {
+                                            if (data) {
+                                                if (data.success) {
+                                                    if (data.result.Success) {
+                                                        layer.msg('正在提交数据，请稍等•••', { icon: 16, shade: 0.01 });
+                                                        var retUrl = data.result.ReturnData;
+                                                        var submitUrl = "";
+                                                        var key1 = "";
+                                                        var val1 = "";
+                                                        var key2 = "";
+                                                        var val2 = "";
+                                                        if (retUrl != "") {
+                                                            if (retUrl.indexOf("?") != -1) {
+                                                                submitUrl = retUrl.split("?")[0];
+                                                                var urlParam = retUrl.split("?")[1];
+                                                                var urlParamArry = urlParam.split("&");
+                                                                for (var i = 0; i < urlParamArry.length; i++) {
+                                                                    if (i == 0) {
+                                                                        val1 = urlParamArry[i].replace('message=', '');
+                                                                    }
+                                                                    if (i == 1) {
+                                                                        val2 = urlParamArry[i].replace('signature=', '');
+                                                                    }
+
+                                                                }
+
+                                                            }
+                                                        }
+                                                        if (submitUrl == "" || val1 == "" || val2 == "") {
+                                                            layer.alert("返回的跳转地址有误！", { icon: 1, offset: ['200px'], title: '系统提示', time: 3000 });
+                                                        }
+                                                        else {
+                                                            layer.confirm('是否确认跳转到第三方平台充值？', {
+                                                                btn: ['确定', '取消'] //按钮
+                                                            }, function (idx) {
+                                                                $('#message').val(val1);
+                                                                $('#signature').val(val2);
+                                                                $('#postForm').attr('action', submitUrl).submit();
+                                                                layer.close(idx);
+                                                                waitCharge($("#cashInput").val());
+                                                            });
+                                                        }
+
+                                                    } else {
+                                                        layer.alert(data.result.ErrorMessage, { icon: 2, offset: ['200px'], title: '系统提示' });
+                                                    }
+                                                }
+                                                else {
+                                                    layer.alert("充值失败。", { icon: 2, offset: ['200px'], title: '系统提示' });
+                                                }
+                                            }
+                                        },
+                                        complete: function () {
+                                            layer.closeAll('loading');
+                                        }
+                                    });
+
+                                                        } else {
+                                                            $.messager.alert(data.message, 'error');
+                                                        }
+                                                    }
+                                                },
+                                                complete: function (data) {
+                                                    $.easyui.loaded();
+                                                }
+                                            });
+                                        });
+
+        }
+
+        var bankInfoUrl = '@Url.Action(ActionName.BankAccount.BankInfo, ControllerName.BankAccount)';
+        function showBanks() {
+            showMaxDialog({ title: '绑定银行账户', href: bankInfoUrl });
+        }
+
+        var chargeFlowUrl = '@Url.Action(ActionName.CapitalManager.ChargeFlow, ControllerName.CapitalManager)';
+        function jumpChargeFlow() {
+            if (parent.close && parent.refreshSummary) {
+                parent.refreshSummary();
+                parent.showChargeFlow();
+                parent.close();
+            } else if (parent.parent.close && parent.parent.refreshSummary) {
+                parent.parent.refreshSummary();
+                parent.parent.showChargeFlow();
+                parent.parent.close();
+            } else {
+                showMaxDialog({ title: '充值流水', href: chargeFlowUrl });
+            }
+        }
+
+        var upChargeRecord = '@Url.Action(ActionName.CapitalManager.UpChargeRecord, ControllerName.CapitalManager)';
+        function waitCharge(chargeNumber) {
+            layer.msg('充值完成前，请不要关闭此页面！', {
+                time: 0,
+                icon: 0,
+                closeBtn: 0,
+                shade: 0.3,
+                btn: ['充值成功', '遇到问题'],
+                yes: function (index, layero) {
+                    $.ajax({
+                        url: upChargeRecord,
+                        type: "post",
+                        data: { chargeNumber: chargeNumber },
+                        success: function (result) {
+                            $('#cashInput').textbox('setValue', '');
+                            layer.close(index);
+                            jumpChargeFlow();
+                        },
+                        error: function (e) {
+                        }
+                    });
+                },
+                btn2: function (index, layero) {
+                    $.messager.alert('充值不成功，请联系客服 400-788-8586！', 'warning');
+                }
+            });
+        }
+
+        function showChargeFlow() {
+            showMaxDialog({ title: '充值记录', href: chargeFlowUrl });
+        }
+
+    </script>
+}

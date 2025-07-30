@@ -1,0 +1,37 @@
+﻿@model KC.Web.SSO.AccountViewModels.LoggedOutViewModel
+
+@{
+    ViewData["Title"] = "注销账户";
+    ViewData["signed-out"] = true;
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+}
+
+<div class="main">
+    <div class="text-center page-header logged-out" style="margin-top:120px">
+        <h1>
+            登出中<br />
+            <small>正在注销账户，注销完后自动跳转...</small>
+        </h1>
+
+        @if (Model.PostLogoutRedirectUri != null)
+        {
+            <div>
+                单击 <a class="PostLogoutRedirectUri" href="@Model.PostLogoutRedirectUri" style="color:dodgerblue">此处</a> 可以直接跳转
+                <span>鑫亚科技</span> 首页.
+            </div>
+        }
+
+        @if (Model.SignOutIframeUrl != null)
+        {
+            <iframe width="0" height="0" class="signout" src="@Model.SignOutIframeUrl"></iframe>
+        }
+    </div>
+</div>
+
+@section scripts
+{
+    @if (Model.AutomaticRedirectAfterSignOut)
+    {
+        <script src="~/js/signout-redirect.js"></script>
+    }
+}

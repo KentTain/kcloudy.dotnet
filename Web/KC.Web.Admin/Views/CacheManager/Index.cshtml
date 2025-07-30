@@ -1,0 +1,155 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Admin.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "缓存管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    @*缓存管理-删除单个缓存*@
+    var canremoveAtt = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "13AD5E0B-6588-4FEA-BCFD-57A4719791AA")).Succeeded)
+    {
+        canremoveAtt = true;
+    }
+}
+
+<div id="toolbar">
+    <div>
+        @*缓存管理-删除所有缓存*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "AD86A155-3777-4087-AB21-C8A0E22D383C")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" plain="true" onclick="removeAllCache()" style="margin-right: 5px">删除全部缓存</a>
+        }
+    </div>
+
+    <div>
+        <div id="divSearchMenu" class="easyui-menu" style="width:120px">
+            <div data-options="name:'Key',selected:true">缓存键值</div>
+            <div data-options="name:'Type'">缓存类型</div>
+        </div>
+        <input id="txtSearchbox" class="easyui-searchbox" style="width: 300px; height: 26px;" />
+        <a href="javascript:void(0)" onclick="RefreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+        var canremoveAtt = '@canremoveAtt' === 'True';;
+        $(function () {
+            InitDataGrid();
+        });
+
+        var loadDataUrl = '@Url.Action(ActionName.CacheManager.LoadCacheList, ControllerName.CacheManager)';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                itle: "缓存列表",
+                url: loadDataUrl,
+                method: 'get',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                showFooter: false,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                columns: [[
+                    { field: 'type', title: '类型', width: 100, align: 'left' },
+                    { field: 'key', title: '键值', width: 500, align: 'left' },
+                    { field: 'statisticOpera', title: '任务操作', width: 150, align: 'center',
+                        formatter: function (value, row, index) {
+                            if (canremoveAtt) {
+                                var tdContext = '<a href="##" class="btnRemoveModule" onclick="removeCache(\'' + row.Key + '\')">删除缓存</a>';
+                                return tdContext;
+                            }
+                            return null;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function(data) {
+                    $(".btnRemoveModule").linkbutton({ plain: true, iconCls: 'fa fa-trash' });
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                }
+            });
+
+            $('#txtSearchbox').searchbox({
+                menu: '#divSearchMenu',
+                prompt: '请输入查询值',
+                searcher: searchData
+            });
+        }
+
+        function RefreshSearch() {
+
+            $("#txtSearchbox").searchbox('setValue', '');
+            searchData('', '');
+        }
+        function searchData(value, name) {
+            $('#datagrid').datagrid('unselectAll');
+            $('#datagrid').datagrid('load', { "searchKey": name, "searchValue": value });
+        }
+
+        var removeUrl = '@Url.Action(ActionName.CacheManager.RemoveCache, ControllerName.CacheManager)';
+        function removeCache(k) {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('系统提示', '是否确定删除该缓存?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUrl, { key: k }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload'); // reload the user data
+                                    $.messager.showInfoTopCenter('系统提示', '缓存已成功移除。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '移除所有缓存失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                            $.easyui.loaded();
+                        }, 'json');
+                    }
+                });
+            }
+        }
+
+        var removeAllUrl = '@Url.Action(ActionName.CacheManager.RemoveAllCache, ControllerName.CacheManager)';
+        function removeAllCache() {
+            $.messager.confirm('系统提示', '是否确定删除该缓存?', function(r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeAllUrl, function(data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '所有缓存已成功移除。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '移除缓存失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+
+
+    </script>
+}
+

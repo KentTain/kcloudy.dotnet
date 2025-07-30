@@ -1,0 +1,453 @@
+﻿@using KC.Web.Portal.Constants
+@using KC.Framework.Extension
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@model KC.Service.DTO.Portal.CompanyAuthenticationDTO
+@{
+    ViewBag.Title = "会员认证信息";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+@section styles
+    {
+    <style>
+        .table-form > tbody > tr > td:nth-child(odd) {
+            width: 20% !important;
+        }
+
+        .table-form > tbody > tr > td:nth-child(even) {
+            width: 80% !important;
+        }
+    </style>
+}
+<div class="easyui-layout" style="width:99%;">
+    <form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.CompanyInfo.SaveComAuthentication, ControllerName.CompanyInfo, new { Area = "admin" })">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.IsEditMode)
+        @Html.HiddenFor(model => model.CompanyCode)
+        @Html.HiddenFor(model => model.CompanyName)
+        @Html.HiddenFor(model => model.IsDeleted)
+        @Html.HiddenFor(model => model.CreatedBy)
+        @Html.HiddenFor(model => model.CreatedName)
+        @Html.HiddenFor(model => model.CreatedDate)
+        @Html.HiddenFor(model => model.ModifiedBy)
+        @Html.HiddenFor(model => model.ModifiedName)
+        @Html.HiddenFor(model => model.ModifiedDate)
+        <table class="table table-bordered table-form tr-col2">
+            <tbody>
+                <tr>
+                    <td><label>企业名称：</label></td>
+                    <td>
+                        @Model.CompanyName
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required"></label><label for="AuditStatusString">认证状态：</label></td>
+                    <td>
+                        <input id="AuditStatusString" name="AuditStatusString" class="easyui-validatebox easyui-textbox"
+                               data-options="readonly:true,width:390"
+                               value="@(null != Model ? Model.StatusString : string.Empty)" />
+                    </td>
+                </tr>
+                <tr style="display:none;">
+                    <td><label class="required">*</label><label for="CompanyName">企业名称：</label></td>
+                    <td>
+                        <input id="CompanyName" name="CompanyName" class="easyui-validatebox easyui-textbox"
+                               placeholder="请输入企业全称"
+                               data-options="readonly:true,width:390,prompt:'请输入企业全称',"
+                               value="@(null != Model ? Model.CompanyName : string.Empty)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="RegisteredCapital">注册资本（万元）：</label></td>
+                    <td>
+                        <input id="RegisteredCapital" name="RegisteredCapital" class="easyui-validatebox easyui-textbox"
+                               data-options="width:390"
+                               value="@(null != Model ? Model.RegisteredCapital : 0)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="ScopeOfBusiness">经营范围：</label></td>
+                    <td>
+                        <input id="ScopeOfBusiness" name="ScopeOfBusiness" class="easyui-validatebox easyui-textbox"
+                               data-options="width:390,prompt:'请输入企业的经营范围'"
+                               value="@(null != Model ? Model.ScopeOfBusiness : string.Empty)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="ProvinceName">企业注册地址：</label></td>
+                    <td>
+                        @*@Html.DropDownList("ProvinceId", (IEnumerable<SelectListItem>)ViewBag.ProvinceList, new { @id = "ProvinceId", @class = "easyui-combobox", @style = "width: 110px;", @DropDownStyle = "DropDownList", @panelHeight = "auto" })*@
+                        <select id="ProvinceId" name="ProvinceId" class="easyui-combobox"
+                                data-options="width:130,editable:false,required:true,"
+                                asp-items="ViewBag.ProvinceList"></select>
+                        <select name="CityId" id="CityId" class="easyui-combobox" style="width: 110px;"></select>
+                        @Html.HiddenFor(m => m.ProvinceName)
+                        @Html.HiddenFor(m => m.CityName)
+                        <input id="CompanyAddress" name="CompanyAddress" class="easyui-validatebox easyui-textbox" data-options="width:200,prompt:'请输入详情地址'" value="@(null != Model ? Model.CompanyAddress : string.Empty)" />
+                    </td>
+                </tr>
+
+                <!--统一社会信用证-->
+                <tr>
+                    <td>
+                        <label class="required">*</label><label for="UnifiedSocialCreditCode">统一社会信用证或工商营业执照：</label><br />
+                        <label for="UnifiedSocialCreditCode">(加盖公章)</label>
+                    </td>
+                    <td>
+                        <input id="UnifiedSocialCreditCode" name="UnifiedSocialCreditCode" style="display:none"
+                               data-options="required:true,width:390,prompt:'请输入企业的统一社会信用证或工商营业执照'"
+                               value="@(null != Model ? Model.UnifiedSocialCreditCode : string.Empty)" />
+
+                        @Html.HiddenFor(model => model.UnifiedSocialCreditCodeScannPhoto)
+                        <div class="imageUploaderEditor">
+                            <div style="display: flex;height: 110px;">
+                                <div id="imageUploaderUnifiedSocialCreditCode">
+                                    <a href="javascript:void(0)">
+                                        <i class="fa fa-plus-square fa-5x"></i>
+                                    </a>
+                                </div>
+                                <div id="imageListUnifiedSocialCreditCode" class="webUploader-image-list">
+                                </div>
+                            </div>
+                            <label style="padding: 3px;">上传图片，文件个数：1个；文件格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，文件大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                            <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                        </div>
+                    </td>
+                </tr>
+
+                <!--企业授权书图片-->
+                <tr>
+                    <td><label class="required">*</label><label for="LetterOfAuthority">企业授权书：</label></td>
+                    <td>
+                        @*<input id="BusinessCode" name="BusinessCode" class="easyui-validatebox easyui-textbox" data-options="required:true,width:390,prompt:'请输入企业的工商营业执照'" value="@(null != Model ? Model.BusinessCode : string.Empty)" />*@
+
+                        @Html.HiddenFor(model => model.LetterOfAuthorityScannPhoto)
+                        <div class="imageUploaderEditor">
+                            <div style="display: flex;height: 110px;">
+                                <div id="imageUploaderLetterOfAuthorityScannPhoto">
+                                    <a href="javascript:void(0)">
+                                        <i class="fa fa-plus-square fa-5x"></i>
+                                    </a>
+                                </div>
+                                <div id="imageListLetterOfAuthorityScannPhoto" class="webUploader-image-list">
+                                </div>
+                            </div>
+                            <a href="~/files/企业授权书模板.docx" download="企业授权书模板">企业授权书模板</a>
+                            <label style="padding: 3px;">上传图片，文件个数：1个；文件格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，文件大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                            <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><label class="required">*</label><label for="LetterOfAuthority">企业相关资质：</label></td>
+                    <td>
+                        @*<input id="BusinessCode" name="BusinessCode" class="easyui-validatebox easyui-textbox" data-options="required:true,width:390,prompt:'请输入企业的工商营业执照'" value="@(null != Model ? Model.BusinessCode : string.Empty)" />*@
+
+                        @Html.HiddenFor(model => model.EnterpriseQualificationPhoto)
+                        <div class="imageUploaderEditor">
+                            <div style="display: flex;height: 110px;">
+                                <div id="imageUploaderEnterpriseQualificationPhoto">
+                                    <a href="javascript:void(0)">
+                                        <i class="fa fa-plus-square fa-5x"></i>
+                                    </a>
+                                </div>
+                                <div id="imageListEnterpriseQualificationPhoto" class="webUploader-image-list">
+                                </div>
+                            </div>
+                            <label style="padding: 3px;">上传图片，文件个数：1个；文件格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，文件大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                            <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                        </div>
+                    </td>
+                </tr>
+
+                <!--法人-->
+                <tr>
+                    <td><label class="required">*</label><label for="LegalPerson">法人姓名：</label></td>
+                    <td>
+                        <input id="LegalPerson" name="LegalPerson" class="easyui-validatebox easyui-textbox"
+                               data-options="required:true,width:390,prompt:'请输入法人姓名'"
+                               value="@(null != Model ? Model.LegalPerson : string.Empty)" />
+                    </td>
+                </tr>
+
+                <tr style="display:none">
+                    <td><label class="required">*</label><label for="LegalPersonIdentityCardNumber">法人身份证：</label></td>
+                    <td>
+                        @*<input id="LegalPersonIdentityCardNumber" name="LegalPersonIdentityCardNumber"
+                        data-options="required:true,width:390,validType: ['IDCard'],prompt:'请输入法人的18位法人身份证'"
+                        value="@(null != Model ? Model.LegalPersonIdentityCardNumber : string.Empty)" />*@
+                    </td>
+                </tr>
+
+                <!--法人身份证图片-->
+                <tr>
+                    <td>
+                        <label class="required"></label><label for="LegalPersonIdentityCardPhoto">法人身份证图片（正面）：</label><br />
+                        <label for="UnifiedSocialCreditCode">(加盖公章)</label>
+                    </td>
+                    <td>
+                        @Html.HiddenFor(model => model.LegalPersonIdentityCardPhoto)
+                        <div class="imageUploaderEditor">
+                            <div style="display: flex;height: 110px;">
+                                <div id="imageUploaderLegalPersonIdentityCardPhoto">
+                                    <a href="javascript:void(0)">
+                                        <i class="fa fa-plus-square fa-5x"></i>
+                                    </a>
+                                </div>
+                                <div id="imageListLegalPersonIdentityCardPhoto" class="webUploader-image-list">
+                                </div>
+                            </div>
+                            <label style="padding: 3px;">文件个数：1个；文件格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，文件大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                            <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <label class="required"></label><label for="LegalPersonIdentityCardPhotoOtherSide">法人身份证图片（背面）：</label><br />
+                        <label for="UnifiedSocialCreditCode">(加盖公章)</label>
+                    </td>
+                    <td>
+                        @Html.HiddenFor(model => model.LegalPersonIdentityCardPhotoOtherSide)
+                        <div class="imageUploaderEditor">
+                            <div style="display: flex;height: 110px;">
+                                <div id="imageUploaderLegalPersonIdentityCardPhotoOtherSide">
+                                    <a href="javascript:void(0)">
+                                        <i class="fa fa-plus-square fa-5x"></i>
+                                    </a>
+                                </div>
+                                <div id="imageListLegalPersonIdentityCardPhotoOtherSide" class="webUploader-image-list">
+                                </div>
+                            </div>
+                            <label style="padding: 3px;">文件个数：1个；文件格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，文件大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                            <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </form>
+</div>
+
+<div class="panel panel-htop" style="display: block;width: 150px;margin:10px 30px 0 0;position: fixed;right:0;top:0;">
+    <div class="panel-header" style="width: 150px;">
+        <div class="panel-title">认证消息</div>
+        <div class="panel-tool"></div>
+    </div>
+    <div class="easyui-panel panel-body" style="width: 150px;height: 128px;">
+        <p style="text-align:center">@Html.ValueFor(model => model.StatusString)</p>
+        <p>
+            @Html.Raw(Model.AuditComment)
+        </p>
+    </div>
+</div>
+
+<!--设备材料管理-保存设备材料管理-->
+@if ((await AuthorizationService.AuthorizeAsync(User, "AACCC04F-480F-4726-A32F-E3F4E5A7B5F4")).Succeeded)
+{
+    if (Model.Status != KC.Framework.Base.WorkflowBusStatus.Approved && Model.Status != KC.Framework.Base.WorkflowBusStatus.AuditPending)
+    {
+        <div style="height: 50px;"></div>
+        <div class="bottom">
+            <a href="javascript:void(0)" style="width:100px;height:30px" class="easyui-linkbutton" iconcls="fa fa-floppy-o" onclick="SaveForm()">保存</a>
+        </div>
+    }
+}
+@section scripts {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <!--组件初始化-->
+    <script type="text/javascript">
+
+    let unifiedSocialCreditCodeImageWebUploader = null;
+    let unifiedSocialCreditCodeImageBlobsJsonString = '@Model.UnifiedSocialCreditCodeScannPhoto';
+
+    let letterOfAuthorityImageWebUploader = null;
+    let letterOfAuthorityImageBlobsJsonString = '@Model.LetterOfAuthorityScannPhoto';
+
+    let enterpriseQualificationPhotoWebUploader = null;
+    let enterpriseQualificationPhotoPhotoJsonString = '@Model.EnterpriseQualificationPhoto';
+
+    let legalPersonIdentityCardPhotoImageWebUploader = null;
+    let legalPersonIdentityCardPhotoImageBlobsJsonString = '@Model.LegalPersonIdentityCardPhoto';
+    let legalPersonIdentityCardPhotoOtherSideImageWebUploader = null;
+    let legalPersonIdentityCardPhotoOtherSideImageBlobsJsonString = '@Model.LegalPersonIdentityCardPhotoOtherSide';
+
+    var fileSetting = {
+            fileNumLimit: 1,
+            postUrl: '@(ViewBag.DocWebApiDomain)Resources/Upload',
+            chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+            chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+            fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+            fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+            downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+            imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+            imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+            showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+            //isArchive：归档设置
+            //blobId：用于拷贝其他blob后，所使用新的blobId
+            params: { isArchive: true }
+        };
+    $(function () {
+        $('.textbox').bind('blur', function () {
+            $(this).validatebox('enableValidation').validatebox('validate');
+        });
+        //统一社会信用证或工商营业执照
+        unifiedSocialCreditCodeImageWebUploader = defaultInitImageUploader('UnifiedSocialCreditCodeScannPhoto', 'imageUploaderUnifiedSocialCreditCode', 'imageListUnifiedSocialCreditCode', fileSetting);
+
+        //企业授权书图片
+        letterOfAuthorityImageWebUploader = defaultInitImageUploader('LetterOfAuthorityScannPhoto', 'imageUploaderLetterOfAuthorityScannPhoto', 'imageListLetterOfAuthorityScannPhoto', fileSetting);
+
+        enterpriseQualificationPhotoWebUploader = defaultInitImageUploader('EnterpriseQualificationPhoto', 'imageUploaderEnterpriseQualificationPhoto', 'imageListEnterpriseQualificationPhoto', fileSetting);
+
+        //法人身份证图片（正面）
+        legalPersonIdentityCardPhotoImageWebUploader = defaultInitImageUploader('LegalPersonIdentityCardPhoto', 'imageUploaderLegalPersonIdentityCardPhoto', 'imageListLegalPersonIdentityCardPhoto', fileSetting);
+        //法人身份证图片（背面）
+        legalPersonIdentityCardPhotoOtherSideImageWebUploader = defaultInitImageUploader('LegalPersonIdentityCardPhotoOtherSide', 'imageUploaderLegalPersonIdentityCardPhotoOtherSide', 'imageListLegalPersonIdentityCardPhotoOtherSide', fileSetting);
+
+        if ($("#IsEditMode").val() == "True") {
+            $('.userName').attr('disabled', true);
+        }
+
+        queryCitys('@Model.ProvinceId', '@Model.CityId');
+    })
+
+    </script>
+    <!--选城市控件-->
+    <script>
+        function queryCitys(selectProvinceId, selectCityId) {
+            $("[name='ProvinceId']").validatebox({ required: true, missingMessage: "请选择省" });
+            $("[name='ProvinceId']").removeClass('validatebox-text');
+
+            $("#ProvinceId").combobox({
+                valueField: 'provinceId',
+                textField: 'name',
+                required: true,
+                editable: false,
+                onSelect: function (row) {
+                    //debugger;
+                    selectProvinceId = $.string.toInteger(row.provinceId);
+                    selectCityId = null;
+                    $("#CityId").val();
+                    $("#CityId").combobox('reload');
+                    $('#ProvinceName').val(row.name);
+                },
+                onLoadSuccess: function () { //默认选中第一条数据
+                    var data = $(this).combobox("getData");
+                    if (data.length > 0) {
+                        if (selectProvinceId) {
+                            $(this).combobox('select', selectProvinceId);
+                        } else {
+                            $(this).combobox('select', data[0].provinceId);
+                        }
+                    }
+                }
+            })
+
+            $("#CityId").combobox({
+                url: '/Admin/Home/LoadCityList',
+                valueField: 'id',
+                textField: 'name',
+                required: true,
+                editable: false,
+                loadFilter: function (data) {
+                    if (data.success && data.result) {
+                        if (selectProvinceId) {
+                            return data.result.filter(function (value, index, array) {
+                                return value.provinceId === selectProvinceId;
+                            });
+                        }
+                    }
+
+                    return [];
+                },
+                onSelect: function (row) {
+                    $('#CityName').val(row.name);
+                },
+                onLoadSuccess: function () { //默认选中第一条数据
+                    var data = $(this).combobox("getData");
+                    if (data.length > 0) {
+                        if (selectCityId) {
+                            $(this).combobox('select', selectCityId);
+                        } else {
+                            $(this).combobox('select', data[0].id);
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+    <!--相关事件-->
+    <script type="text/javascript">
+
+    const formId = '#saveform';
+    const saveFormUrl = '@Url.Action(ActionName.CompanyInfo.SaveComAuthentication, ControllerName.CompanyInfo, new { Area = "admin" })';
+    let SaveForm = function () {
+        let validate = $(formId).form("enableValidation").form("validate");
+        if (!validate) {
+            let errorMsg = '';
+            let invalidComps = $(formId).find(".validatebox-invalid");
+            $.each(invalidComps, function (i, invalidComp) {
+                errorMsg += 'id=' + invalidComp.id + ', ';
+            });
+            console.error("---验证失败的组件Id：" + errorMsg);
+            return;
+        }
+        debugger;
+        let postData = $(formId).form("getData");
+
+        //let jsonData = JSON.stringify(postData);
+        //console.log(jsonData);
+        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+        $.ajax({
+            //async: true,
+            url: saveFormUrl,
+            type: "post",
+            dataType: "json",
+            //contentType: "application/json;charset=UTF-8",
+            //data: jsonData,
+            contentType:"application/x-www-form-urlencoded;charset=UTF-8",
+            data: postData,
+            success: function (data) {
+                if (data.success) {
+                    if (data.result) {
+                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        MainPage_PostMessage("openSubPage", "/CompanyInfo/Authentication");
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message);
+                    }
+                } else {
+                    $.messager.showInfoTopCenter('系统提示', data.message);
+                }
+
+                $.easyui.loaded();
+            },
+            complete: function () {
+                $.easyui.loaded();
+            }
+        });
+    }
+
+    const existCompanyNameUrl = '@Url.Action(ActionName.CompanyInfo.ExistCompanyName, ControllerName.CompanyInfo, new { Area = "admin" })';
+    function existUserName(id) {
+        $.post(existCompanyNameUrl, { id: id, companyName: $("#CompanyName").val() }, function(data) {
+                if (data == "result") {
+                    $.messager.showInfoTopCenter('系统提示', '企业名【' + $("#CompanyName").val() + '】已存在,请重新输入。');
+                    $("#CompanyName").val("");
+                }
+                if (data == "result1") {
+                    $.messager.showInfoTopCenter('系统提示', '企业名【' + $("#CompanyName").val() + '】正在审批中,请重新输入。');
+                    $("#CompanyName").val("");
+                }
+            },
+            'json');
+    }
+
+    </script>
+}

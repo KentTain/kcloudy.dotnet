@@ -1,0 +1,300 @@
+﻿@using KC.Web.Constants
+@using KC.Framework.Tenant
+@using KC.Web.Workflow.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "流程任务中心";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--流程任务列表-流程版本详情-->
+    var canWfProcessTaskDetail = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "37C391F2-E65B-419D-B6BE-E2C74AF0C5B2")).Succeeded)
+    {
+        canWfProcessTaskDetail = true;
+    }
+    <!--流程任务列表-流程设计器-->
+    var canWorkflowDesigner = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "C3E245E2-50A4-48AB-A88B-F64BFCF03FC9")).Succeeded)
+    {
+        canWorkflowDesigner = true;
+    }
+}
+
+<div class="easyui-layout" style="width:100%;height:100%;">
+    <div data-options="region:'west',collapsible:false" style="width:380px;padding:2px">
+        <div id="toolbar">
+            <div>
+            </div>
+            <div>
+                <input id="txtSearchbox" class="easyui-textbox" data-options="prompt:'请输入流程分类名称'" style="width: 150px; height: 26px;" />
+                <a href="javascript:void(0)" onclick="reloadDgCategory()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshCategory()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="dgCategory"></table>
+    </div>
+    <div data-options="region:'center'" style="padding: 2px;">
+        <div id="toolbarWfProcessTask">
+            <div>
+                <a id="btnStatusAll" href="javascript:void(0)" onclick="statusOnChanged('')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-tasks',width:90,selected:true">所有任务 </a>
+                @*<a id="btnStatusUnProcee" href="javascript:void(0)" onclick="statusOnChanged('0')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-tasks',width:90">未办任务 </a>*@
+                <a id="btnStatusProcee" href="javascript:void(0)" onclick="statusOnChanged('1')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-tasks',width:90">待办任务</a>
+                <a id="btnStatusFinished" href="javascript:void(0)" onclick="statusOnChanged('2')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-tasks',width:100">已完成任务</a>
+                <a id="btnStatusBack" href="javascript:void(0)" onclick="statusOnChanged('3')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-tasks',width:90">退回任务</a>
+            </div>
+            <div>
+                <input id="nodeName" class="easyui-textbox" data-options="prompt:'请输入任务名称'" style="width:160px">
+                <input id="userName" class="easyui-textbox" data-options="prompt:'请输入执行人姓名'" style="width:160px">
+                <a href="javascript:void(0)" onclick="reloadDgWfProcessTask()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshDgWfProcessTask()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="dgWfProcessTask"></table>
+    </div>
+</div>
+@section scripts
+    {
+    <!--流程分类-->
+    <script type="text/javascript">
+        $.extend($.fn.validatebox.defaults.rules, {
+            repeatTreeCode: {
+                validator: function (value) {
+                    var reg = /^[0-9a-zA-Z]+$/;
+
+                    return reg.test(value);
+                },
+                message: '请输入有效的部门代码'
+            }
+        });
+
+        let selectCategoryId = 0;
+        let selectCategoryName;
+        let selectStatus = '@ViewBag.selectStatus';
+        $(function () {
+            if (selectStatus) {
+                switch (selectStatus) {
+                    case '0':
+                        $('#btnStatusUnProcee').linkbutton('select');
+                        break;
+                    case '1':
+                        $('#btnStatusProcee').linkbutton('select');
+                        break;
+                    case '2':
+                        $('#btnStatusFinished').linkbutton('select');
+                        break;
+                    case '3':
+                        $('#btnStatusBack').linkbutton('select');
+                        break;
+                    default:
+                        $('#btnStatusAll').linkbutton('select');
+                        break;
+                }
+            }
+
+            InitTreeCategory();
+
+            InitDgWfProcessTask();
+        });
+
+        const dgCategoryId = '#dgCategory';
+        const loadDataUrl = '@Url.Action(ActionName.WorkflowDefinition.LoadCategoryList, ControllerName.WorkflowDefinition)';
+        function InitTreeCategory() {
+            $(dgCategoryId).treegrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                toolbar: "#toolbar",
+                fit: true,
+                fitColumns: true,
+                striped: true,
+                nowrap: false,
+                lines: true,
+                rowNumbers: true,
+                singleSelect: true,
+                checkOnSelect: true,
+                showFooter: false,
+                columns: [
+                    [
+                        { field: 'id', title: '编号', width: 120, align: 'left', hidden: true },
+                        { field: 'text', title: '名称', width: 140, align: 'left' },
+                        //{ field: 'level', title: '层级', width: 100, align: 'left' },
+                        //{ field: 'index', title: '排序', width: 100, align: 'left' }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function (node, data) {
+                    CommonUtil.buttonStyle();
+                    $(dgCategoryId).treegrid('unselectAll');
+                    $(dgCategoryId).treegrid('expandAll');
+                    $(dgCategoryId).treegrid("fixRowHeight");
+
+                    //默认选中第一个节点
+                    if (data.length > 0) {
+                        selectCategoryId = data[0].id;
+                        $(dgCategoryId).treegrid("selectRow", 0);
+                    }
+                },
+                onLoadError: function() {
+                },
+                onSelect: function (row) {
+                    if (selectCategoryId == row.id) return;
+
+                    let id = row.id;
+                    selectCategoryId = row.id;
+                    selectCategoryName = row.text;
+                    if (id == -1) {
+                        $('#btnAddCategory').linkbutton('disable');
+                    } else {
+                        $('#btnAddCategory').linkbutton('enable');
+                    }
+
+                    let level = row.level;
+                    //未分配类型的消息
+                    if (id == -1)
+                        id = '';
+
+                    loadWfProcessTaskData();
+                }
+            });
+        }
+
+        function refreshCategory() {
+            $(dgCategoryId).datagrid('unselectAll');
+            $("#txtSearchbox").searchbox('setValue', '');
+            reloadDgCategory();
+        }
+        function reloadDgCategory() {
+            $(dgCategoryId).datagrid('unselectAll');
+            $(dgCategoryId).treegrid("load", {
+                name: $("#txtSearchbox").searchbox("getValue")
+            });
+        }
+    </script>
+
+    <!--流程任务列表-->
+    <script type="text/javascript">
+        const canWfProcessTaskDetail = '@canWfProcessTaskDetail' === 'True';
+        const canWorkflowDesigner = '@canWorkflowDesigner' === 'True';
+        const dgWfProcessTask = '#dgWfProcessTask';
+        const loadWfProcessTaskDataUrl = '@Url.Action(ActionName.WorkflowProcess.LoadWfProcessTaskList, ControllerName.WorkflowProcess)';
+        function InitDgWfProcessTask() {
+            var $dataGrid = $(dgWfProcessTask).datagrid({
+                url: loadWfProcessTaskDataUrl,
+                method: 'GET',
+                idField: 'id',
+                toolbar: "#toolbarWfProcessTask",
+                queryParams: {
+                    "categoryId": selectCategoryId,
+                    "status": selectStatus,
+                    "userName": $("#userName").textbox("getValue"),
+                    "nodeName": $('#nodeName').textbox("getValue")
+                },
+                fitColumns: true,
+                striped: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [[
+                    //{ field: 'processCode', title: '流程编码', width: 110, align: 'left' },
+                    //{ field: 'processVersion', title: '当前版本号', width: 110, align: 'left' },
+                    { field: 'code', title: '任务节点编码', width: 120, align: 'left' },
+                    { field: 'processName', title: '流程名称', width: 140, align: 'left' },
+                    { field: 'name', title: '任务节点名称', width: 140, align: 'left' },
+                    { field: 'taskStatusString', title: '任务状态', width: 60, align: 'left' },
+                    { field: 'operator', title: '操作', width: 90, align: 'left',
+                        formatter: function (value, row, index) {
+                            var processCode = row.processCode;
+                            var WfProcessTaskName = row.name;
+
+                            var tdContext = '';
+                            if (canWorkflowDesigner) {
+                                tdContext += '<a class="btnCard" style="cursor:pointer" onclick=openWfProcessTaskPage(\'' + processCode + '\',"WfTaskDetail")>查看任务</a>';
+                            }
+
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function(param) {
+                    /*var bId = $("#txtBId").val();
+                    var AllSearchKey = $("#txtAllSearchKey").val();
+                    param.bId = bId;
+                    param.AllSearchKey = AllSearchKey;*/
+                },
+                onLoadSuccess: function (data) {
+                    CommonUtil.buttonStyle();
+
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                }
+            });
+        }
+
+        let loadWfProcessTaskData = function () {
+            $.easyui.loading({ msg: '正在加载数据，请稍等...' });
+            $.ajax({
+                async: true,
+                type: "get",
+                url: loadWfProcessTaskDataUrl,//所有菜单
+                data: {
+                    "page": 1,
+                    "rows": 20,
+                    "status": selectStatus,
+                    "categoryId": selectCategoryId,
+                    "userName": $("#userName").textbox("getValue"),
+                    "nodeName": $('#nodeName').textbox("getValue")
+                },
+                success: function (result) {
+                    $.easyui.loaded();
+                    $(dgWfProcessTask).datagrid('loadData', result);
+                },
+                error: function () {
+                }
+            });
+        };
+
+        //状态选择
+        let statusOnChanged = function (status) {
+            if (selectStatus !== status) {
+                selectStatus = status;
+                reloadDgWfProcessTask();
+            }
+        }
+        function refreshDgWfProcessTask() {
+            $("#userName").textbox('setValue', '');
+            $('#nodeName').textbox("setValue", '');
+            $('#btnStatusAll').linkbutton('select');
+            selectStatus = '';
+            reloadDgWfProcessTask();
+        }
+        function reloadDgWfProcessTask() {
+            $(dgWfProcessTask).datagrid("reload", {
+                categoryId: selectCategoryId,
+                status: selectStatus,
+                userName: $("#userName").textbox("getValue"),
+                nodeName: $('#nodeName').textbox("getValue")
+            });
+        }
+
+        const getWorkflowTaskInfoUrl = '@Url.Action(ActionName.WorkflowProcess.WorkflowTaskInfo, ControllerName.WorkflowProcess)';
+        function openWfProcessTaskPage(processCode, type) {
+            var url = "";
+            var queryString = "code=" + processCode + "&categoryId=" + selectCategoryId;
+            if (type == "WfTaskDetail") {
+                url = getWorkflowTaskInfoUrl;
+            } 
+            MainPage_PostMessage("openPage", url, queryString);
+        }
+
+    </script>
+}
+

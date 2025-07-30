@@ -1,0 +1,202 @@
+﻿@using KC.Web.Doc.Constants
+@model KC.Service.DTO.Doc.DocTemplateDTO
+@{
+    Layout = null;
+}
+
+@using (Html.BeginForm(ActionName.DocTemplate.SaveDocTemplate, ControllerName.DocTemplate, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td>
+                    <div>
+                        <span for="Level">文档类型：</span>
+                    </div>
+                </td>
+                <td>
+                    @*https://docs.microsoft.com/en-us/aspnet/core/mvc/views/working-with-forms?view=aspnetcore-5.0#the-select-tag-helper*@
+                    <select id="Level" name="Level" class="easyui-combobox"
+                            data-options="width:280,editable: false, required:true,"
+                            asp-items="ViewBag.Level" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <label class="required">*</label>
+                        <span for="a">上传模板：</span>
+                    </div>
+                </td>
+                <td>
+                    @Html.HiddenFor(m => m.AttachmentBlob, new { @id = "AttachmentBlob" })
+                    <div class="fileUploaderEditor" style="display: flex;">
+                        <div id="fileList" class="webUploader-file-single"></div>
+                        <a id="fileUploader" href="javascript:void(0)" class="easyui-linkbutton"
+                           iconcls="fa fa-pencil">选择</a>
+                    </div>
+                    <label style="padding: 3px;">
+                        文档个数：1个；
+                        文档大小：@KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize M<br />
+                        文档格式：@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt
+                    </label>
+                </td>
+            </tr>
+            <tr style="display:none;">
+                <td>
+                    <div>
+                        <label class="required">*</label>
+                        <span for="Name">模板名称：</span>
+                    </div>
+                </td>
+                <td id="dia-name">
+                    @Html.TextBoxFor(m => m.Name, new
+                    {
+                        placeholder = "点击按钮上传文档!",
+                        @class = "easyui-textbox",
+                        @style = "width: 280px;height:30px;",
+                        type = "text",
+                        value = ""
+                    })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="UserNames">模板权限设置：</span>
+                        <a href="javascript:void(0)" onclick="selectUserForm(this)" class="easyui-linkbutton"
+                           data-options="iconCls:'fa fa-cog'">设置</a>
+                    </div>
+                </td>
+                <td>
+                    <div style="margin:5px 0;">
+                        @Html.HiddenFor(model => model.OrgCodes)
+                        <input id="OrgNames" name="OrgNames" value="@Model.OrgNames" class="easyui-textbox"
+                               data-options="width:280,prompt:'已选组织: ',readonly:true" />
+                    </div>
+                    <div style="margin:5px 0;">
+                        @Html.HiddenFor(model => model.RoleIds)
+                        <input id="RoleNames" name="RoleNames" value="@Model.RoleNames" class="easyui-textbox"
+                               data-options="width:280,prompt:'已选角色: ',readonly:true">
+                    </div>
+                    <div style="margin:5px 0;">
+                        @Html.HiddenFor(model => model.UserIds)
+                        <input id="UserNames" name="UserNames" value="@Model.UserNames" class="easyui-textbox"
+                               data-options="width:280,prompt:'已选用户: ',readonly:true" />
+                    </div>
+                    <div style="margin:5px 0;display:none;">
+                        @Html.HiddenFor(model => model.ExceptUserIds)
+                        <input id="ExceptUserNames" name="ExceptUserNames" value="@Model.ExceptUserNames"
+                               class="easyui-textbox" data-options="width:280,prompt:'排除用户: ',readonly:true" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="Comment">描述：</span>
+                    </div>
+                </td>
+                <td>
+                    <input id="Comment" name="Comment" class="easyui-textbox" style="width:280px;height: 80px"
+                           data-options="width:250,validType:['unSpace']" maxlength="50"
+                           value="@(null != Model ? Model.Comment : string.Empty)" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+
+<!--组件初始化-->
+<script>
+    $(function () {
+        var level = '@Model.LevelName';
+        $("#Level option").each(function (e, i) {
+            var val = $(this).text();
+            if (val == level) {
+                $("#Level").val($(this).val());
+                return;
+            }
+        });
+
+        $('#Level').combobox({ editable: false });
+
+        defaultInitFileUploader('AttachmentBlob', 'fileUploader', 'fileList', fileSetting, false,
+            function (blob) {
+                //debugger;
+                $('#Name').textbox('setValue', blob.blobName); 
+            }
+        );
+    });
+
+
+    var organization = null;
+    var roleId = '@KC.Framework.Tenant.RoleConstants.AdminRoleId';
+    function selectUserForm() {
+        organization = new OrganizationVM();
+
+        let selectOrgCodes = $.string.arrayFromCommaDelimitedStrings($('#OrgCodes').val());
+        let selectOrgNames = $.string.arrayFromCommaDelimitedStrings($('#OrgNames').textbox('getValue'));
+        let selectRoleIds = $.string.arrayFromCommaDelimitedStrings($('#RoleIds').val());
+        let selectRoleNames = $.string.arrayFromCommaDelimitedStrings($('#RoleNames').textbox('getValue'));
+        let selectUserIds = $.string.arrayFromCommaDelimitedStrings($('#UserIds').val());
+        let selectUserNames = $.string.arrayFromCommaDelimitedStrings($('#UserNames').textbox('getValue'));
+        let selectExceptUserIds = $.string.arrayFromCommaDelimitedStrings($('#ExceptUserIds').val());
+        let selectExceptUserNames = $.string.arrayFromCommaDelimitedStrings($('#ExceptUserNames').textbox('getValue'));
+        organization.InitializeData({
+            type: 7,                  //7(1+2+4): 组织+角色+用户
+            title: "权限设置",
+            orgIds: [],               //需要查询的组织Id列表
+            roleIds: [],             //需要查询的角色Id列表
+            exceptOrgIds: [],                   //需要排除的部门Id列表
+            exceptRoleIds: [],                  //需要排除的角色Id列表
+            selectOrgCodes: selectOrgCodes,         //已选中的组织Id列表
+            selectOrgNames: selectOrgNames,     //已选中的组织名称列表
+            selectRoleIds: selectRoleIds,       //已选中的角色Id列表
+            selectRoleNames: selectRoleNames,   //已选中的角色名称列表
+            selectUserIds: selectUserIds,       //已选中的人员Id列表
+            selectUserNames: selectUserNames,   //已选中的人员名称列表
+            selectExceptUserIds: selectExceptUserIds,
+            selectExceptUserNames: selectExceptUserNames,
+            isSingleSelect: false,
+            referenceId: null,
+            callback: function (data) {
+                //debugger;
+                let orgs = data.orgs;
+                let roles = data.roles;
+                let users = data.users;
+                let exceptUsers = data.exceptUsers;
+                let selOrgCodes = $.array.toCommaSeparatedStringByFilter(orgs, function (r) { return r.organizationCode; });
+                let selOrgNames = $.array.toCommaSeparatedStringByFilter(orgs, function (r) { return r.text; });
+                let selRoleIds = $.array.toCommaSeparatedStringByFilter(roles, function (r) { return r.roleId; });
+                let selRoleNames = $.array.toCommaSeparatedStringByFilter(roles, function (r) { return r.displayName; });
+                let selUserIds = $.array.toCommaSeparatedStringByFilter(users, function (r) { return r.userId; });
+                let selUserNames = $.array.toCommaSeparatedStringByFilter(users, function (r) { return r.displayName; });
+                let selExceptUserIds = $.array.toCommaSeparatedStringByFilter(exceptUsers, function (r) { return r.userId; });
+                let selExceptUserNames = $.array.toCommaSeparatedStringByFilter(exceptUsers, function (r) { return r.displayName; });
+                $('#OrgCodes').val(selOrgCodes);
+                $('#OrgNames').textbox('setValue', selOrgNames);
+                $('#RoleIds').val(selRoleIds);
+                $('#RoleNames').textbox('setValue', selRoleNames);
+                $('#UserIds').val(selUserIds);
+                $('#UserNames').textbox('setValue', selUserNames);
+                $('#ExceptUserIds').val(selExceptUserIds);
+                $('#ExceptUserNames').textbox('setValue', selExceptUserNames);
+            }
+        });
+    }
+</script>
+
+

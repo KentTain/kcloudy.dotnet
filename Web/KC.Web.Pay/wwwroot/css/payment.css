@@ -1,0 +1,334 @@
+body, button, input, select, textarea {
+    font: 12px/1.5 tahoma,arial,\5b8b\4f53;
+}
+
+ins, a {
+    text-decoration: none;
+}
+
+p {
+    display: block;
+    -webkit-margin-before: 0em;
+    -webkit-margin-after: 0em;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+}
+
+#header {
+    height: 100px;
+    background-color: #fff;
+    border-bottom: 1px solid #d9d9d9;
+    margin-top: 0px;
+}
+
+.header-container {
+    width: 950px;
+    margin: 0 auto;
+}
+
+#header .header-title {
+    width: 310px;
+    height: 83px;
+    float: left;
+}
+
+.alipay-logo {
+    display: block;
+    position: relative;
+    left: 0;
+    float: left;
+    background-position: 0 0;
+    background-repeat: no-repeat;
+}
+
+#header .logo-title {
+    font-size: 16px;
+    font-weight: normal;
+    font-family: "Microsoft YaHei",微软雅黑,"宋体";
+    color: #676d70;
+    height: 20px;
+    margin-top: 15px;
+    margin-left: 10px;
+    padding-top: 16px;
+    padding-left: 10px;
+    float: left;
+}
+
+.fn-clear:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+}
+
+#container {
+    width: 950px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+#order {
+    position: relative;
+    margin-top: 15px;
+}
+
+    #order.order-bow .orderDetail-base, #order.order-bow .ui-detail {
+        border-bottom: 3px solid #bbb;
+        background: #eff0f1;
+        color: #000;
+    }
+
+#J-orderDetail .first {
+    font-weight: 700;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 10px;
+    margin-top: 4px;
+}
+
+.od-more-cnt {
+    position: relative;
+    z-index: 1;
+    width: 685px;
+    line-height: 22px;
+    padding-bottom: 20px;
+    padding-left: 23px;
+}
+
+.order-detail-container {
+    width: 680px;
+    list-style: none;
+}
+
+.order-item table {
+    table-layout: fixed;
+    width: 680px;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+#J-orderDetail .ajax-Account th {
+    white-space: nowrap;
+}
+
+.sub-th {
+    width: 82px;
+}
+
+.order-item table td {
+    word-wrap: break-word;
+    font-size: 12px;
+}
+
+
+caption, th {
+    width: 66px;
+    font-size: 12px;
+}
+
+.payAmount-area {
+    bottom: 36px;
+}
+
+.payAmount-area {
+    position: absolute;
+    bottom: 32px;
+    right: 23px;
+    text-align: right;
+    z-index: 1;
+}
+
+    .payAmount-area .amount-font-22 {
+        font-size: 22px;
+        line-height: 22px;
+        color: #f60;
+    }
+
+.commodity-message-row .short-content {
+    max-width: 165px;
+    _width: 165px;
+}
+
+.commodity-message-row .second {
+    margin-left: 20px;
+    float: left;
+    margin-top: 1px;
+}
+
+#J-orderDetail .first {
+    font-weight: 700;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 10px;
+    margin-top: 4px;
+}
+
+.od-more-cnt {
+    position: relative;
+    z-index: 1;
+    width: 685px;
+    line-height: 22px;
+    padding-bottom: 20px;
+    padding-left: 23px;
+}
+
+#order.order-bow .orderDetail-base, #order.order-bow .ui-detail {
+    border-bottom: 3px solid #bbb;
+    background: #eff0f1;
+    color: #000;
+}
+
+#order.order-bow .orderDetail-base, #order.order-bow .ui-detail {
+    border-bottom: 3px solid #b3b3b3;
+}
+
+.login-title .rt-text {
+    font-size: 14px;
+}
+
+.login-title .rt-text {
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    color: #1589ca;
+}
+
+.order-ext-trigger {
+    position: absolute;
+    right: 20px;
+    bottom: 0;
+    height: 22px;
+    padding: 2px 8px 1px;
+    font-weight: 700;
+    border-top: 0;
+    background: #b3b3b3;
+    z-index: 100;
+    color: #fff;
+    cursor: pointer;
+}
+
+.wdauto {
+    width: auto;
+}
+
+.bdrt0 {
+    padding-right: 0;
+    border-right: 0;
+}
+
+.bianji_div {
+    width: 899px;
+    float: left;
+    padding: 20px;
+    border: 1px solid #b3b3b3;
+    text-align: center;
+    border-top: 3px solid #b3b3b3;
+    border-bottom: 3px solid #b3b3b3;
+    padding-top: 20px;
+    padding-bottom: 80px;
+    margin-bottom: 150px;
+}
+
+.input_ul {
+    float: left;
+    margin-left: 90px;
+}
+
+ul, ol, li, submit {
+    list-style: none;
+    border: none;
+}
+
+.input_ul li {
+    margin: 10px;
+    clear: both;
+    float: left;
+    width: 100%;
+}
+
+.shouhuo_li_div li div {
+    width: 116px;
+}
+
+.input_ul li div {
+    float: left;
+    width: 164px;
+    text-align: right;
+    line-height: 34px;
+    color: #666666;
+}
+
+.input_ul li p {
+    display: inline;
+}
+
+p {
+    cursor: default;
+}
+
+.input_ul li input {
+    display: inline;
+    padding: 7px;
+    outline: none;
+    width: 290px;
+    margin-left: 30px;
+    color: #666666;
+    float: left;
+    text-align: left;
+    font-size: 14px;
+    border: 1px solid #b3b3b3;
+}
+
+.btwp_div2 {
+    width: 337px;
+    display: block;
+    padding-top: 20px;
+    margin-left: 335px;
+    float: left;
+}
+
+.bt_red_bg {
+    background: #ff4444;
+    display: inline;
+    padding: 7px 0;
+    outline: none;
+    border: 1px solid #ff4444;
+    width: 290px;
+    color: #ffffff;
+    float: left;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.ph_num {
+    float: left;
+    line-height: 34px;
+    text-indent: 38px;
+    font-size: 19px;
+    color: #b3b3b3;
+}
+
+#yzm {
+    background: #ff4444;
+    text-align: center;
+    width: 100px;
+    float: right;
+    margin-right: 20px;
+    color: white;
+    cursor: pointer;
+}
+
+.num_p {
+    font-size: 36px;
+    color: #ff4444;
+}
+
+.yuan_p {
+    color: #666;
+    font-size: 18px;
+}

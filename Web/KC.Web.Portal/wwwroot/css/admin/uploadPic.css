@@ -1,0 +1,137 @@
+﻿
+#uploadedFileList li, .uploadPicList li {
+    float: left;
+    width: 113px;
+    height: 136px;
+    margin: 5px 22px
+}
+
+#uploadedFileList, .uploadPicList {
+    overflow: hidden
+}
+
+.picimg {
+    width: 113px;
+    height: 113px;
+    border: 1px solid #bfbfbf;
+    position: relative
+}
+
+.pictitle {
+    color: #333;
+    font-size: 12px;
+    line-height: 28px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.trash {
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: none;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    overflow: hidden
+}
+
+    .trash a.del {
+        display: block;
+        float: left;
+        width: 16px;
+        height: 16px;
+        z-index: 10;
+        position: absolute
+    }
+
+.picbot {
+    background: #f0f0ee;
+    height: 70px;
+    position: absolute;
+    bottom: 1px;
+    left: 1px;
+    width: 100%;
+    padding: 14px 0;
+    display: none
+}
+
+.addPic {
+    position: relative;
+    background: url(/images/addPic.png) no-repeat;
+    width: 100px;
+    height: 100px;
+    cursor: pointer
+}
+
+    .addPic .webuploader-pick {
+        background: 0 0;
+        height: 100px;
+        width: 100px
+    }
+
+#continueAddFile .webuploader-pick {
+    width: 100%;
+    height: 100%;
+    padding: 0
+}
+
+#continueAddFile_disabled {
+    display: none;
+    background: #999;
+    border-radius: 3px
+}
+
+.picimg .progress {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    margin: 0;
+    border-radius: 0
+}
+
+.picbot .upbtn {
+    border: 0;
+    width: 115px;
+    height: 42px;
+    float: left;
+    color: #fff;
+    font-size: 16px;
+    text-align: center;
+    margin-left: 37px;
+    display: inline;
+    line-height: 42px
+}
+
+.picbot .picprompt {
+    float: left;
+    color: #999;
+    font-size: 12px;
+    margin-left: 30px;
+    line-height: 20px
+}
+.trash {
+    position: absolute;
+    display: none;
+    top: 0;
+    height: 30px;
+    width: 100%;
+    background: rgba(0,0,0,.5);
+    z-index: 300;
+    overflow: hidden;
+    line-height: 30px;
+    text-align: right;
+    right: 0px;
+}
+
+    .trash a.del {
+        width: 16px;
+        height: 18px;
+        margin-left: 92px;
+        background: url(/css/images/icons.png) -48px -24px no-repeat;
+        margin-top: 5px;
+        margin-right: 5px;
+    }

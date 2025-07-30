@@ -1,0 +1,341 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Doc.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "文件模板管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--文件模板管理-保存文件模板-->
+    var canSaveDocument = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "473B720E-2E8B-402D-80FF-271C4D3F52FB")).Succeeded)
+    {
+        canSaveDocument = true;
+    }
+    <!--文件模板管理-删除文件模板-->
+    var canRemoveDocument = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "6EBC4456-AECB-41AE-B17A-B9B666D13CF2")).Succeeded)
+    {
+        canRemoveDocument = true;
+    }
+    <!--文件模板管理-文件模板外发-->
+    var canSendDocument = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "DB4A5E79-3DFD-42F3-A73E-14108FCE040C")).Succeeded)
+    {
+        canSendDocument = true;
+    }
+    <!--文件模板管理-文件模板下载-->
+    var canDownloadDocument = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "23A6964A-9B2D-4322-BC6A-EC8076E3CC14")).Succeeded)
+    {
+        canDownloadDocument = true;
+    }
+}
+
+<div id="toolbar">
+    <div>
+        <!--文件模板管理-保存文件模板-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "473B720E-2E8B-402D-80FF-271C4D3F52FB")).Succeeded)
+        {
+            <a href="#" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDocument(0)">新增</a>
+        }
+        <!--文件模板管理-文件模板外发-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "DB4A5E79-3DFD-42F3-A73E-14108FCE040C")).Succeeded)
+        {
+            <a href="#" class="easyui-linkbutton" iconcls="fa fa-envelope" onclick="SendEmail()">发送邮件</a>
+        }
+    </div>
+
+    <div>
+        <lable>审批状态：</lable>
+        @Html.DropDownList("Status", (IEnumerable<SelectListItem>)ViewBag.StatusList, new Dictionary<string, object>
+        {
+            { "class","easyui-combobox" },
+            { "id", "Status" },
+            { "data-options","editable: false, required:true" },
+            { "panelHeight","auto" },
+            { "style", "width:120px" }
+        })
+        <input id="searchbox" class="easyui-textbox" data-options="prompt:'请输入名称'">
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+
+@section styles{
+    @*<link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.css" rel="stylesheet" />*@
+    <style>
+        .reviewDiv {
+            padding-top: 50px;
+        }
+
+        .datagrid-row-selected {
+            background: #00bbee;
+            color: #fff;
+        }
+    </style>
+}
+
+@section scripts{
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <script type="text/javascript">
+        let fileSetting = {
+            fileNumLimit: 1,
+            postUrl: '@(ViewBag.DocWebApiDomain)Resources/UploadFileToTemp',
+            chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+            chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+            fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+            fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+            downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+            imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+            imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+            showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+            //isArchive：归档设置
+            //blobId：用于拷贝其他blob后，所使用新的blobId
+            params: { isArchive: false }
+        };
+        $(document).ready(function () {
+            InitDataGrid();
+        });
+
+        //查询
+        function reloadDatagrid() {
+            $("#datagrid").datagrid("reload", {
+                cateid: null,
+                name: $("#searchbox").searchbox("getValue"),
+                status: $('#Status').combobox("getValue")
+            });
+        }
+        //刷新
+        function refreshSearch() {
+            $("#Status").combobox('setValue', '');
+            $("#searchbox").searchbox('setValue', '');
+            reloadDatagrid();
+        }
+
+        //文件模板
+        const canSaveDocument = '@canSaveDocument' === 'True';
+        const canRemoveDocument = '@canRemoveDocument' === 'True';
+        const canDownloadDocument = '@canDownloadDocument' === 'True';
+        const loadReviewInfoUrl = '@Url.Action(ActionName.DocTemplate.FindDocTemplates, ControllerName.DocTemplate)';
+        function InitDataGrid() {
+            var $dataGrid = $("#datagrid");
+            $dataGrid.datagrid({
+                url: loadReviewInfoUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                showFooter: false,
+                columns: [[
+                    { field: 'name', title: '文件模板名称', width: 260, align: 'left'},
+                    { field: 'levelName', title: '文件模板类型', width: 80, align: 'left' },
+                    { field: 'statusName', title: '状态', width: 80, align: 'left' },
+                    { field: 'comment', title: '描述', width: 180, align: 'left' },
+                    { field: 'modifiedDate', title: '修改时间', width: 100, align: 'left', formatter: FormatterUtil.DateFormatter },
+                    { field: 'createdName', title: '创建人', width: 100, align: 'left' },
+                    {
+                        field: 'operator', title: '任务操作', width: 160, align: 'center', formatter: function (value, row, index) {
+                            let attachmentBlobId = row.attachmentBlobId;
+                            let tdContext = '';
+                            if (canDownloadDocument)
+                                tdContext += '<a href="##" class="btnDownload" style="cursor:pointer" onclick="Preview(\'' + row.id + '\')">预览</a>';
+                            if (canSaveDocument)
+                                tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openForm(\'' + row.id + '\')">编辑</a>';
+                            if (canRemoveDocument)
+                                tdContext += '<a href="##" class="btnDelete" style="cursor:pointer" onclick="removeDocument(\'' + attachmentBlobId + '\')">删除</a>';
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    CommonUtil.buttonStyle();
+                    $dataGrid.datagrid('unselectAll');
+                    $dataGrid.datagrid('clearSelections');
+                    //$('.operationDetail').linkbutton({
+                    //    iconCls: 'icon-search'
+                    //});
+                },
+                onClickRow: function (row) {
+                    var rows = $dataGrid.datagrid('getSelections');
+                    if (rows.length > 1) {
+                        $("#btnEdit").linkbutton('disable');
+                        $("#btnPre").linkbutton('disable');
+                        $("#btnEdit").tooltip({
+                            position: 'right',
+                            content: '<span style="color:#fff">只适用于选中单条数据进行编辑</span>',
+                            onShow: function () {
+                                $(this).tooltip('tip').css({
+                                    backgroundColor: 'rgb(255, 126, 0)',
+                                    borderColor: 'rgb(255, 126, 0)'
+                                });
+                            }
+                        });
+                    } else {
+                        $("#btnEdit").linkbutton('enable');
+                        $("#btnPre").linkbutton('enable');
+                        $("#btnEdit").tooltip('destroy');
+                    }
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+
+        var title = "";
+        //添加/编辑文件模板
+        function addDocument(k) {
+            if (k == 0) {
+                openForm(0);
+            }
+            if (k == 1) {
+                var row = $('#datagrid').datagrid('getSelections');
+                if (row.length != 1) {
+                    $.messager.showErrorTopCenter("错误", "请选择需要编辑的一条数据。");
+                } else {
+                     var c = row[0].createdBy;
+                    openForm(row[0].id);
+                }
+            }
+        }
+
+        //右侧文件模板数据
+        const getReviewUrl = '@Url.Action(ActionName.DocTemplate.GetDocTemplateForm, ControllerName.DocTemplate)';
+        const editReviewUrl = '@Url.Action(ActionName.DocTemplate.SaveDocTemplate, ControllerName.DocTemplate)';
+        function openForm(id) {
+            var dialogf = $.easyui.showDialog({
+                title: id > 0 ? '编辑文件模板信息' : '新增文件模板信息',
+                width: 550,
+                height: 450,
+                modal: true,
+                topMost: false,
+                href: getReviewUrl + "?id=" + id,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                pagination: true,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (!validate) {
+                        let errorMsg = '';
+                        let invalidComps = d.find(".validatebox-invalid");
+                        $.each(invalidComps, function (i, invalidComp) {
+                            errorMsg += 'id=' + invalidComp.id + ', ';
+                        });
+                        console.error("---验证失败的组件Id：" + errorMsg);
+                        return;
+                    }
+                    var postData = AddAntiForgeryToken(d.form("getData"));
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        dataType: "json",
+                        url: editReviewUrl + "?cateId=" + postData.docCategoryId,
+                        data: postData,
+                        success: function (data) {
+                            if (data.success) {
+                                d.window('close');
+                                $.messager.showInfoTopCenter("提示", "保存成功。", 1500);
+                                $('#datagrid').datagrid('reload');
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                },
+                onLoad: function () {
+                },
+                onClose: function () {
+                }
+            });
+        }
+
+        //发邮件
+        var emailResult = false;
+        var emailForm = '@Url.Action(ActionName.DocTemplate.GetSendEmailForm, ControllerName.DocTemplate)';
+        var blobIds;
+        var emailDialog;
+        var rows;
+        var $Infos;
+        function SendEmail() {
+            $Infos = new Array();
+            rows = $('#datagrid').datagrid('getSelections');
+            var len = rows.length;
+            if (len > 0) {
+                if (len == 1) {
+                    blobIds = rows[0].attachmentBlobId
+                    $Infos.push({ "AttachmentBlobId": rows[0].attachmentBlobId, "Name": rows[0].name });
+                }
+                else
+                {
+                    for (var i = 0; i < len; i++) {
+                        $Infos.push({ "AttachmentBlobId": rows[i].attachmentBlobId, "Name": rows[i].name });
+                    }
+                }
+                emailDialog = $("<div></div>").dialog({
+                    title: '邮箱填写',
+                    width: 420,
+                    height: 163,
+                    modal: true,
+                    topMost: false,
+                    href: emailForm,
+                    enableHeaderContextMenu: false,
+                    enableApplyButton: false,
+                    pagination: true,
+                    onLoad: function () {
+                    },
+                    onClose: function () {
+                        if (emailResult) {
+                        }
+                        emailResult = false;
+                        $(this).dialog('destroy');
+                    }
+                });
+            }
+            else {
+                $.messager.showErrorTopCenter("系统提示", "请选择要发送的文件模板。");
+            }
+        }
+
+        //删除文件模板（右侧）
+        const deleteReviewUrl = '@Url.Action(ActionName.DocTemplate.DeleteDocTemplate, ControllerName.DocTemplate)';
+        function removeDocument(id) {
+            $.messager.confirm('是否确定删除该条记录？', function (r) {
+                if (r) {
+                    $.post(deleteReviewUrl, { sid: id }, function (result) {
+                        if (result.success) {
+                            $.messager.showInfoTopCenter("提示", "删除成功。", 1500);
+                            $('#datagrid').datagrid('reload');
+                        } else {
+                            $.messager.showErrorTopCenter('错误', result.message);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+        //下载
+        const preUrl = '@Url.Action(ActionName.DocTemplate.DownloadDocTemplate, ControllerName.DocTemplate)';
+        function Preview(attachmentBlobId) {
+            window.location.href = preUrl + '?blobId=' + attachmentBlobId;
+        }
+
+    </script>
+}

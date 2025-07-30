@@ -1,0 +1,35 @@
+﻿@using KC.Web.Customer.Constants
+@using KC.Web.Extension
+@model KC.Service.DTO.Customer.CustomerTracingLogDTO
+
+<style>
+    .easyui-form table tr td:first-child {
+        text-align: left
+    }
+</style>
+
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform" action="@Url.Action(ActionName.CustomerInfo.SaveCustomerContactForm, ControllerName.CustomerInfo)">
+    <div id="activitytoolbar" style="padding:5px;height:auto">
+        <div id="activityDivSearchMenu" class="easyui-menu" style="width:120px">
+            <div data-options="name:'CustomerActivityName',selected:true">活动名</div>
+        </div>
+        <input id="activityTxtSearchbox" class="easyui-searchbox" style="width:300px" />
+    </div>
+    <table style="height: 150px" id="activityDatagrid" data-options=" iconCls: 'icon-standard-text-list-bullets'"></table>
+    <table class="dialog-form-table">
+        <tbody>
+            
+            <tr>
+                <td style="width:100%;"><textarea id="Remark" name="Remark" type="text" data-options="required:true,validType:'length[2,2000]'">@(null != Model ? Model.Remark : "")</textarea></td>
+            </tr>
+        </tbody>
+    </table>
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.CustomerId)
+    @Html.HiddenFor(model => model.CustomerName)
+    @Html.HiddenFor(model => model.ProcessLogId)
+    @Html.HiddenFor(model => model.OperatorId)
+</form>
+
+
+

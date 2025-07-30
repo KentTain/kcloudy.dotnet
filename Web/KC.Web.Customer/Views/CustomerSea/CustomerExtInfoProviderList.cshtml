@@ -1,0 +1,229 @@
+﻿@using KC.Web.Customer.Constants
+@using KC.Web.Extension
+
+@{
+    ViewBag.Title = "附加信息模板";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+<div id="toolbar">
+    <div>
+        <!--配置管理-保存配置-->
+        @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDatabasePool()">添加</a>
+        }
+        <!--配置管理-保存配置-->
+        @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editDatabasePool()">编辑</a>
+        }
+        <!--配置管理-删除配置-->
+        @*@if ((await AuthorizationService.AuthorizeAsync(User, "51DE1887-5C57-4C17-984D-F23456499652")).Succeeded)*@
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeDatabasePool()">删除</a>
+        }
+    </div>
+
+    <div>
+        <input type="hidden" id="searchKey" value="" />
+        <input type="hidden" id="searchValue" value="" />
+        <div id="divSearchMenu" class="easyui-menu" style="width:120px">
+            <div data-options="name:'Name',selected:true">属性名称</div>
+            <div data-options="name:'ModifiedBy'">修改人</div>
+        </div>
+        <input id="txtSearchbox" class="easyui-searchbox" style="width:300px" />
+        <a href="javascript:void(0)" onclick="RefreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        var id = 0;
+
+        $(function () {
+            InitDataGrid();
+        });
+
+
+        var loadDataUrl = '@Url.Action(ActionName.CustomerSea.LoadCustomerExtInfoProviderList, ControllerName.CustomerSea)';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'propertyAttributeId',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                columns: [[
+                    { field: 'propertyAttributeId', title: 'Id', width: 100, align: 'left' },
+                    { field: 'dataType', title: '数据类型', width: 100, align: 'left', formatter: TransTypetoString },
+                    { field: 'name', title: '属性名称', width: 100, align: 'left' },
+                    { field: 'isRequiredStr', title: '是否必填', width: 100, align: 'left' },
+                    { field: 'value', title: '值', width: 150, align: 'left' },
+                    { field: 'modifiedBy', title: '最后修改人', width: 100, align: 'left' },
+                    { field: 'modifiedDate', title: '最后修改时间', width: 100, align: 'left', formatter: FormatterUtil.DateFormatter }
+                ]],
+                onBeforeLoad: function (param) {
+
+                },
+                onLoadSuccess: function (data) {
+
+                },
+                onLoadError: function () {
+                },
+                detailFormatter: function (index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                }
+            });
+
+            $('#txtSearchbox').searchbox({
+                menu: '#divSearchMenu',
+                prompt: '请输入查询值',
+                searcher: searchData
+            });
+        }
+
+        function TransTypetoString(data) {
+            switch (data) {
+                case 0:
+                    return '字符串';
+                case 1:
+                    return '布尔型';
+                case 2:
+                    return '整型';
+                case 3:
+                    return '数值型';
+                case 4:
+                    return '金额';
+                case 5:
+                    return '日期型';
+                case 6:
+                    return '文本型';
+                default:
+                    return '其他';
+            }
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.CustomerSea.CustomerExtInfoProviderForm, ControllerName.CustomerSea)';
+        var saveFormUrl = '@Url.Action(ActionName.CustomerSea.SaveCustomerExtInfoProviderForm, ControllerName.CustomerSea)';
+        function opentForm(id, title) {
+            var result = false;
+            var dialog = $.easyui.showDialog({
+                title: title,
+                width: 500,
+                height: 400,
+                href: getFormUrl + "?propertyAttributeId=" + id,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function (data) {
+                                if (data.success) {
+                                    result = true;
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#datagrid').datagrid('clearSelections');
+                                        $('#datagrid').datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function () {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onBeforeClose: function () {
+                    if (!result) {
+                        $.messager.confirm("系统提示", "你确定要关闭窗口吗?",
+                            function (r) {
+                                if (r) {
+                                    result = true;
+                                    dialog.dialog("close", true);
+                                }
+                            });
+                    }
+                    return result;
+                },
+                onLoad: function () {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+        function searchData(value, name) {
+            $('#datagrid').datagrid('unselectAll');
+            $("#searchKey").val(name);
+            $("#searchValue").val(value);
+            $('#datagrid').datagrid('load', { "searchKey": name, "searchValue": value });
+        }
+
+        function addDatabasePool() {
+            opentForm(0,"新增模版");
+        }
+        function editDatabasePool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                opentForm(row.propertyAttributeId,"编辑模版");
+            } else {
+                $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行编辑！', 2000);
+            }
+        }
+
+        var removeUrl = '@Url.Action(ActionName.CustomerSea.RemoveCustomerExtInfoProvider, ControllerName.CustomerSea)';
+        function removeDatabasePool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('系统提示', '是否确定删除该条记录?', function (r) {
+                    if (r) {
+                        $.post(removeUrl, { propertyAttributeId: row.propertyAttributeId }, function (data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        }, 'json');
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter('错误消息', '请选择至少一条记录进行删除！', 2000);
+            }
+        }
+    </script>
+}
+

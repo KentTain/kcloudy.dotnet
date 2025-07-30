@@ -1,0 +1,39 @@
+﻿
+@{
+    ViewData["Title"] = "未授权";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Layout = null;
+}
+<link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+<style>
+    .center {
+        margin: 0;
+        width: 300px;
+        height: 100%;
+        position: absolute;
+        left: 50%;
+        margin-left: -150px;
+        /*border: 3px solid green;*/
+    }
+        .center .fa {
+            margin-top: -40px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+        .center p {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+</style>
+<div class="center">
+    <p>401: 未授权</p>
+    <i class="fa fa-lock  fa-5x"></i>
+</div>

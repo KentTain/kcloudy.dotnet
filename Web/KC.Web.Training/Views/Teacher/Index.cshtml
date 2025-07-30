@@ -1,0 +1,209 @@
+﻿
+@using KC.Web.Training.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "ID生成配置管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+<div id="toolbar">
+    <div>
+        <!--ID生成管理-保存ID生成配置-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "8AC77361-DD8B-4AF1-9AA8-A8C3518168BF")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addSysSequence()">添加</a>
+        }
+        <!--ID生成管理-保存ID生成配置-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "8AC77361-DD8B-4AF1-9AA8-A8C3518168BF")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editSysSequence()">编辑</a>
+        }
+        <!--ID生成管理-删除ID生成配置-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "17D6B1DA-4C72-4668-95CD-5380DAC38E16")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeSysSequence()">删除</a>
+        }
+    </div>
+
+    <div>
+        <div id="divSearchMenu" class="easyui-menu" style="width:120px">
+            <div data-options="name:'Key',selected:true">ID生成配置代码</div>
+        </div>
+        <input id="txtSearchbox" class="easyui-searchbox" style="width: 300px; height: 26px;" />
+        <a href="javascript:void(0)" onclick="RefreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+        //类型下拉菜单
+        $(function() {
+            IniDataGrid();
+
+        });
+
+        function RefreshSearch() {
+            $("#searchbox").searchbox('setValue', '');
+            reloadDatagrid();
+        }
+        function reloadDatagrid() {
+            $("#datagrid").datagrid("load", {
+                name: $("#searchbox").searchbox("getValue"),
+            });
+        }
+
+        //主表
+        var ddv;
+        var Addclass;
+        var loadDataUrl = '@Url.Action(ActionName.SysSequence.LoadSysSequenceList, ControllerName.SysSequence)';
+        function IniDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'SequenceName',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [20, 50, 100],
+                showFooter: false,
+                columns: [
+                    [
+                        { field: 'SequenceName', title: 'ID生成配置代码', width: 120, align: 'left' },
+                        { field: 'PreFixString', title: '前缀', width: 80, align: 'left' },
+                        { field: 'PostFixString', title: '后缀', width: 80, align: 'left' },
+                        { field: 'CurrentValue', title: '当前值', width: 60, align: 'left' },
+                        { field: 'InitValue', title: '初试值', width: 60, align: 'left' },
+                        { field: 'MaxValue', title: '最大值', width: 100, align: 'left' },
+                        { field: 'StepValue', title: '步长', width: 60, align: 'left' },
+                        { field: 'CurrDate', title: '当前时间', width: 120, align: 'left' },
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    $(".btnAddModule").linkbutton({ plain: true, iconCls: 'fa fa-plus' });
+                },
+                onLoadError: function(data) {
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                },
+            });
+
+            $('#txtSearchbox').searchbox({
+                menu: '#divSearchMenu',
+                prompt: '请输入查询值',
+                searcher: searchData
+            });
+        }
+
+        function searchData(value, name) {
+            $('#datagrid').datagrid('unselectAll');
+            reloadDatagrid();
+        }
+
+        function addSysSequence() {
+            openForm('');
+        }
+        function editSysSequence() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                openForm(row.SequenceName);
+            } else {
+                $.messager.showErrorTopCenter('系统提示', "请选择需要编辑的数据");
+            }
+        }
+
+        function addPropertyButton(value, row, index) {
+            var tdContext = '';
+                tdContext += '<a href="##" class="btnAddModule easyui-linkbutton c1" onclick="openPropertyForm(\'' + 0 + '\',\'' + row.ConfigId + '\')">添加配置属性</a>';
+            return tdContext;
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.SysSequence.GetSysSequenceForm, ControllerName.SysSequence)';
+        var saveFormUrl = '@Url.Action(ActionName.SysSequence.SaveSysSequence, ControllerName.SysSequence)';
+        function openForm(id) {
+            var dialog = $.easyui.showDialog({
+                title: id == "" ? "添加配置" : "编辑配置",
+                width: 420,
+                height: 400,
+                href: getFormUrl + "?name=" + id,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    $.messager.showInfoTopCenter('系统提示', id > 0 ? '配置修改成功。' : '配置添加成功。');
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload'); // reload the user data
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', data.message);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function() {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        var removeUrl = '@Url.Action(ActionName.SysSequence.RemoveSysSequence, ControllerName.SysSequence)';
+        function removeSysSequence() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('确认', '是否确定删除该配置及相关属性记录?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUrl, { SysSequenceId: row.ConfigId }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload'); // reload the user data
+                                    $.messager.showInfoTopCenter('系统提示', '配置及相关属性已成功移除。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '配置及相关属性已成功移除失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                            $.easyui.loaded();
+                        }, 'json');
+                    }
+                });
+            }
+        }
+
+    </script>
+}
+

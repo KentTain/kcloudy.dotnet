@@ -1,0 +1,270 @@
+﻿@using KC.Web.Admin.Constants;
+@model KC.Service.DTO.Admin.TenantUserDTO
+
+@{
+    Layout = null;
+}
+
+@using (Html.BeginForm(ActionName.Tenant.SaveTenantUserForm, ControllerName.Tenant, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.Server)
+    @Html.HiddenFor(model => model.Database)
+    @Html.HiddenFor(model => model.PrivateEncryptKey)
+    @Html.HiddenFor(model => model.DatabasePasswordHash)
+    @Html.HiddenFor(model => model.TenantSignature)
+    @Html.HiddenFor(model => model.CanEdit)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            @if (Model.IsEditMode)
+            {
+                @Html.HiddenFor(model => model.TenantId)
+                <tr>
+                    <td><label for="TenantName">租户代码：</label></td>
+                    <td><input id="TenantName" name="TenantName" readonly="readonly" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[3,30]'" value="@Model.TenantName" /></td>
+                </tr>
+                <tr>
+                    <td><label for="TenantDisplayName">租户名：</label></td>
+                    <td><input id="TenantDisplayName" name="TenantDisplayName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[3,500]'" value="@Model.TenantDisplayName" /></td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="CloudType">云服务：</label></td>
+                    <td>
+                        <select id="CloudType" name="CloudType" class="easyui-combobox"
+                                data-options="width:200,editable: false, readonly:true, "
+                                asp-items="ViewBag.CloudTypeList" panelHeight="auto"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="Version">版本类型：</label></td>
+                    <td>
+                        <select id="Version" name="Version" class="easyui-combobox"
+                                data-options="width:200,editable: false, readonly:true,"
+                                asp-items="ViewBag.VersionList" panelHeight="auto"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="DatabasePoolId">数据库：</label></td>
+                    <td>@Html.DropDownList("DatabasePoolId", (IEnumerable<SelectListItem>)ViewBag.DatabaseList, new { @id = "DatabasePoolId", @class = "easyui-combobox", @style = "width: 260px;height:26px;", @readonly = "readonly" })</td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="StoragePoolId">数据存储：</label></td>
+                    <td>
+                        @Html.DropDownList("StoragePoolId", (IEnumerable<SelectListItem>)ViewBag.StorageList, new
+                        { @id = "StoragePoolId", @class = "easyui-combobox", @style = "width: 200px;height:26px;"@*, @readonly = "readonly"*@})
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><label class="required">*</label><label for="QueuePoolId">队列链接：</label></td>
+                    <td>
+                        @Html.DropDownList("QueuePoolId", (IEnumerable<SelectListItem>)ViewBag.QueuePoolList, new
+                        { @id = "QueuePoolId", @class = "easyui-combobox", @style = "width: 200px;height:26px;"@*, @readonly = "readonly"*@})
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="NoSqlPoolId">非结构化数据库：</label></td>
+                    <td>
+                        @Html.DropDownList("NoSqlPoolId", (IEnumerable<SelectListItem>)ViewBag.NoSqlPoolList, new
+                        { @id = "NoSqlPoolId", @class = "easyui-combobox", @style = "width: 200px;height:26px;"@*, @readonly = "readonly"*@})
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="VodPoolId">视频存储：</label></td>
+                    <td>
+                        @Html.DropDownList("VodPoolId", (IEnumerable<SelectListItem>)ViewBag.VodPoolList, new
+                        { @id = "VodPoolId", @class = "easyui-combobox", @style = "width: 200px;height:26px;"@*, @readonly = "readonly"*@})
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="CodePoolId">代码仓库：</label></td>
+                    <td>
+                        @Html.DropDownList("CodePoolId", (IEnumerable<SelectListItem>)ViewBag.CodePoolList, new
+                        { @id = "CodePoolId", @class = "easyui-combobox", @style = "width: 200px;height:26px;"@*, @readonly = "readonly"*@})
+                    </td>
+                </tr>
+            }
+            else
+            {
+                @Html.HiddenFor(model => model.TenantId)
+                <tr>
+                    <td><label for="TenantName">客户实例名：</label></td>
+                    <td><input id="TenantName" name="TenantName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200, validType:{length:[5,15], existTenantName:['@Url.Action(ActionName.Tenant.ExistTenantName, ControllerName.Tenant, new { isEditMode = Model.IsEditMode, orginalEmail = Model.TenantName })','tenantName']}" value="@Model.TenantName" /></td>
+                </tr>
+                <tr>
+                    <td><label for="TenantDisplayName">客户名：</label></td>
+                    <td><input id="TenantDisplayName" name="TenantDisplayName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[3,500]'" value="@Model.TenantDisplayName" /></td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="CloudType">云服务：</label></td>
+                    <td>
+                        <select id="CloudType" name="CloudType" class="easyui-combobox"
+                                data-options="width:200,editable: false, "
+                                asp-items="ViewBag.CloudTypeList" panelHeight="auto"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="Version">版本类型：</label></td>
+                    <td>
+                        <select id="Version" name="Version" class="easyui-combobox"
+                                data-options="width:200,editable: false, "
+                                asp-items="ViewBag.VersionList" panelHeight="auto"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="DatabasePoolId">数据库：</label></td>
+                    <td>@Html.DropDownList("DatabasePoolId", (IEnumerable<SelectListItem>)ViewBag.DatabaseList, new { @id = "DatabasePoolId", @class = "easyui-combobox", @style = "width: 200px;" })</td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="StoragePoolId">数据存储：</label></td>
+                    <td>@Html.DropDownList("StoragePoolId", (IEnumerable<SelectListItem>)ViewBag.StorageList, new { @id = "StoragePoolId", @class = "easyui-combobox", @style = "width: 200px;" })</td>
+                </tr>
+
+                <tr>
+                    <td><label class="required">*</label><label for="QueuePoolId">队列链接：</label></td>
+                    <td>@Html.DropDownList("QueuePoolId", (IEnumerable<SelectListItem>)ViewBag.QueuePoolList, new { @id = "QueuePoolId", @class = "easyui-combobox", @style = "width: 200px;" })</td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="NoSqlPoolId">非结构化数据库：</label></td>
+                    <td>@Html.DropDownList("NoSqlPoolId", (IEnumerable<SelectListItem>)ViewBag.NoSqlPoolList, new { @id = "NoSqlPoolId", @class = "easyui-combobox", @style = "width: 200px;" })</td>
+                </tr>
+                
+                <tr>
+                    <td><label class="required">*</label><label for="VodPoolId">视频存储：</label></td>
+                    <td>@Html.DropDownList("VodPoolId", (IEnumerable<SelectListItem>)ViewBag.VodPoolList, new { @id = "VodPoolId", @class = "easyui-combobox", @style = "width: 200px;" })</td>
+                </tr>
+                
+                <tr>
+                    <td><label class="required">*</label><label for="CodePoolId">代码仓库：</label></td>
+                    <td>@Html.DropDownList("CodePoolId", (IEnumerable<SelectListItem>)ViewBag.CodePoolList, new { @id = "CodePoolId", @class = "easyui-combobox", @style = "width: 200px;" })</td>
+                </tr>
+            }
+
+            <tr>
+                <td><label class="required">*</label><label for="CreditLimitTally">店铺类型：</label></td>
+                <td>
+                    <select id="CreditLimitTally" name="CreditLimitTally" class="easyui-combobox"
+                            data-options="width:200,editable: false, "
+                            asp-items="ViewBag.CreditLimitTallyList" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="ContactName">联系人：</label></td>
+                <td><input id="ContactName" name="ContactName" class="easyui-validatebox easyui-textbox" data-options="width:200" value="@Model.ContactName" /></td>
+            </tr>
+            <tr>
+                <td><label for="ContactEmail">联系邮箱：</label></td>
+                <td><input id="ContactEmail" name="ContactEmail" class="easyui-validatebox easyui-textbox" data-options="width:200" value="@Model.ContactEmail" /></td>
+            </tr>
+            <tr>
+                <td><label for="ContactPhone">联系手机：</label></td>
+                <td><input id="ContactPhone" name="ContactPhone" class="easyui-validatebox easyui-textbox" data-options="width:200" value="@Model.ContactPhone" /></td>
+            </tr>
+            <tr>
+                <td><label for="PasswordExpiredTime">密码过期时间：</label></td>
+                <td><input id="PasswordExpiredTime" name="PasswordExpiredTime" type="text" class="easyui-datebox easyui-textbox" data-options="required:false,width:200,height:26,validType:'date',novalidate:true" value="@Model.PasswordExpiredTime" /></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <a id="btnTestDBConnect" href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-standard-package-link" plain="true" onclick="testDBConnection()">测试数据库连接</a>
+                    <a id="btnTestStorageConnect" href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-standard-package-link" plain="true" onclick="testStorageConnection()">测试存储连接</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <script>
+        $(function() {
+            $('#CreditLimitTally option[value=' +@((int)Model.TenantType)+']').prop('selected', 'selected');
+            $('#Version option[value=' +@((int)Model.Version)+']').prop('selected', 'selected');
+
+            $('#CreditLimitTally').combobox({
+                onSelect: function (record) {
+
+                }
+            });
+
+        });
+        (function ($) {
+            $.extend($.fn.validatebox.defaults.rules, {
+                existTenantName: {
+                    validator: function (value, param) {
+                        var data = {};
+                        data[param[1]] = value;
+                        var response = $.ajax({
+                            url: param[0],
+                            dataType: 'json',
+                            data: data,
+                            async: false,
+                            cache: false,
+                            type: 'post'
+                        }).responseText;
+                        return response == 'true';
+                    },
+                    message: '租户实例名已经存在，请重新输入！'
+                }
+            });
+        })(jQuery);
+
+        var testDBConnectionUrl = '@Url.Action(ActionName.Tenant.TestTenantDBConnection, ControllerName.Tenant)';
+        function testDBConnection() {
+            //debugger;
+            var server = $('#TenantId').val();
+            if (server == '') {
+                $.messager.showErrorTopCenter('错误消息', "数据库服务器不能为空", 1000);
+                return;
+            }
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.post(testDBConnectionUrl,
+                {
+                    tenantId: server,
+                },
+                function (data) {
+                    $.easyui.loaded();
+                    if (data.success) {
+                        if (data.result == '') {
+                            $.messager.showInfoTopCenter('系统提示', '测试数据库连接成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.result, 3000);
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                    }
+                }, 'json');
+        }
+
+        var testStorageConnectionUrl = '@Url.Action(ActionName.Tenant.TestTenantStorageConnection, ControllerName.Tenant)';
+        function testStorageConnection() {
+            //debugger;
+            var endpoint = $('#TenantId').val();
+            if (endpoint == '') {
+                $.messager.showErrorTopCenter('错误消息', "服务器地址不能为空", 1000);
+                return;
+            }
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.post(testStorageConnectionUrl,
+                {
+                    tenantId: endpoint,
+                },
+                function (data) {
+                    $.easyui.loaded();
+                    if (data.success) {
+                        if (data.result == '') {
+                            $.messager.showInfoTopCenter('系统提示', '测试存储连接成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.result, 3000);
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                    }
+                }, 'json');
+        }
+    </script>
+}

@@ -1,0 +1,83 @@
+﻿
+@using KC.Web.Blog.Constants
+@model KC.Service.DTO.Blog.PrivateSettingDTO
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "系统设置";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--配置管理-保存配置属性-->
+    var cansaveAtt = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "1EAA370D-0EE2-4AD4-92D8-D054871B185D")).Succeeded)
+    {
+        cansaveAtt = true;
+    }
+}
+@section styles{
+    <link href="~/css/admin.css" rel="stylesheet" />
+}
+<div id="main_content" class="maincontainer">
+    <!--  cell -->
+    <div class="cell">
+        <form id="personal_form">
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(model => model.UserId)
+            @Html.HiddenFor(model => model.UserName)
+            <table class="dialog-form-table basicTable">
+                <tbody>
+                    <tr>
+                        <td><label for="Title">网站标题：</label></td>
+                        <td><input id="Title" name="Title" class="easyui-validatebox easyui-textbox" style="height:26px; width:360px;" data-options="required:false,width:200,validType:'length[0,100]'" value="@Model.Title" /></td>
+                    </tr>
+                    <tr>
+                        <td><label for="AboutMe">关于我:</label></td>
+                        <td>
+                            <input id="AboutMe" name="AboutMe" class="easyui-validatebox easyui-textbox"
+                                   data-options="multiline:true,width:'100%',height:200,validType:'length[0,500]'"
+                                   value="@(null != Model ? Model.AboutMe : string.Empty)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="text-align:center;">
+                            <a href="javascript:void(0)" onclick="saveSettings()" class="easyui-linkbutton @(cansaveAtt ? "" : "NoAuth")" data-options="iconCls:'fa fa-save'">保存</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+</div>
+@section scripts
+    {
+    <script>
+    var saveFormUrl = '@Url.Action(ActionName.Blog.SaveSettings, ControllerName.Blog)';
+    function saveSettings() {
+        var d = $("#personal_form");
+        var validate = d.form("enableValidation").form("validate");
+        if (validate) {
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                async: true,
+                type: "post",
+                dataType: "json",
+                url: saveFormUrl,
+                data: AddAntiForgeryToken(d.form("getData")),
+                success: function (data) {
+                    if (data.success) {
+                        $.messager.showInfoTopCenter('系统提示', '设置保存成功。');
+                    } else {
+                        $.messager.showErrorTopCenter('系统提示', data.message);
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+            return true;
+        } else {
+            return false;
+        }
+    }
+    </script>
+}
+

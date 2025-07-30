@@ -1,0 +1,196 @@
+﻿@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@using KC.Web.Util
+
+
+@{
+    ViewBag.Title = "客户跟踪信息及变更日志";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--配置管理-保存配置属性-->
+    var canOpenChangeLog = false;
+    //if ((await AuthorizationService.AuthorizeAsync(User, "1557E240-6D84-4AB5-ABC6-7F54F3EBC9C2")).Succeeded)
+    {
+        canOpenChangeLog = true;
+    }
+    <!--配置管理-删除配置属性-->
+    var canOpenTracingLog = false;
+    //if ((await AuthorizationService.AuthorizeAsync(User, "1557E240-6D84-4AB5-ABC6-7F54F3EBC9C2")).Succeeded)
+    {
+        canOpenTracingLog = true;
+    }
+}
+@await Html.PartialAsync("_CustomerManagerInfo")
+<div id="toolbar">
+
+    <div>
+        <span id="sp_dropDownList">
+            <span style="margin-right: 10px">
+                客户类型：
+                @Html.DropDownList("CustomerType", (IEnumerable<SelectListItem>)ViewBag.CustomerTypeList, new { @id = "CustomerType", @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+            </span>
+            <span style="margin-right: 10px">
+                服务类型：
+                @Html.DropDownList("ClientType", (IEnumerable<SelectListItem>)ViewBag.ClientTypeList, new { @id = "ClientType", @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+            </span>
+            <span style="margin-right: 10px">
+                客户等级：
+                @Html.DropDownList("CustomerLevel", (IEnumerable<SelectListItem>)ViewBag.ClientLevelList, new { @id = "CustomerLevel", @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+            </span>
+            <span style="margin-right: 10px">
+                客户经理:
+                <input class="easyui-textbox" style="width: 150px;height:26px;" id="CustomerManangeName">
+            </span>
+
+            <span style="margin-right: 10px; display: none">
+                录入方式：
+                @Html.DropDownList("CustomerSource", (IEnumerable<SelectListItem>)ViewBag.ClientSourceList, new { @id = "CustomerSource", @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+            </span>
+        </span>
+        <div id="divSearchMenu" class="easyui-menu" style="width:120px">
+            <div data-options="name:'CustomerName',selected:true">客户名称</div>
+            <div data-options="name:'ContactName'">联系人</div>
+            <div data-options="name:'ContactEmail'">联系邮箱</div>
+            <div data-options="name:'ContactPhoneNumber'">联系电话</div>
+            <div data-options="name:'RecommandedUserName'">推送人</div>
+            <div data-options="name:'OrganizationName'">所属部门</div>
+        </div>
+        <input id="txtSearchbox" class="easyui-searchbox" style="width:300px" />
+        <a href="javascript:void(0)" onclick="RefreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        var defaultGuid = 0;
+        var canOpenChange = '@canOpenChangeLog' === 'True';
+        var canOpenTracing = '@canOpenTracingLog' === 'True';
+
+        //move to com.common.js
+        $(function () {
+            $('#CustomerSource').combobox({ editable: false });
+
+            //客户类型
+            $('#CustomerType').combobox({
+                editable: false, onSelect: function () {
+                    searchData();
+                }
+            });
+            //服务类型
+            $('#ClientType').combobox(
+            {
+                editable: false,
+                onSelect: function () {
+                    searchData();
+                }
+            });
+            //客户等级
+            $('#CustomerLevel').combobox({
+                editable: false,
+                onSelect: function () {
+                    searchData();
+                }
+            });
+            //客服经理
+            $('#CustomerManangeName').textbox('textbox').bind('keydown', function(e) {
+                if (e.keyCode === 13)
+                    searchData();
+            });
+
+            InitDataGrid();
+        });
+
+        var getdetailUrl = '@Url.Action(ActionName.CustomerInfo.CustomerDetailInfo, ControllerName.CustomerInfo)';
+        var loadDataUrl = '@Url.Action(ActionName.CustomerInfo.LoadCustomerInfoList, ControllerName.CustomerInfo)';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'customerId',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                pageList: [10, 20,30, 50, 100],
+                columns: [[
+                    {
+                        field: 'customerName', title: '客户名称', width: 240, align: 'left',
+                        formatter: function (value, row, index) {
+                            return '<a href="##" class="btnUsers" onclick="opentModuleForm(\'' + row.customerId + '\',\'' + row.customerName + '\',\'' + getdetailUrl + '\',\'详细信息\')">' + value + '</a>';
+                        }
+                    },
+                    { field: 'customerTypeStr', title: '客户类型', width: 50, align: 'left' },
+                    { field: 'clientTypeStr', title: '服务类型', width: 50, align: 'left' },
+                    { field: 'customerLevelStr', title: '客户等级', width: 50, align: 'left' },
+                    { field: 'contactName', title: '联系人', width: 60, align: 'left' },
+                    { field: 'contactPhoneNumber', title: '联系电话', width: 70, align: 'left' },
+                    { field: 'recommandedUserName', title: '推送人', width: 60, align: 'left' },
+                    { field: 'operator', title: '任务操作', width: 200, align: 'center', formatter: addApplicationButton }
+                ]],
+                onBeforeLoad: function (param) {
+
+                },
+                onLoadSuccess: function (data) {
+                    $(".btnUsers").linkbutton({ plain: true, iconCls: 'icon-standard-user-suit' });
+                    $(".btnLogs").linkbutton({ plain: true, iconCls: 'icon-standard-page-white-text' });
+                    $('#datagrid').datagrid("fixRowHeight");//固定行高
+                },
+                onLoadError: function () {
+                },
+                view: detailview,
+                detailFormatter: function (index, row) {
+                    return '<div style="padding:2px;"><table id="ddv"></table></div>';
+                },
+                onExpandRow: function (index, row) {
+                    loadCustomerManagers(index, row, '#datagrid');
+                }
+            });
+            $('#txtSearchbox').searchbox({
+                menu: '#divSearchMenu',
+                prompt: '请输入查询值',
+                searcher: searchData
+            });
+        }
+        function searchData(value, name) {
+            $('#datagrid').datagrid('unselectAll');
+            var customerType = $("#CustomerType").combobox("getValue");
+            var clientType = $("#ClientType").combobox("getValue");
+            var customerLevel = $("#CustomerLevel").combobox("getValue");
+            var customerSource = $("#CustomerSource").combobox("getValue");
+
+            $('#datagrid').datagrid('load', {
+                "searchKey": name,
+                "searchValue": value,
+                "customerType": customerType,
+                "clientType": clientType,
+                "customerLevel": customerLevel,
+                "customerSource": customerSource,
+                "onlyShowClientSerivce": true,
+                "customerManangeName":$("#CustomerManangeName").textbox("getValue")
+            });
+        }
+
+        var CustomerChangeLogUrl = '@Url.Action(ActionName.CustomerInfo.CustomerChangeLogList, ControllerName.CustomerInfo)';
+        var CustomerTracingLogListUrl = '@Url.Action(ActionName.CustomerInfo.CustomerTracingLogList, ControllerName.CustomerInfo)';
+        function addApplicationButton(value, row, index) {
+            var tdContext = '';
+            if (canOpenChange)
+                tdContext += '<a href="##"  class="btnLogs" onclick="opentModuleForm(\'' + row.customerId + '\',\'' + row.customerName + '\',\'' + CustomerChangeLogUrl + '\',\'变更日志\')">变更日志</a>';
+            if (canOpenTracing)
+                tdContext += '<a href="##"  class="btnLogs" onclick="opentModuleForm(\'' + row.customerId + '\',\'' + row.customerName + '\',\'' + CustomerTracingLogListUrl + '\',\'跟踪信息\')">跟踪信息</a>';
+
+            return tdContext;
+        }
+
+        function opentModuleForm(id, name, url, str) {
+            OpenTab(isCsc, (name == null ? "" : name + "的") + str, url , "customerId=" + id + "&customerName=" + name + "&isoperate=0");
+            //parent.window.mainpage.mainTabs.addModule((name == null ? "" : name + "的") + str, url + "?customerId=" + id + "&customerName=" + name + "&isoperate=0", null, true, true, false, true);
+        }
+    </script>
+}

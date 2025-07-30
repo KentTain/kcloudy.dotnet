@@ -1,0 +1,52 @@
+﻿
+@using KC.Framework.Base
+@using KC.Web.Training.Constants
+@model KC.Service.DTO.Training.TeacherDTO
+
+@{
+    Layout = null;
+}
+@using (Html.BeginForm(ActionName.SysSequence.SaveSysSequence, ControllerName.SysSequence, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+
+    <table class="dialog-form-table">
+        <tbody>
+            @if (Model.IsEditMode)
+            {
+                <tr>
+                    <td><label class="required">*</label><label for="Name">姓名：</label></td>
+                    <td><input id="Name" name="Name" readonly="readonly" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200" value="@Model.Name" /></td>
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td><label class="required">*</label><label for="Name">姓名：</label></td>
+                    <td><input id="Name" name="Name" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200" value="@Model.Name" /></td>
+                </tr>
+            }
+            <tr>
+                <td><label class="required">*</label><label for="Sex">性别：</label></td>
+                <td><input id="Sex" name="Sex" class="easyui-numberspinner" data-options="required:true, width:200, min:1, max:100" value="@Model.Sex" /></td>
+            </tr>
+
+            <tr>
+                <td><label class="required">*</label><label for="Mobile">手机号：</label></td>
+                <td><input id="Mobile" name="Mobile" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[1,5]'" value="@Model.Mobile" /></td>
+            </tr>
+            <tr>
+                <td><label for="Email">邮箱：</label></td>
+                <td><input id="Email" name="Email" class="easyui-validatebox easyui-textbox" data-options="width:200,validType:'length[0,5]'" value="@Model.Email" /></td>
+            </tr>
+            <tr>
+                <td><label for="IdentityCard">身份证：</label></td>
+                <td><input id="IdentityCard" name="Email" class="easyui-numberspinner" data-options="required:true, width:200, min:1, max:100" value="@Model.IdentityCard" /></td>
+            </tr>
+
+        </tbody>
+    </table>
+
+}
+
+

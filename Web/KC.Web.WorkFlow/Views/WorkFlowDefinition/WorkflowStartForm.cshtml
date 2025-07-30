@@ -1,0 +1,252 @@
+﻿@using KC.Web.Workflow.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.DTO.Workflow.WorkflowStartExecuteData
+@{
+    ViewBag.Title = "流程定义验证";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--流程定义-流程定义详情-->
+    var canSaveDefinition = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "4A5ADE5F-19F8-4DC7-8731-850605BFCD39")).Succeeded)
+    {
+        canSaveDefinition = true;
+    }
+}
+
+@using (Html.BeginForm(ActionName.WorkflowDefinition.StartWorkflowValidator, ControllerName.WorkflowDefinition, FormMethod.Post, new { id = "auditform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+    @*@Html.HiddenFor(model => model.Id)*@
+    @Html.HiddenFor(model => model.WorkflowDefId)
+    @Html.HiddenFor(model => model.WorkflowDefCode)
+    @Html.HiddenFor(model => model.WorkflowDefVersion)
+    @Html.HiddenFor(model => model.WorkflowDefName)
+
+    @Html.HiddenFor(model => model.ExecuteUserId)
+    @Html.HiddenFor(model => model.ExecuteUserName)
+    @Html.HiddenFor(model => model.ExecuteDateTime)
+    @Html.HiddenFor(model => model.TaskId)
+    @Html.HiddenFor(model => model.TaskType)
+    @Html.HiddenFor(model => model.NotifyUserIds)
+    @Html.HiddenFor(model => model.NotifyUserNames)
+
+    @Html.HiddenFor(model => model.AgreeUserIds)
+    @Html.HiddenFor(model => model.AgreeUserNames)
+    @Html.HiddenFor(model => model.DisagreeUserIds)
+    @Html.HiddenFor(model => model.DisagreeUserNames)
+    @Html.HiddenFor(model => model.UnProcessUserIds)
+    @Html.HiddenFor(model => model.UnProcessUserNames)
+
+    @Html.HiddenFor(model => model.WorkflowFormType)
+    @Html.HiddenFor(model => model.AppFormDetailApiUrl)
+    @Html.HiddenFor(model => model.AppFormDetailQueryString)
+    @Html.HiddenFor(model => model.AppAuditSuccessApiUrl)
+    @Html.HiddenFor(model => model.AppAuditReturnApiUrl)
+    @Html.HiddenFor(model => model.AppAuditQueryString)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label for="TaskCode">任务编号：</label></td>
+                <td>
+                    <input id="TaskCode" name="TaskCode" class="easyui-textbox" value="@Model.TaskCode" style="width: 290px;" readonly="readonly">
+
+                </td>
+            </tr>
+            <tr>
+                <td><label for="TaskName">任务名称：</label></td>
+                <td>
+                    <input id="TaskName" name="TaskName" class="easyui-textbox" value="@Model.TaskName" style="width: 290px;" readonly="readonly">
+
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <div>
+                        <span for="AllUserNames">审核人：</span>
+                    </div>
+                </td>
+                <td>
+                    @Html.HiddenFor(m => m.AllUserIds)
+                    <input id="AllUserNames" name="AllUserNames" class="easyui-textbox"
+                           data-options="width:230"
+                           value="@(null != Model ? Model.AllUserNames : string.Empty)" />
+                    <a href="javascript:void(0)" onclick="selectUserForm(this)" class="easyui-linkbutton"
+                       data-options="iconCls:'fa fa-cog'">设置</a>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <div>
+                        <span for="ExecuteRemark">审核意见：</span>
+                    </div>
+                </td>
+                <td>
+                    <input id="ExecuteRemark" name="ExecuteRemark" class="easyui-textbox"
+                           data-options="multiline:true,width:230,height:120"
+                           value="@(null != Model ? Model.ExecuteRemark : string.Empty)" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="a">上传附件：</span>
+                    </div>
+                </td>
+                <td>
+                    @Html.HiddenFor(m => m.ExecuteFileBlob)
+                    <div class="fileUploaderEditor" style="display: flex;">
+                        <div id="fileList" class="webUploader-file-single"></div>
+                        <a id="fileUploader" href="javascript:void(0)" class="easyui-linkbutton"
+                           iconcls="fa fa-pencil">选择</a>
+                    </div>
+                    <label style="padding: 3px;">
+                        文件个数：1个；
+                        文件大小：@KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize M<br />
+                        文件格式：@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt
+                    </label>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="bottom">
+        <!--流程验证-发起流程验证-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "DB541D4E-67BF-4DDF-94C3-F76089EC2971")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-check" onclick="saveForm()">提交</a>
+        }
+    </div>
+}
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+@section Scripts {
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <!--组件初始化-->
+    <script>
+        var canSaveDefinition = ('@canSaveDefinition' === 'True');
+        let fileSetting = {
+            fileNumLimit: 1,
+            postUrl: '@(ViewBag.DocWebApiDomain)Resources/UploadFileToTemp',
+            chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+            chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+            fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+            fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+            downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+            imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+            imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+            showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+            params: { isArchive: false }
+        };
+        $(function () {
+            $('.textbox').bind('blur', function () {
+                $(this).validatebox('enableValidation').validatebox('validate');
+            });
+
+            defaultInitFileUploader('ExecuteFileBlob', 'fileUploader', 'fileList', fileSetting, false);
+        });
+
+        function selectUserForm() {
+            let roleId = '@KC.Framework.Tenant.RoleConstants.AdminRoleId';
+            let organization = new OrganizationVM();
+
+            let selectUserIds = $.string.arrayFromCommaDelimitedStrings($('#AllUserIds').val());
+            let selectUserNames = $.string.arrayFromCommaDelimitedStrings($('#AllUserNames').textbox('getValue'));
+            organization.InitializeData({
+                type: 4,                  //7(1+2+4): 组织+角色+用户
+                title: "审核人设置",
+                orgIds: [],               //需要查询的组织Id列表
+                roleIds: [],             //需要查询的角色Id列表
+                exceptOrgIds: [],                   //需要排除的部门Id列表
+                exceptRoleIds: [],                  //需要排除的角色Id列表
+                selectOrgCodes: null,     //已选中的组织Id列表
+                selectOrgNames: null,     //已选中的组织名称列表
+                selectRoleIds: null,       //已选中的角色Id列表
+                selectRoleNames: null,   //已选中的角色名称列表
+                selectUserIds: selectUserIds,       //已选中的人员Id列表
+                selectUserNames: selectUserNames,   //已选中的人员名称列表
+                selectExceptUserIds: null,
+                selectExceptUserNames: null,
+                isSingleSelect: false,
+                referenceId: null,
+                callback: function (data) {
+                    //debugger;
+                    let orgs = data.orgs;
+                    let roles = data.roles;
+                    let users = data.users;
+                    let exceptUsers = data.exceptUsers;
+                    let selOrgCodes = $.array.toCommaSeparatedStringByFilter(orgs, function (r) { return r.organizationCode; });
+                    let selOrgNames = $.array.toCommaSeparatedStringByFilter(orgs, function (r) { return r.text; });
+                    let selRoleIds = $.array.toCommaSeparatedStringByFilter(roles, function (r) { return r.roleId; });
+                    let selRoleNames = $.array.toCommaSeparatedStringByFilter(roles, function (r) { return r.displayName; });
+                    let selUserIds = $.array.toCommaSeparatedStringByFilter(users, function (r) { return r.userId; });
+                    let selUserNames = $.array.toCommaSeparatedStringByFilter(users, function (r) { return r.displayName; });
+                    let selExceptUserIds = $.array.toCommaSeparatedStringByFilter(exceptUsers, function (r) { return r.userId; });
+                    let selExceptUserNames = $.array.toCommaSeparatedStringByFilter(exceptUsers, function (r) { return r.displayName; });
+                    $('#AllUserIds').val(selUserIds);
+                    $('#AllUserNames').textbox('setValue', selUserNames);
+                }
+            });
+        }
+
+    </script>
+    <!--发起流程-->
+    <script type="text/javascript">
+        var formId = "#auditform";
+        const saveFormUrl = '@Url.Action(ActionName.WorkflowDefinition.StartWorkflowValidator, ControllerName.WorkflowDefinition)';
+        const workflowValidatorUrl = '@Url.Action(ActionName.WorkflowDefinition.WorkflowValidator, ControllerName.WorkflowDefinition)';
+        let saveForm = function () {
+            //验证
+            let validate = $(formId).form("enableValidation").form("validate");
+            if (!validate) {
+                let errorMsg = '';
+                let invalidComps = $(formId).find(".validatebox-invalid");
+                $.each(invalidComps, function (i, invalidComp) {
+                    errorMsg += 'id=' + invalidComp.id + ', ';
+                });
+                console.error("---验证失败的组件Id：" + errorMsg);
+                return;
+            }
+
+            //debugger;
+            //获取表单数据
+            let auditorData = $(formId).form("getData");
+            let wfDefCode = $('#Code').textbox('getValue');
+            auditorData.FormData = getFieldData();
+            let postAuditorData = AddAntiForgeryToken(auditorData);
+            //console.log(postAuditorData);
+            let jsonAuditorData = JSON.stringify(postAuditorData);
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                async: true,
+                url: saveFormUrl + "?wfDefCode=" + wfDefCode,
+                type: 'POST',
+                dataType: 'json',
+                // here have to set the token
+                headers: { 'RequestVerificationToken': $('[name=__RequestVerificationToken]').val() },
+                contentType: "application/json;charset=UTF-8",
+                data: jsonAuditorData,
+                //contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                //data: postData,
+                success: function (data) {
+                    if (data.success) {
+                        if (data.result) {
+                            MainPage_PostMessage("closePage", workflowValidatorUrl);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                    } else {
+                        $.messager.showInfoTopCenter('系统提示', data.message);
+                    }
+                },
+                complete: function (XMLHttpRequest, status) {
+                    $.easyui.loaded();
+                }
+            });
+        }
+
+    </script>
+}

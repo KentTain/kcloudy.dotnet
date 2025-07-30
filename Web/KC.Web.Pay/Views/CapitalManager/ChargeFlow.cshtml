@@ -1,0 +1,252 @@
+﻿@using KC.Web.Pay.Constants
+@{
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+@section styles{
+    <style>
+        .input-daterange {
+            width: 210px
+        }
+    </style>
+}
+
+<div class="search-filter">
+    <table class="search-table">
+        <tr>
+            <td>查询条件</td>
+            <td style="padding-left: 10px">
+                <div class="ui-filter" style="width: 200px;">
+                    <div class="ui-filter-text">
+                        <strong id="selectedStartTime">@(DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd"))</strong> 至 <strong id="selectedEndTime">@(DateTime.Now.ToString("yyyy-MM-dd"))</strong>
+                    </div>
+                    <div class="ui-filter-list" style="width: 360px;">
+                        <table class="form" id="filter-form">
+                            <tbody>
+                                <tr>
+                                    <th class="formTitle">日期：</th>
+                                    <td class="formValue">
+                                        <div class="input-daterange input-group" id="datepicker">
+                                            <input type="text" class="Wdate easyui-textbox" style="width:100px;height:30px !important;padding-left: 4px;" onclick="WdatePicker({ lang: 'zh-cn',maxDate:'#F{$dp.$D(\'EndDate\')}'})" id="StartDate" name="StartDate" />
+                                            <span class="input-group-addon">到</span>
+                                            <input type="text" class="Wdate easyui-textbox" style="width:100px;height:30px !important;padding-left: 4px;" onclick="WdatePicker({ lang: 'zh-cn',minDate:'#F{$dp.$D(\'StartDate\')}'})" id="EndDate" name="EndDate" />
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="formTitle">状态：</td>
+                                    <td class="formValue">
+                                        <div class="btn-group status" data-toggle="buttons">
+                                            <label class="btn btn-default btn-sm active">
+                                                <input type="radio" name="options" autocomplete="off" checked="checked"> 全部
+                                            </label>
+                                            <label class="btn btn-default btn-sm ">
+                                                <input type="radio" name="options" autocomplete="off" value="1"> 已充值
+                                            </label>
+                                            <label class="btn btn-default btn-sm ">
+                                                <input type="radio" name="options" autocomplete="off" value="0"> 等待充值
+                                            </label>
+                                            <label class="btn btn-default btn-sm ">
+                                                <input type="radio" name="options" autocomplete="off" value="2"> 充值失败
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="ui-filter-list-bottom">
+                            @*<a href="#" onclick="searchReset();" class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="margin-left: 10px;">刷新</a>*@
+                            @*<a class="btn btn-default" href="javascript:reset()">&nbsp;重&nbsp;&nbsp;置</a>*@
+                            @*<a class="btn btn-primary" href="javascript:search()"><i class="glyphicon glyphicon-search"></i> &nbsp;查&nbsp;&nbsp;询</a>*@
+                            <a href="#" class="easyui-linkbutton btnSearch" onclick="btnSearch();" id="btnSearch" data-options="iconCls:'icon-search'" style="margin-left: 10px;">查询</a>
+                        </div>
+                    </div>
+                </div>
+
+
+            </td>
+            <td style="padding-left: 10px">
+                <div class="btn-group dateGroup" data-toggle="buttons">
+                    <label class="btn btn-default btn-sm active" onclick="dateRangeChanged(1)">
+                        <input type="radio" name="dateGroup" id="option1" autocomplete="off" checked value="1"> 近一个月
+                    </label>
+                    <label class="btn btn-default btn-sm " onclick="dateRangeChanged(3)">
+                        <input type="radio" name="dateGroup" id="option2" autocomplete="off" value="3"> 近三个月
+                    </label>
+                    <label class="btn btn-default btn-sm " onclick="dateRangeChanged(12)">
+                        <input type="radio" name="dateGroup" id="option3" autocomplete="off" value="12"> 近1年
+                    </label>
+                    <label class="btn btn-default btn-sm " onclick="dateRangeChanged(0)">
+                        <input type="radio" name="dateGroup" id="option4" autocomplete="off" value="0"> 全部
+                    </label>
+                </div>
+            </td>
+            <td>
+                @*<a href="#" onclick="searchReset();" class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="margin-left: 10px;">刷新</a>*@
+
+            </td>
+        </tr>
+    </table>
+</div>
+<table id="datagrid" data-options=" iconCls: 'icon-standard-text-list-bullets',border:false"></table>
+
+
+@section scripts
+    {
+    <script src="~/Scripts/My97DatePicker/WdatePicker.js"></script>
+    <script>
+        var loadDataUrl = '@Url.Action(ActionName.CapitalManager.LoadChargeFlow, ControllerName.CapitalManager, new { area = "Admin" })';
+        var submitInTransactionSearch='@Url.Action(ActionName.CapitalManager.SubmitInTransactionSearch, ControllerName.CapitalManager, new { area = "Admin" })';
+        var $dataGrid = null;
+        $(function() {
+            $('.ui-filter-text').on('click',
+                function() {
+                    if ($(this).hasClass('active')) {
+                        $(this).removeClass('active');
+                        $('.ui-filter-list').hide();
+                    } else {
+                        $(this).addClass('active');
+                        $('.ui-filter-list').show();
+                    }
+                });
+            dateRangeChanged(1);
+        });
+
+    </script>
+    <script src="~/Scripts/layer/layer.js"></script>
+    <script>
+
+        function initDataGrid() {
+            $dataGrid = $('#datagrid').datagrid({
+                toolbar: '.search-filter',
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'Id',
+                autoRowHeight: false,
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                pageSize: 10,
+                fit: true,
+                pagination: true,
+                showFooter: true,
+                pageList: [10, 20, 50, 100],
+                columns: [
+                    [
+                        { field: 'ConsumptionDate', title: '时间', width: '20%', align: 'center', halign: 'center' },
+                        { field: 'ConsumptionMoney', title: '充值金额(元)', width: '20%', align: 'center', halign: 'center' },
+                        {
+                            field: 'CashStatus', title: '状态', width: '15%', align: 'center', formatter: function (value, row, index) {
+                                if (!value)
+                                    return '';
+                                if (value === '已充值') {
+                                    return '<span class="text-success">已充值</span>';
+                                } else if (value === '充值失败') {
+                                    return '<span class="text-danger">充值失败</span>';
+                                } else {
+                                    return '<span class="text-muted">' + value + '</span>';
+                                }
+                            }
+                        },
+                        { field: 'Remark', title: '备注', width: '30%', align: 'left', halign: 'center' },
+                        {
+                            field: 'OrderId', title: '操作', width: '13%', align: 'center', halign: 'center', formatter: function (value, row) {
+                                if (row.CashStatus != "已充值" && value != undefined) {
+                                    return '<a onclick="UpdateChargeStatu(\'' + value + '\');">更新充值状态</a>';
+                                }
+                                return '';
+                            }
+                        },
+                    ]
+                ],
+                onBeforeLoad: function (param) {
+                    param.startDate = $('#StartDate').val();
+                    param.endDate = $('#EndDate').val();
+                    param.status = $('.status input[type=radio]:checked').val();
+                    $('#datagrid').datagrid('unselectAll');
+                },
+                loadFilter: function (data) {
+                    var footer = [{ "ConsumptionDate": "本页总计", "ConsumptionMoney": fmoney(data.sum) }];
+                    data.footer = footer;
+                    return data;
+                },
+                onLoadSuccess: function (data) {
+
+                },
+                onLoadError: function (response) {
+                    parseResponse(response);
+                }
+            });
+            var pg = $dataGrid.datagrid("getPager");
+            if (pg) {
+                $(pg).pagination({
+                    onBeforeRefresh: function () {
+                        $dataGrid.datagrid('unselectAll');
+                    }
+                });
+            }
+        }
+        function UpdateChargeStatu(chargeNumber) {
+            $.easyui.loading({ msg: '正在查询该笔充值，请稍等...' });
+            $.ajax({
+                url: submitInTransactionSearch,
+                type: "post",
+                data: { chargeNumber: chargeNumber },
+                success: function (result) {
+                    $.easyui.loaded();
+                    if (result.Result) {
+                        layer.alert(result.message, { closeBtn: 2, icon: 1, offset: ['200px'], title: '系统提示', time: 3000 });
+                        initDataGrid();
+                    } else {
+                        layer.alert(result.message, { closeBtn: 2, icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                    }
+                },
+                error: function (e) {
+                    $.easyui.loaded();
+                }
+            });
+        }
+        function btnSearch() {
+            search();
+        }
+        function search() {
+            $('#selectedStartTime').text($('#StartDate').val());
+            $('#selectedEndTime').text($('#EndDate').val());
+            if (!$dataGrid)
+                initDataGrid();
+            else
+                $dataGrid.datagrid('reload');
+            $('.ui-filter-text').removeClass('active');
+            $('.ui-filter-list').hide();
+        }
+
+        function reset() {
+            $('.status .btn').eq(0).click();
+            $('.dateGroup .btn').eq(0).click();
+            var pg = $dataGrid.datagrid('getPager');
+            $(pg).pagination('select', 1);
+        }
+
+        var dateRangeChanged = function (month) {
+            if (month > 0) {
+                $('#StartDate').val(getDate(month));
+            } else {
+                $('#StartDate').val('');
+            }
+            $('#EndDate').val(Date.format(new Date()));
+            search();
+        }
+
+        function getDate(month) {
+            var now = new Date();
+            if (month > 0) {
+                return addMonth(now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate(), -month);
+            }
+            return now;
+        }
+
+    </script>
+
+
+}

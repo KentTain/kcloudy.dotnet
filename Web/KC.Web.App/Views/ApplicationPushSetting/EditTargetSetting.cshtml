@@ -1,0 +1,128 @@
+﻿@using KC.Web.App.Constants
+@model KC.Service.DTO.App.ApplicationBusinessDTO
+
+@using (Html.BeginForm(ActionName.Application.SaveBusiness, ControllerName.Application, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.ApplicationId)
+    @Html.HiddenFor(model => model.BusinessId)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    @Html.HiddenFor(model => model.HasPushSetting)
+    <table class="dialog-form-table">
+        <tbody>
+            @if (Model.IsEditMode)
+            {
+                <tr>
+                    <td><label class="required">*</label><label for="BusinessCode">业务节点代码：</label></td>
+                    <td>
+                        <input id="BusinessCode" name="BusinessCode" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200" disable="disabled" value="@Model.BusinessCode" />
+                    </td>
+                </tr>
+            }
+            else
+            {
+                @Html.HiddenFor(model => model.BusinessCode)
+            }
+            <tr>
+                <td><label class="required">*</label><label for="BusinessName">业务节点名称：</label></td>
+                <td><input id="BusinessName" name="BusinessName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[3,50]'" value="@Model.BusinessName" /></td>
+            </tr>
+
+            <tr>
+                <td><label for="HasPushSetting">是否设置推送功能：</label></td>
+                <td>
+                    <input id="setting" class="easyui-switchbutton" data-options="onText:'开启',offText:'取消'" name="setting">
+                </td>
+            </tr>
+            <tr>
+                <td><label for="PushObjectNameSpace">设置推送对象命名空间：</label></td>
+                <td><input id="PushObjectNameSpace" name="PushObjectNameSpace" class="easyui-validatebox easyui-textbox" data-options="width:200" value="@Model.PushObjectNameSpace" /></td>
+            </tr>
+            <tr>
+                <td><label for="Description">业务节点描述：</label></td>
+                <td><textarea id="Description" name="Description" class="textarea" style="height: 60px;width: 195px;">@(null != Model ? Model.Description : "")</textarea></td>
+            </tr>
+        </tbody>
+    </table>
+
+}
+@section scripts
+    {
+    <script type="text/javascript">
+        var isChecked = '@Model.HasPushSetting' === 'True';
+        $(function () {
+            $('#setting').switchbutton({
+                checked: isChecked,
+                onChange: function (checked) {
+                    $('#HasPushSetting').val(checked);
+                    if (checked) {
+                        $('#PushObjectNameSpace').removeAttr("disabled");//去除input元素的disabled属性
+                    } else {
+                        $('#PushObjectNameSpace').attr("disabled", "disabled")//将input元素设置为disabled
+                    }
+                }
+            })
+        });
+
+        var saveTargetSettingFormUrl = '@Url.Action(ActionName.AppSetting.SaveTargetSetting, ControllerName.AppSetting)';
+        function removeTargetSetting(id) {
+            var validate = $("saveform").form("enableValidation").form("validate");
+            if (validate) {
+                $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                $.ajax({
+                    async: true,
+                    type: "post",
+                    dataType: "json",
+                    url: saveTargetSettingFormUrl,
+                    data: AddAntiForgeryToken(d.form("getData")),
+                    success: function (data) {
+                        if (data.success) {
+                            d.window('close');
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+                return false;
+            } else {
+                return false;
+            }
+        }
+
+        var removeTargetSettingUrl = '@Url.Action(ActionName.AppSetting.RemoveTargetSetting, ControllerName.AppSetting)';
+        function removeTargetSetting(id) {
+            $.messager.confirm('系统提示', '是否确定删除该模块记录?', function (r) {
+                if (r) {
+                    $.post(removeTargetSettingUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+    </script>
+}

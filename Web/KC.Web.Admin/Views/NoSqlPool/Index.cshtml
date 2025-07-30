@@ -1,0 +1,263 @@
+﻿@using KC.Web.Admin.Constants
+@using KC.Web.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    ViewBag.Title = "非结构化数据库池管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+<div id="toolbar">
+    <div>
+        @*NoSql池管理-保存NoSql连接*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "927EEC2D-B61C-48BA-8D79-D6FC4CC1059D")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addNoSqlPool()">添加</a>
+        }
+        @*NoSql池管理-保存NoSql连接*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "927EEC2D-B61C-48BA-8D79-D6FC4CC1059D")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editNoSqlPool()">编辑</a>
+        }
+        @*NoSql池管理-删除NoSql连接*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "5052BB38-F1A8-4940-8E4B-C62E9F61186F")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeNoSqlPool()">删除</a>
+        }
+    </div>
+
+    <div>
+        <label>访问名称:</label>
+        <input id="selectname" class="easyui-textbox" style="width:200px" data-options="prompt:'请输入查询值'" />
+        <a href="javascript:void(0)" onclick="searchData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(function() {
+            InitDataGrid();
+        });
+
+        var loadDataUrl = '@Url.Action(ActionName.NoSqlPool.LoadNoSqlPoolList, ControllerName.NoSqlPool)';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'noSqlPoolId',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                showFooter: false,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                columns: [[
+                    { field: 'noSqlPoolId', title: 'Id', width: 30, align: 'left' },
+                    { field: 'cloudTypeString', title: '云服务', width: 50, align: 'left' },
+                    { field: 'noSqlTypeString', title: '类型', width: 80, align: 'left' },
+                    { field: 'endpoint', title: '访问地址', width: 200, align: 'left' },
+                    { field: 'accessName', title: '访问名称', width: 100, align: 'left' },
+                    //{ field: 'CreatedBy', title: '创建人', width: 100, align: 'left' },
+                    //{ field: 'CreatedDate', title: '创建时间', formatter: FormatterUtil.DateFormatter, width: 100, align: 'left' },
+                    { field: 'passwordExpiredTime', title: '密码过期时间', formatter: FormatterUtil.DateFormatter, width: 100, align: 'left', sortable: true },
+                    { field: 'tenantCount', title: '租户个数', width: 50, align: 'left', editor: { type: 'numberbox', options: { min: 20, precision: 0 } } }
+                ]],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function (data) {
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                }
+            });
+            $("#toolbar").keydown(function(){
+                if(event.keyCode=="13") {
+               searchData();
+        }
+        });
+        }
+
+        function refreshData() {
+
+            $("#selectname").searchbox('setValue', '');
+            searchData();
+        }
+
+        function searchData() {
+
+            $('#datagrid').datagrid('load', { selectname: $("#selectname").searchbox("getValue") });
+        }
+
+        function addNoSqlPool() {
+            openForm(0);
+        }
+
+        function editNoSqlPool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                openForm(row.noSqlPoolId);
+            } else {
+                $.messager.showErrorTopCenter("系统提示", "请选择需要编辑的数据", 2000);
+            }
+
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.NoSqlPool.GetNoSqlPoolForm, ControllerName.NoSqlPool)';
+        var saveFormUrl = '@Url.Action(ActionName.NoSqlPool.SaveNoSqlPoolForm, ControllerName.NoSqlPool)';
+        function openForm(id) {
+            var dialog = $.easyui.showDialog({
+                title: "保存数据",
+                width: 500,
+                height: 460,
+                href: getFormUrl + "?id=" + id,
+                model: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: 'post',
+                            dataType: 'json',
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $("#datagrid").datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功', 1000);
+                                    } else {
+                                        $.messager.showInfoTopCenter('错误信息', '保存数据失败', 1000);
+                                    }
+                                } else {
+                                    $.messager.showInfoTopCenter('错误信息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function () {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        var removeUrl = '@Url.Action(ActionName.NoSqlPool.RemoveNoSqlPool, ControllerName.NoSqlPool)';
+        function removeNoSqlPool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('确认', '是否确定删除该条记录?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUrl, { id: row.noSqlPoolId }, function(data) {
+                            $.easyui.loaded();
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                }
+                            } else {
+                                $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        }, 'json');
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter("系统提示", "请选择需要删除的数据", 2000);
+            }
+        }
+
+        var getPasswordHashUrl = '@Url.Action(ActionName.Tenant.GeneratePasswordHash, ControllerName.Tenant)';
+        function generatePasswordHash() {
+            //debugger;
+            var password = $('#AccessKeyPassword').val();
+            if (password == '') {
+                $.messager.showErrorTopCenter('错误消息', "用户密码不能为空", 1000);
+                return;
+            }
+            $.messager.confirm('确认', '是否根据秘钥:（' + password + '）进行加密，生成加密后的秘钥?', function(r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(getPasswordHashUrl, { password: password }, function(result) {
+                        $.easyui.loaded();
+                        if (result.success) {
+                            $('#AccessKeyPasswordHash').val(result.message);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', result.message, 1000);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+        var testConnectionUrl = '@Url.Action(ActionName.NoSqlPool.TestNoSqlConnection, ControllerName.NoSqlPool)';
+        function testConnection() {
+            //debugger;
+            var noSqlType = $('#NoSqlType').val();
+            if (noSqlType == '') {
+                $.messager.showErrorTopCenter('错误消息', "类型不能为空", 1000);
+                return;
+            }
+            var endpoint = $('#Endpoint').val();
+            if (endpoint == '') {
+                $.messager.showErrorTopCenter('错误消息', "服务器地址不能为空", 1000);
+                return;
+            }
+            var accessName = $('#AccessName').val();
+            if (accessName == '') {
+                $.messager.showErrorTopCenter('错误消息', "服务器AccessName不能为空", 1000);
+                return;
+            }
+            var accessKeyHash = $('#AccessKeyPasswordHash').val();
+            if (accessKeyHash == '') {
+                $.messager.showErrorTopCenter('错误消息', "服务器AccessKey不能为空", 1000);
+                return;
+            }
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.post(testConnectionUrl,
+                {
+                    NoSqlType: noSqlType,
+                    Endpoint: endpoint,
+                    AccessName: accessName,
+                    AccessKeyPasswordHash: accessKeyHash,
+                },
+                function(data) {
+                    $.easyui.loaded();
+                    if (data.success) {
+                        if (data.result == '') {
+                            $.messager.showInfoTopCenter('系统提示', '测试NoSql数据库连接成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.result, 3000);
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                    }
+                }, 'json');
+        }
+    </script>
+}
+
+

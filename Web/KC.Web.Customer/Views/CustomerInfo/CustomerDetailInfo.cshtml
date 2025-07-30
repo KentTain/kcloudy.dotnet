@@ -1,0 +1,707 @@
+﻿@using KC.Framework.Extension
+@using KC.Enums.CRM
+@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@using KC.Web.Extension
+
+
+@model KC.Service.DTO.Customer.CustomerInfoDTO
+@{
+    ViewBag.Title = "客户详情";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var id = ViewBag.CustomerId;
+    var tenant = ViewData[CustomConstants.TenantRoute] as Tenant;
+
+}
+
+@section styles{
+    <script src="~/js/sweetalert.min.js"></script>
+    <link href="~/css/sweetalert.css" rel="stylesheet" />
+    <style>
+        .trLeft {
+            width: 14%;
+            text-align: left;
+            line-height: 1.2;
+            padding: 3px;
+        }
+
+            .trLeft label {
+                font-size: 14px;
+                float: none;
+                font-weight: 600;
+            }
+
+
+        .trRight {
+            width: 6%;
+            text-align: right;
+            line-height: 1.2;
+            padding: 3px;
+        }
+
+            .trRight label {
+                font-size: 14px;
+                font-weight: 600;
+                float: none;
+                color: #2779aa /*#337da9*/;
+            }
+    </style>
+}
+<div style="padding-left: 2px;padding-right: 2px;padding-top: 2px">
+    <div style="border:solid 1px #aed0ea;padding:3px;width:auto;padding-right: 100px">
+        <table id="tb_CustomerInfo" style="width:100%" class="table">
+            <tr>
+                <td class="trRight">客户类型</td>
+                <td class="trLeft"><label>@Model.CompanyType.ToDescription()</label></td>
+                <td class="trRight">客户名称</td>
+                <td class="trLeft"><label>@Model.CustomerName</label></td>
+                <td class="trRight">联系人</td>
+                <td class="trLeft"><label>@Model.ContactName</label></td>
+            </tr>
+            <tr>
+                <td class="trRight">客户分类</td>
+                <td class="trLeft"><label>@Model.ClientType.ToDescription()</label></td>
+                <td class="trRight"><label>客户来源</label></td>
+                <td class="trLeft"><label>@Model.CustomerSource.ToDescription()</label></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="easyui-tabs" data-options="fit:true,plain:true">
+    <div title="客户联系人列表" style="padding: 10px;">
+        <div id="toolbar" style="padding: 5px; height: auto">
+            <span style="margin-right: 20px; margin-bottom: 10px">
+                @if (ViewBag.isoperate == 1)
+                {
+                    <!--配置管理-保存配置-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+                    {
+                        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDatabasePool('contact')">新增</a>
+                    }
+                    <!--配置管理-保存配置-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+                    {
+                        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editDatabasePool('contact')">编辑</a>
+                    }
+                    <!--配置管理-删除配置-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "51DE1887-5C57-4C17-984D-F23456499652")).Succeeded)*@
+                    {
+                        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeDatabasePool('contact')">删除</a>
+                    }
+                }
+            </span>
+        </div>
+        <table id="datagrid_CustomerContact" title="客户联系人列表" style="height: 350px"></table>
+    </div>
+
+    <div title="客户扩展信息" style="padding: 10px;">
+        <div id="toolbar2" style="padding: 5px; height: auto">
+            <span style="margin-right: 20px; margin-bottom: 10px">
+                @if (ViewBag.isoperate == 1)
+                {
+                    <!--配置管理-保存配置-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+                    {
+                        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDatabasePool('extInfo')">新增</a>
+                    }
+                    <!--配置管理-保存配置-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+                    {
+                        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="accept()">编辑</a>
+                    }
+                    <!--配置管理-删除配置-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "51DE1887-5C57-4C17-984D-F23456499652")).Succeeded)*@
+                    {
+                        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeDatabasePool('extInfo')">删除</a>
+                    }
+                }
+            </span>
+        </div>
+        <table id="datagrid_CustomerExtInfo" title="客户扩展信息" style="height: 350px"></table>
+    </div>
+
+    <div title="客户简介" style="padding: 10px;">
+        <div id="toolbar2" style="padding: 5px; height: auto">
+            <span style="margin-right: 20px; margin-bottom: 10px">
+                @if (ViewBag.isoperate == 1)
+                {
+                    <!--配置管理-保存配置-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+                    {
+                        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="SaveInfo()">保存</a>
+                    }
+                    <!--配置管理-删除配置-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "51DE1887-5C57-4C17-984D-F23456499652")).Succeeded)*@
+                    {
+                        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeInfo()">取消</a>
+                    }
+                }
+            </span>
+        </div>
+        <textarea style="width: 100%;" id="CusInfomation" name="CusInfomation">@Model.Introduction</textarea>
+        <div style="margin-left: 1880px; margin-top: 16px;">
+        </div>
+    </div>
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.config.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.all.min.js"></script>
+    <script type="text/javascript">
+        var ueditorContent = null, customerId = '@Model.CustomerId';
+        $(function() {
+            //初始化ueditor
+            UE.delEditor('CusInfomation');
+            ueditorContent = UE.getEditor('CusInfomation', {
+                // enableAutoSave: false,
+                serverUrl: '/Notification/Upload',
+                initialFrameWidth: '100%'
+            });
+        });
+
+        //打开SendingForm
+        var getCustomerDetailInfoUrl = '@Url.Action(ActionName.CustomerInfo.CustomerDetail, ControllerName.CustomerInfo)';
+        var sendingUrl = '@Url.Action(ActionName.CustomerInfo.CustomerDetail, ControllerName.CustomerInfo)';
+
+        function SaveInfo() {
+            var info = UE.getEditor('CusInfomation').getContentTxt();
+            //alert(info);
+            $.post(sendingUrl, { customerId: customerId, introduction: info }, function(data) {
+                if (data.success) {
+                    if (info != "") {
+                        $.messager.showInfoTopCenter('系统提示', '保存数据成功！', 1000);
+                    } else {
+                        $.messager.showInfoTopCenter('系统提示', '请输入数据！', 1000);
+                    }
+                } else {
+                    $.messager.showInfoTopCenter('系统提示', '保存数据失败！', 1000);
+                }
+            });
+        }
+
+        function removeInfo() {
+            $.messager.showInfoTopCenter('系统提示', '取消成功！', 1000);
+            //window.location.href = '~/Views/CustomerInfo/Index.cshtml';
+            window.location.reload();
+            //window.history.back();
+        }
+
+
+        var customerId = @id;
+        //ExtInfo
+        var editIndex = undefined;
+        var isAppend = false;
+
+        $(function() {
+            InitDataGrid_CustomerExtInfo();
+            InitDataGrid_CustomerContact();
+            //queryGenerateEditorData();
+        });
+        $.extend($.fn.datagrid.methods, {
+            addEditor: function(jq, param) {
+                if (param instanceof Array) {
+                    $.each(param, function(index, item) {
+                        var e = $(jq).datagrid('getColumnOption', item.field);
+                        e.editor = item.editor;
+                    });
+                } else {
+                    var e = $(jq).datagrid('getColumnOption', param.field);
+                    e.editor = param.editor;
+                }
+            },
+            removeEditor: function(jq, param) {
+                if (param instanceof Array) {
+                    $.each(param, function(index, item) {
+                        var e = $(jq).datagrid('getColumnOption', item);
+                        e.editor = {};
+                    });
+                } else {
+                    var e = $(jq).datagrid('getColumnOption', param);
+                    e.editor = {};
+                }
+            }
+        });
+
+        var loadDataUrl_CustomerContact = '@Url.Action(ActionName.CustomerInfo.GetCustomerContactByCustomerId, ControllerName.CustomerInfo)';
+
+        function InitDataGrid_CustomerContact() {
+            var $dataGrid = $('#datagrid_CustomerContact').datagrid({
+                //view: detailview,
+                url: loadDataUrl_CustomerContact + '?customerId=' + customerId,
+                method: 'get',
+                idField: 'id',
+                //toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: false,
+                nowrap: false,
+                fit: false,
+                pagination: true,
+                pageList: [10, 20, 50, 100],
+                columns: [
+                    [
+                        { field: 'contactName', title: '联系人', width: 100, align: 'left' },
+                        { field: 'positionName', title: '职务', width: 100, align: 'left' },
+                        { field: 'contactEmail', title: '联系邮箱', width: 150, align: 'left' },
+                        { field: 'contactPhoneMumber', title: '联系人手机', width: 100, align: 'left' },
+                        { field: 'contactTelephone', title: '联系人座机', width: 100, align: 'left' },
+                        { field: 'contactQQ', title: 'QQ', width: 100, align: 'left' },
+                        { field: 'isDefault', title: '是否默认联系人', width: 80, align: 'left', formatter: boolFormatter },
+                        { field: 'createdBy', title: '创建人', width: 100, align: 'left' },
+                        { field: 'createdDate', title: '创建时间', width: 100, align: 'left', formatter: FormatterUtil.DateFormatter }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+
+                },
+                onLoadSuccess: function(data) {
+                    $('#datagrid_CustomerContact').datagrid('unselectAll');
+                    $('#datagrid_CustomerContact').datagrid('uncheckAll');
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                }
+            });
+
+            //$('#txtSearchbox').searchbox({
+            //    menu: '#divSearchMenu',
+            //    prompt: '请输入查询值',
+            //    searcher: searchData
+            //});
+        }
+
+        function boolFormatter(data) {
+            if (data == 0) {
+                return "否";
+            }
+            return "是";
+        }
+
+        var loadDataUrl_CustomerExtInfo = '@Url.Action(ActionName.CustomerInfo.LoadCustomerExtraInfoListByCustomerId, ControllerName.CustomerInfo)';
+
+        function InitDataGrid_CustomerExtInfo() {
+            var $dataGrid = $('#datagrid_CustomerExtInfo').datagrid({
+                url: loadDataUrl_CustomerExtInfo + '?customerId=' + customerId,
+                method: 'get',
+                idField: 'id',
+                //toolbar: '#toolbar2',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: false,
+                pagination: true,
+                pageList: [10, 20, 50, 100],
+                columns: [
+                    [
+                        { field: 'propertyAttributeId', title: 'Id', width: 100, align: 'left', hidden: 'true' },
+                        { field: 'customerId', title: '客户Id', width: 100, align: 'left', hidden: 'true' },
+                        //{ field: 'dataType', title: '数据类型', width: 100, align: 'left', formatter: TransTypetoString, hidden: 'true' },
+                        { field: 'name', title: '附加信息名称', width: 80, align: 'left' },
+                        { field: 'value', title: '附加信息内容', width: 100, align: 'left' }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    $('#datagrid_CustomerExtInfo').datagrid('unselectAll');
+                    $('#datagrid_CustomerExtInfo').datagrid('uncheckAll');
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                },
+                onClickCell: onClickCell,
+                onEndEdit: onEndEdit,
+            });
+        }
+
+        function addDatabasePool(tabName) {
+            switch (tabName) {
+            case "contact":
+                opentForm(0, "新增联系人");
+                break;
+            case "extInfo":
+                append();
+                break;
+            }
+        }
+
+        function editDatabasePool(tabName, index) {
+            switch (tabName) {
+            case "contact":
+                var rows = $('#datagrid_CustomerContact').datagrid('getSelections');
+                if (rows && rows.length == 1) {
+                    var row = $('#datagrid_CustomerContact').datagrid('getSelected');
+                    if (row) {
+                        opentForm(row.id, "编辑联系人");
+                    }
+                } else {
+                    $('#datagrid_CustomerContact').datagrid('getSelected');
+                    //swal({ title: "错误消息", text: "请选择一条记录进行编辑！", type: "error", confirmButtonText: "确定" });
+                    $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行编辑！', 2000);
+                }
+                break;
+                //case"extInfo":
+                //    addEditors(isAppend, index);
+                //    break;
+            }
+        }
+
+        function removeDatabasePool(tabName) {
+            switch (tabName) {
+            case "contact":
+                var rows = $('#datagrid_CustomerContact').datagrid('getSelections');
+                if (rows && rows.length == 1) {
+                    removeContact();
+                } else {
+                    //swal({ title: "错误消息", text: "请选择一条记录进行删除！", type: "error", confirmButtonText: "确定" });
+                    $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行删除！', 2000);
+                }
+                break;
+            case "extInfo":
+                var rows1 = $('#datagrid_CustomerExtInfo').datagrid('getSelections');
+                if (rows1 && rows1.length == 1) {
+                    removeit();
+                } else {
+                    $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行删除！', 2000);
+                }
+                break;
+            }
+        }
+
+        var removeUrl = '@Url.Action(ActionName.CustomerInfo.RemoveCustomerContact, ControllerName.CustomerInfo)';
+
+        function removeContact() {
+            var row = $('#datagrid_CustomerContact').datagrid('getSelected');
+            if (row.isDefault) {
+                //swal({ title: "系统提示", text: "当前记录为默认联系人。如需删除请变更默认联系人。", type: "error", confirmButtonText: "确定" });
+                $.messager.showErrorTopCenter('系统提示', '当前记录为默认联系人。<br> 如需删除请变更默认联系人。', 2000);
+            } else {
+                if (row) {
+                    $.messager.confirm('系统提示', '是否确定删除该条记录?', function(r) {
+                        if (r) {
+                            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                            $.ajax({
+                                async: true,
+                                type: "post",
+                                dataType: "json",
+                                url: removeUrl,
+                                data: { id: row.id },
+                                success: function(data) {
+                                    if (data.success) {
+                                        //d.window('close');
+                                        if (data.result) {
+                                            $('#datagrid_CustomerContact').datagrid('clearSelections');
+                                            $('#datagrid_CustomerContact').datagrid('reload');
+                                            $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                        } else {
+                                            $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                        }
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                    }
+                                },
+                                complete: function() {
+                                    $.easyui.loaded();
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.CustomerInfo.CustomerContactForm, ControllerName.CustomerInfo)';
+        var saveFormUrl = '@Url.Action(ActionName.CustomerInfo.SaveCustomerContactForm, ControllerName.CustomerInfo)';
+
+        function opentForm(id, title) {
+            var result = false;
+            var dialog = $.easyui.showDialog({
+                title: title,
+                width: 500,
+                height: 360,
+                href: getFormUrl + "?id=" + id + "&&customerId=" + customerId,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    result = true;
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#datagrid_CustomerContact').datagrid('clearSelections');
+                                        $('#datagrid_CustomerContact').datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onBeforeClose: function() {
+                    if (!result) {
+                        $.messager.confirm("系统提示", "你确定要关闭窗口吗?",
+                            function(r) {
+                                if (r) {
+                                    result = true;
+                                    dialog.dialog("close", true);
+                                }
+                            });
+                    }
+                    return result;
+                },
+                onLoad: function() {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        //ExtInfo
+
+        function TransTypetoString(data) {
+            switch (data) {
+            case 0:
+                return '字符串';
+            case 1:
+                return '布尔型';
+            case 2:
+                return '整型';
+            case 3:
+                return '数值型';
+            case 4:
+                return '金额';
+            case 5:
+                return '日期型';
+            case 6:
+                return '文本型';
+            default:
+                return '其他';
+            }
+        }
+
+        function onClickCell(index) {
+            if (editIndex != index) {
+                if (endEditing()) {
+                    //$('#datagrid_CustomerExtInfo').datagrid('removeEditor', 'DataType');
+                    $('#datagrid_CustomerExtInfo').datagrid('removeEditor', 'Name');
+                    $('#datagrid_CustomerExtInfo').datagrid('removeEditor', 'Value');
+                    editIndex = index;
+                    addEditors(isAppend, index);
+                } else {
+                    setTimeout(function() {
+                        $('#datagrid_CustomerExtInfo').datagrid('selectRow', editIndex);
+                    }, 0);
+                }
+            } else {
+                isAppend = true;
+                addEditors(isAppend, index);
+            }
+        }
+
+        function endEditing() {
+            if (editIndex == undefined) {
+                return true;
+            }
+            if ($('#datagrid_CustomerExtInfo').datagrid('validateRow', editIndex)) {
+                $('#datagrid_CustomerExtInfo').datagrid('endEdit', editIndex);
+                editIndex = undefined;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function onEndEdit(index, row) {
+            var ed = $(this).datagrid('getEditor', { index: index, field: 'value' });
+            if (ed) {
+                switch (ed.type) {
+                case 'combobox':
+                    row.Value = $(ed.target).combobox('getText');
+                    break;
+                case 'numberbox':
+                    row.Value = $(ed.target).numberbox('getValue');
+                    break;
+                case 'datebox':
+                    row.Value = $(ed.target).datebox('getValue');
+                    break;
+                default:
+                    row.Value = $(ed.target).val();
+                    break;
+                }
+                return;
+            }
+            return;
+        }
+
+        function getEditor() {
+            return { type: 'textbox', options: { required: true } };
+        }
+
+        function addEditors(isAppend, index) {
+            //if (endEditing()) {
+            //获取选中行
+            var selectRow = $('#datagrid_CustomerExtInfo').datagrid('selectRow', index);
+            //var valueType = null;
+            //获取选中行数据类型
+            //if (isAppend == false) {
+            //    valueType = $('#datagrid_CustomerExtInfo').datagrid('getSelected').DataType;
+            //} else {
+            //var edr = $('#datagrid_CustomerExtInfo').datagrid('getEditor', { index: index, field: 'dataType' });
+            //valueType = $(edr.target).combobox('getValue');
+            //}
+            //动态添加editor
+            $('#datagrid_CustomerExtInfo').datagrid('addEditor', {
+                field: 'value',
+                editor: getEditor()
+            });
+
+            //启动editor
+            selectRow.datagrid('beginEdit', index);
+
+            var ed = $('#datagrid_CustomerExtInfo').datagrid('getEditor', { index: index, field: 'value' });
+            if (ed) {
+                ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
+            }
+            editIndex = index;
+        }
+
+        function append() {
+            if (endEditing()) {
+                $('#datagrid_CustomerExtInfo').datagrid('appendRow', { CustomerId: customerId });
+                editIndex = $('#datagrid_CustomerExtInfo').datagrid('getRows').length - 1;
+                $('#datagrid_CustomerExtInfo').datagrid('addEditor', {
+                    field: 'name',
+                    editor: {
+                        type: 'textbox',
+                        options: {
+                            required: true
+                        }
+                    }
+                });
+                $('#datagrid_CustomerExtInfo').datagrid('addEditor', {
+                    field: 'value',
+                    editor: {
+                        type: 'textbox',
+                        options: {
+                            required: true,
+                        }
+                    }
+                });
+                $('#datagrid_CustomerExtInfo').datagrid('selectRow', editIndex).datagrid('beginEdit', editIndex);
+            }
+            isAppend = false;
+        }
+
+        var removeExtInfoUrl = '@Url.Action(ActionName.CustomerInfo.RomoveAttr, ControllerName.CustomerInfo)';
+
+        function removeit() {
+            if (editIndex == undefined) {
+                return false;
+            }
+            var row = $('#datagrid_CustomerExtInfo').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('确认', '是否确定删除该扩展信息?', function(r) {
+                    if (r) {
+                        if (row.PropertyAttributeId === undefined) {
+                            $('#datagrid_CustomerExtInfo').datagrid('deleteRow', editIndex);
+                            return true;
+                        }
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: removeExtInfoUrl,
+                            data: { propertyAttributeId: row.propertyAttributeId },
+                            success: function(data) {
+                                if (data.success) {
+                                    if (data.result) {
+                                        $('#datagrid_CustomerExtInfo').datagrid('cancelEdit', editIndex).datagrid('deleteRow', editIndex);
+                                        editIndex = undefined;
+                                        $('#datagrid_CustomerExtInfo').datagrid('clearSelections');
+                                        $('#datagrid_CustomerExtInfo').datagrid('reload'); // reload the user data
+
+                                        $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        var saveUrl = '@Url.Action(ActionName.CustomerInfo.SaveAttribute, ControllerName.CustomerInfo)';
+
+        function accept() {
+            if (endEditing()) {
+                debugger;
+                //使用JSON序列化datarow对象，发送到后台。
+                var rows = $("#datagrid_CustomerExtInfo").datagrid('getChanges');
+                var rowstr = JSON.stringify(rows);
+                if (rowstr.length===2) return;
+
+                $.post(saveUrl, rowstr, function(data) {
+                    if (data.success) {
+                        d.window('close');
+                        if (data.result) {
+                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                    }
+
+                    $.easyui.loaded();
+                });
+                $('#datagrid_CustomerExtInfo').datagrid('clearSelections');
+                $('#datagrid_CustomerExtInfo').datagrid('reload');
+            }
+        }
+
+        function reject() {
+            $('#datagrid_CustomerExtInfo').datagrid('rejectChanges');
+            editIndex = undefined;
+        }
+    </script>
+}

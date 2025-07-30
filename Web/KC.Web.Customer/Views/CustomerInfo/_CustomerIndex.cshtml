@@ -1,0 +1,146 @@
+﻿@using KC.Enums.CRM
+@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+
+@model int
+@{
+    var model = (CompanyType)Model;
+    var dowonloadUrl = Url.Action(ActionName.CustomerInfo.DownLoadExcelTemplate, ControllerName.CustomerInfo, new { customerType = model });
+    
+}
+@functions
+{
+public string GetGridTitleText(CompanyType customerType)
+{
+    string title = string.Empty;
+    switch (customerType)
+    {
+        case CompanyType.Institute:
+            title = "机构客户列表";
+            break;
+        case CompanyType.Customer:
+            title = "个人客户列表";
+            break;
+        case CompanyType.Supplier:
+            title = "企业客户列表";
+            break;
+    }
+    return title;
+}
+public string GetDisplayName()
+{
+    string displayName = "客户";
+    var customerType = (CompanyType)Model;
+    if (customerType == CompanyType.Supplier)
+        displayName = "企业";
+    if (customerType == CompanyType.Institute)
+        displayName = "机构";
+    return displayName;
+}
+}
+
+<div id="toolbar_@(model)">
+    <div style="border: 1px solid #AED0EA; padding: 5px;">
+        <span style="margin-left: 15px; margin-bottom: 10px">
+            <!--配置管理-保存配置-->
+            @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+            {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDatabasePool_@(model)()">添加</a>
+            }
+            <!--配置管理-保存配置-->
+            @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+            {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editDatabasePool_@(model)()">编辑</a>
+            }
+            <!--配置管理-删除配置-->
+            @*@if ((await AuthorizationService.AuthorizeAsync(User, "51DE1887-5C57-4C17-984D-F23456499652")).Succeeded)*@
+            {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeDatabasePool_@(model)()">删除</a>
+            }
+
+        </span>
+        <span style="margin-right: 20px; margin-bottom: 10px; float: right">
+            <!--配置管理-保存配置-->
+            @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+            {
+            <a class="easyui-linkbutton" iconcls="fa fa-save" href="@dowonloadUrl">下载导入模板</a>
+            }
+            <!--配置管理-保存配置-->
+            @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+            {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="insertFromExcel_@(model)()">导入客户数据</a>
+            }
+            <input type="hidden" id="searchKey_@(model)" value="" />
+            <input type="hidden" id="searchValue_@(model)" value="" />
+        </span>
+    </div>
+    <div style="border: 1px solid #AED0EA; padding: 5px;">
+        <div id="sp_dropDownList" style="margin-top: 6px;margin-left: 15px;float:left;">
+            <span>
+                <span style="margin-right: 10px">
+                    客户分类：
+                    @Html.DropDownList("ClientType", (IEnumerable<SelectListItem>)ViewBag.ClientTypeList, new { @id = "ClientType_" + model + "", @class = "easyui-combobox", @style = "width: 120px;height:26px;" })
+                </span>
+                <span style="margin-right: 10px">
+                    地区|地址：
+                    <input class="easyui-textbox" style="width: 120px; height: 26px;" id="area_@(model)">
+                </span>
+                <span style="margin-right: 10px">
+                    创建日期：
+                    <input class="easyui-datebox" id="startTime_@(model)" name="startTime_@(model)" style="cursor: pointer; width: 120px; height: 26px;">
+                    至
+                    <input class="easyui-datebox" id="endTime_@(model)" name="endTime_@(model)" style="cursor: pointer; width: 120px; height: 26px;">
+                </span>
+            </span>
+        </div>
+        <div style="margin-top: 6px;">
+            <div id="divSearchMenu_@(model)" class="easyui-menu" style="width: 120px;height: 26px;">
+                <div data-options="name:'CustomerName',selected:true">@(GetDisplayName())名称</div>
+                <div data-options="name:'ContactName'">联系人</div>
+                <div data-options="name:'ContactEmail'">联系邮箱</div>
+                <div data-options="name:'ContactPhoneNumber'">联系人手机</div>
+            </div>
+            <input id="txtSearchbox_@(model)" class="easyui-textbox" style="width: 200px;height: 26px;" />
+            <a href="javascript:void(0)" onclick="reloadDatagrid_@(model)()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+            <a href="javascript:void(0)" onclick="refreshSearch_@(model)()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+        </div>
+
+    </div>
+    <div style="border: 1px solid #AED0EA; padding: 5px;">
+        <span style="margin-left: 15px">
+            <!--配置管理-客户分配-->
+            @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+            {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-arrows 
+" onclick="selectUserForm_@(model)()">客户分配</a>
+            }
+            <!--配置管理-自动分配-->
+            @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+            {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-retweet" onclick="transforUserForm_@(model)()">客户转移</a>
+            }
+            <!--配置管理-自动分配-->
+            @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+            {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-flash" onclick="shareManager_@(model)()">自动分配</a>
+            }
+            <!--配置管理-客户推送-->
+            @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+            {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-mail-forward" onclick="sendUserToTenantForm_@(model)()">客户推送</a>
+            }
+
+            @if ((bool)ViewBag.CanTransforCustomer)
+            {
+                <!--配置管理-客户推送-->
+                @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+                {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-ship" onclick="transferCustomerToSeas_@(model)()">移至部门公海</a>
+                }
+            }
+        </span>
+    </div>
+</div>
+
+<table id="datagrid_@(model)" title="@GetGridTitleText(model)"></table>
+

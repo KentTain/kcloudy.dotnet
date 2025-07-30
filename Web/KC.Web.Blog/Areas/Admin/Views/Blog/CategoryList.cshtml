@@ -1,0 +1,179 @@
+﻿@using KC.Web.Blog.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "分类管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+<div id="toolbar">
+    <div>
+        <!--分类管理-保存分类-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "BCEDDE0D-96BE-42E0-BA68-539DC6203442")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addConfig()">添加</a>
+        }
+        <!--分类管理-保存分类-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "BCEDDE0D-96BE-42E0-BA68-539DC6203442")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editConfig()">编辑</a>
+        }
+        <!--分类管理-删除分类-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "D79CC1FF-4CF0-49FE-8349-9F65BE42751C")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeConfig()">删除</a>
+        }
+    </div>
+
+    <div>
+        <input id="searchbox" class="easyui-textbox" data-options="prompt:'请输入分类名称'" style="width: 300px; height: 26px;" />
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="RefreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+<script type="text/javascript">
+        $(function() {
+            IniDataGrid();
+        });
+
+        function RefreshSearch() {
+            $("#searchbox").searchbox('setValue', '');
+            reloadDatagrid();
+        }
+
+        function reloadDatagrid() {
+            $("#datagrid").datagrid("load", {
+                name: $("#searchbox").searchbox("getValue")
+            });
+        }
+
+        var loadDataUrl = '@Url.Action(ActionName.Blog.LoadAllCategories, ControllerName.Blog)';
+        function IniDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [
+                    [
+                        { field: 'name', title: '分类名称', width: 100, align: 'left' },
+                        { field: 'remark', title: '分类描述', width: 200, align: 'left' },
+                        { field: 'orderBy', title: '排序', width: 80, align: 'left' },
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    $(".btnAddModule").linkbutton({ plain: true, iconCls: 'fa fa-plus' });
+                },
+                onLoadError: function(data) {
+                },
+                detailFormatter: function(index, row) {
+                },
+                onExpandRow: function(index, row) {
+                },
+            });
+        }
+
+        function addConfig() {
+            openForm(0);
+        }
+        function editConfig() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                openForm(row.id);
+            } else {
+                $.messager.showErrorTopCenter('系统提示', "请选择需要编辑的数据");
+            }
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.Blog.GetCategoryForm, ControllerName.Blog)';
+        var saveFormUrl = '@Url.Action(ActionName.Blog.SaveCategory, ControllerName.Blog)';
+        function openForm(id) {
+            var dialog = $.easyui.showDialog({
+                title: id == 0 ? "添加分类" : "编辑分类",
+                width: 400,
+                height: 300,
+                href: getFormUrl + "?id=" + id,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    $.messager.showInfoTopCenter('系统提示', id > 0 ? '分类修改成功。' : '分类添加成功。');
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload'); // reload the user data
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', data.message);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function() {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        var removeUrl = '@Url.Action(ActionName.Blog.RemoveCategory, ControllerName.Blog)';
+        function removeConfig() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('确认', '是否确定删除该分类及相关属性记录?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUrl, { id: row.id }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload'); // reload the user data
+                                    $.messager.showInfoTopCenter('系统提示', '分类及相关属性已成功移除。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '分类及相关属性已成功移除失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                            $.easyui.loaded();
+                        }, 'json');
+                    }
+                });
+            }
+        }
+</script>
+}
+

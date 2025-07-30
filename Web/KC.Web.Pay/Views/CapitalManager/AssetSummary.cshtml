@@ -1,0 +1,778 @@
+﻿@using KC.Web.Pay.Constants
+@using KC.Service.DTO.Pay
+@using KC.Enums.Pay
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var summary = ViewBag.Summary as Tuple<decimal, decimal>;
+    summary = summary ?? new Tuple<decimal, decimal>(0, 0);
+
+    @*账户流水-充值：Charge*@
+    var canCharge = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canCharge = true;
+    }
+    @*账户流水-提现：Withdrawals*@
+    var canWithdraw = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canWithdraw = true;
+    }
+    @*账户流水-交易流水：TransactionFlow*@
+    var canTransactionFlow = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canTransactionFlow = true;
+    }
+    @*账户流水-支付提醒：RemindBuyerPayment*@
+    var canRemindBuyer = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canRemindBuyer = true;
+    }
+    @*账户流水-添加支付记录：AddPaymentRecod*@
+    var canPayment1 = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canPayment1 = true;
+    }
+    @*账户流水-支付取消：OnlinePayment/CancelPayment*@
+    var canPayment2 = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canPayment2 = true;
+    }
+    @*账户流水-创建支付日期：OnlinePayment/CreatePaymentData*@
+    var canPayment3 = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canPayment3 = true;
+    }
+    var canPayment = canPayment1 || canPayment2 || canPayment3;
+
+    @*账户流水-查看账户信息：Payment/BankInfo*@
+    var canBankInfo = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canBankInfo = true;
+    }
+    @*账户流水-设置交易密码：Payment/SetPassword*@
+    var canSetPwd = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canSetPwd = true;
+    }
+
+    var CNPCAccount = ViewBag.CNPCAccount as PaymentBankAccountDTO;
+    var BoHaiAccount = ViewBag.BoHaiAccount as PaymentBankAccountDTO;
+}
+@section styles{
+    <link href="~/css/assetSummary.css" rel="stylesheet" />
+}
+
+<div class="Manage_box">
+
+    @if (ViewBag.IsActiveCNPC)
+    {
+
+        <div class="div_accountInfo">
+            <div class="top_bar_contain">
+                <div class="fl_div_num">
+                    <p class="p18">
+                        交易账户：中金支付
+                    </p>
+                    <p class="p18">
+                        @if (CNPCAccount != null)
+                        {
+
+                            <a href="###" class="c_1B7CF8" style="margin:1px;" onclick="accountInfo('@CNPCAccount.PaymentType');">账户信息</a>
+                            <a class="@(canSetPwd ? "" : "NoAuth")" href="javascript:showPassword('@CNPCAccount.PaymentType')">密码管理</a>
+                            <a class="@(canBankInfo ? "" : "NoAuth")" href="javascript:showBanks()">绑定银行账户</a>
+
+                        }
+                        else
+                        {
+                        <p>暂未开通</p>
+                    }
+                        </p>
+                    </div>
+                    <div class="fr_div_num">
+                        @if (CNPCAccount == null)
+                        {
+                            <a href="###" class="btn btn-default" style="margin:5px;" onclick="showOpenPayment();"><i></i>开通财富共赢钱包</a>
+                        }
+                        else
+                        {
+                            <a href="###" class="btn btn-default @(canCharge ? "" : "NoAuth")" style="margin-left:2px;" onclick="charge();"><i class="glyphicon glyphicon-flash"></i> 充值</a>
+                            <a href="###" class="btn btn-default @(canWithdraw ? "" : "NoAuth")" style="margin-left:2px;" onclick="withdrawals();"><i class="glyphicon glyphicon-yen"></i> 提现</a>
+                            <a href="###" class="btn btn-default " style="margin-left:2px;" onclick="refreshSummary();"><i class="glyphicon glyphicon-refresh"></i> 刷新</a>
+                        }
+                    </div>
+
+                </div>
+
+                <div class="bs_box">
+                    <ul>
+                        <li class="bg_numb b1">
+                            <h1>资金总额</h1>
+                            <p> <i class="ft18"><span id="TotalAmount">@(CNPCAccount == null ? "￥ 0.00" : (((CNPCAccount.CFWinTotalAmount) / 100).ToString("C")))</span></i></p>
+                        </li>
+                        <li class="bg_numb b2">
+                            <h1>可用余额</h1>
+                            <p><i class="ft18"> <span id="AvailableAmount">@(CNPCAccount == null ? "￥ 0.00" : ((CNPCAccount.CFWinTotalAmount - CNPCAccount.CFWinFreezeAmount) / 100).ToString("C"))</span> </i></p>
+                        </li>
+                        <li class="bg_numb b3">
+                            <h1>已收保证金</h1>
+                            <p><i class="ft18 receivedCautionMoney">￥ 0.00</i></p>
+                        </li>
+                        <li class="bg_numb b4">
+                            <h1>已付保证金</h1>
+                            <p><i class="ft18 paidCautionMoney">￥ 0.00</i></p>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+        }
+
+    <table class="tb_table">
+        <caption>
+            交易流水
+            <a style="display:inline;float:right;background: #1B7CF8;color: white; padding: 9px; font-size: 16px;" href="javascript:showTransactionFlow()">查看更多</a>
+        </caption>
+
+    </table>
+    <table id="flowDatagrid" data-options="iconCls: 'icon-standard-text-list-bullets',border:false"></table>
+</div>
+
+<div id="openPayment" style="display: none;text-align: center">
+    <table style="margin:10px">
+        <tr>
+            <td>
+                <p style="font-size:20px">确认开通财富共赢钱包(CFPay)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p style="font-size:16px;text-align: left;margin-top:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;财富共赢钱包(CFPay)是财富共赢为用户搭建的账户体系，该账户通过绑定银行账户实现现金支付、票据支付、信用支付、结算等基本功能，是产融协作平台用户交易的支付结算工具。</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input id="chkRead" type="checkbox" style="margin:3px;" /><span style="margin:3px;">我已阅读并同意</span>
+                <a style="text-decoration:underline; line-height:14px;cursor: pointer;" onclick="JumpDetail()">《财富共赢钱包CFPay服务协议》</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <input id="btnOpen" disabled="disabled" type="button" class="easyui-linkbutton" style="width:80px;height:35px;margin:10px;" value="确认开通" />
+                <input id="btnNoOpen" type="button" class="easyui-linkbutton" style="width:80px;height:35px;margin:10px;" value="暂不开通" />
+            </td>
+        </tr>
+    </table>
+</div>
+
+@section scripts{
+    <script src="~/js/jquery.AshAlom.gaugeMeter-2.0.0.min.js"></script>
+    <script src="~/js/layer/layer.js"></script>
+    <script src="~/js/AssetSummary/index.js"></script>
+    <script>
+        var capitalSummaryUrl =
+            '@Url.Action(ActionName.CapitalManager.CapitalSummary, ControllerName.CapitalManager)';
+        var remindBuyerPaymentUrl =
+            '@Url.Action(ActionName.CapitalManager.RemindBuyerPayment, ControllerName.CapitalManager)';
+        var cancelPayableUrl =
+            '@Url.Action(ActionName.CapitalManager.CancelPayable, ControllerName.CapitalManager)';
+        var getReceivedAndPaidCautionMoneyUrl =
+            '@Url.Action(ActionName.CapitalManager.GetReceivedAndPaidCautionMoney, ControllerName.CapitalManager)';
+
+        var dialog = null, pageName='AssetSummary', $dialog=null;
+        $(function () {
+            //$(".gaugemeter").gaugeMeter();
+
+            //queryReceivablesAndPayable();
+
+            //getPayables();
+
+            //getReceivables();
+
+            //initTips();
+
+            initDataGrid();
+            getReceivedAndPaidCautionMoney();
+        });
+
+        function close() {
+            if (dialog != null) {
+                dialog.dialog('close');
+                dialog = null;
+            }
+        }
+
+        var chargeUrl = '@Url.Action(ActionName.CapitalManager.Charge, ControllerName.CapitalManager)';
+        function charge() {
+            checkOpenPayAndBindBank(function() {
+                dialog = showMaxDialog({title:'充值',href:chargeUrl});
+            });
+        }
+
+        var withdrawalsUrl = '@Url.Action(ActionName.CapitalManager.Withdrawals, ControllerName.CapitalManager)';
+        function withdrawals() {
+            checkOpenPayAndBindBank(function() {
+                dialog = showMaxDialog({title:'提现',href:withdrawalsUrl});
+            });
+        }
+
+        function refreshSummary() {
+            location.reload();
+        }
+
+        var queryReceivablesAndPayableUrl = '@Url.Action(ActionName.CapitalManager.QueryReceivablesAndPayable, ControllerName.CapitalManager)';
+        function queryReceivablesAndPayable() {
+            $.get(queryReceivablesAndPayableUrl,
+                function(data) {
+                    if (data && data.result) {
+                        $(".receivablesAmount").remove();
+                        $(".payableAmount").remove();
+                        $('.summary').append('<div class="gaugemeter receivablesAmount cash" data-text="<font style=\'color:White;font-size:20px;letter-spacing:-1px\'>' + fmoney(data.result.Item2, 2) + '</font>" data-percent="100" data-size="200" data-theme="White" data-back="RGBa(0,0,0,.1)" data-width="2" data-label="应收汇总" data-style="Full" data-label_color="#FFF"></div>');
+                        $('.summary').append('<div class="gaugemeter payableAmount cash" data-text="<font style=\'color:White;font-size:20px;letter-spacing:-1px\'>'+fmoney(data.result.Item1, 2)+'</font>" data-percent="100" data-size="200" data-theme="White" data-back="RGBa(0,0,0,.1)" data-width="2" data-label="应付管理" data-style="Full" data-label_color="#FFF"></div>');
+                        $(".receivablesAmount").gaugeMeter();
+                        $(".payableAmount").gaugeMeter();
+                        initTips();
+                    }
+                });
+        }
+
+    </script>
+
+    <script>
+        function openUserPage(userId, type) {
+            var url = "";
+            var queryString = "id=" + userId;
+            if (type == "roleinuser") {
+                url = roleInUser;
+            } else if (type == "userdetail") {
+                url = userDetailUrl;
+            }
+            MainPage_PostMessage("openSubPage", url, queryString);
+        }
+
+        var accountInfoUrl = '@Url.Action(ActionName.BankAccount.AccountInfo, ControllerName.BankAccount)';
+        function accountInfo(paymentType) {
+            var queryString = "paymentType=" + paymentType;
+            MainPage_PostMessage("openPage", accountInfoUrl, queryString);
+
+            $.easyui.showDialog({
+                title: '账户信息',
+                iconCls: 'icon-more',
+                modal: true,
+                iniframe: true,
+                href: accountInfoUrl + '&paymentType=' + paymentType,
+                width: "350px",
+                height: "150px",
+                fit: false,
+                border: true,
+                resizable: false,
+                draggable: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                enableSaveButton: false,
+                enableCloseButton: false
+            });
+        }
+
+        var transactionUrl = '@Url.Action(ActionName.CapitalManager.TransactionFlow, ControllerName.CapitalManager)';
+        function showTransactionFlow() {
+            showMaxDialog({ title: '交易流水', href: transactionUrl,border:true });
+        }
+
+        var serviceFeeUrl = '@Url.Action(ActionName.CapitalManager.ServiceFeeFlow, ControllerName.CapitalManager)';
+        function showServiceFeeFlow() {
+            showMaxDialog({ title: '平台服务费', href: serviceFeeUrl });
+        }
+
+        var bankInfoUrl = '@Url.Action(ActionName.BankAccount.BankInfo, ControllerName.BankAccount)';
+        function showBanks() {
+            showMaxDialog({ title: '绑定银行账户', href: bankInfoUrl });
+        }
+
+        var dialogSetPwd = null;
+        var setPasswordUrl = '@Url.Action(ActionName.BankAccount.SetPassword, ControllerName.BankAccount)';
+        function showSetPwd() {
+            dialogSetPwd = $.easyui.showDialog({
+                title: '设置交易密码',
+                iconCls: 'icon-more',
+                modal: true,
+                iniframe: true,
+                href: setPasswordUrl,
+                width: "500px",
+                height: "280px",
+                fit: false,
+                border: true,
+                resizable: false,
+                draggable: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                enableSaveButton: false,
+                enableCloseButton: false
+            });
+        }
+
+        function setPwdClose() {
+            if (dialogSetPwd != null) {
+                dialogSetPwd.dialog('close');
+                dialogSetPwd = null;
+                location.reload();
+            }
+        }
+
+        var dialogPasswordManage = null;
+        var passwordManageUrl = '@Url.Action(ActionName.BankAccount.PasswordManage, ControllerName.BankAccount)';
+        function showPasswordManage() {
+
+                dialogPasswordManage = $.easyui.showDialog({
+                    title: '交易密码管理',
+                    iconCls: 'icon-more',
+                    modal: true,
+                    iniframe: true,
+                    href: passwordManageUrl,
+                    width: "540px",
+                    height: "380px",
+                    fit: false,
+                    border: true,
+                    resizable: false,
+                    draggable: false,
+                    enableHeaderContextMenu: false,
+                    enableApplyButton: false,
+                    enableSaveButton: false,
+                    enableCloseButton: false
+                });
+        }
+
+        function passwordManageClose() {
+            if (dialogPasswordManage != null) {
+                dialogPasswordManage.dialog('close');
+                dialogPasswordManage = null;
+            }
+        }
+
+        function passwordManageCloseRefresh() {
+            passwordManageClose();
+            showPasswordManage();
+        }
+
+        var dialogUpdatePhone = null;
+        var updatePhoneUrl = '@Url.Action(ActionName.BankAccount.PasswordManage, ControllerName.BankAccount)';
+        function showUpdatePhone() {
+            dialogUpdatePhone = $.easyui.showDialog({
+                title: '修改交易手机号',
+                iconCls: 'icon-more',
+                modal: true,
+                iniframe: true,
+                href: updatePhoneUrl,
+                width: "630px",
+                height: "380px",
+                fit: false,
+                border: true,
+                resizable: false,
+                draggable: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                enableSaveButton: false,
+                enableCloseButton: false
+            });
+        }
+
+        function showUpdatePhoneClose() {
+            if (dialogUpdatePhone != null) {
+                dialogUpdatePhone.dialog('close');
+                dialogUpdatePhone = null;
+            }
+        }
+
+        var dialogUpdatePassword = null;
+        var updatePasswordUrl = '@Url.Action(ActionName.BankAccount.UpdatePassword, ControllerName.BankAccount)';
+        function showUpdatePassword() {
+            dialogUpdatePassword = $.easyui.showDialog({
+                title: '修改交易密码',
+                iconCls: 'icon-more',
+                modal: true,
+                iniframe: true,
+                href: updatePasswordUrl,
+                width: "550px",
+                height: "385px",
+                fit: false,
+                border: true,
+                resizable: false,
+                draggable: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                enableSaveButton: false,
+                enableCloseButton: false
+            });
+        }
+
+        function showUpdatePasswordClose() {
+            if (dialogUpdatePassword != null) {
+                dialogUpdatePassword.dialog('close');
+                dialogUpdatePassword = null;
+            }
+        }
+
+        var setPhoneUrl = '@Url.Action(ActionName.BankAccount.SetPhone, ControllerName.BankAccount)';
+        function showPassword(paymentType) {
+            if (paymentType == '@ThirdPartyType.CPCNConfigSign') {
+                checkOpenPayAndBindBank(function () {
+                    //手机号码设置
+                    if ('@ViewBag.IsTradePhoneSet' == "False") {
+                        dialog = $.easyui.showDialog({
+                            title: '手机号码设置',
+                            iconCls: 'icon-more',
+                            modal: true,
+                            iniframe: true,
+                            href: setPhoneUrl,
+                            width: "500px",
+                            height: "300px",
+                            fit: false,
+                            border: true,
+                            resizable: false,
+                            draggable: false,
+                            enableHeaderContextMenu: false,
+                            enableApplyButton: false,
+                            enableSaveButton: false,
+                            enableCloseButton: false
+                        });
+                        return;
+                    }
+
+                    //密码设置
+                    if ('@ViewBag.IsTradePasswordSet' == "False") {
+                        showSetPwd();
+                        return;
+                    }
+
+                    if ('@ViewBag.IsTradePasswordSet' == "True" && '@ViewBag.IsTradePhoneSet' == "True") {
+                        showPasswordManage();
+                        return;
+                    }
+                });
+            }
+            else if (paymentType == '@ThirdPartyType.BoHaiConfigSign') {
+                dialogUpdatePassword = $.easyui.showDialog({
+                    title: '修改交易密码',
+                    iconCls: 'icon-more',
+                    modal: true,
+                    iniframe: true,
+                    href: updateBoHaiPasswordUrl,
+                    width: "550px",
+                    height: "360px",
+                    fit: false,
+                    border: true,
+                    resizable: false,
+                    draggable: false,
+                    enableHeaderContextMenu: false,
+                    enableApplyButton: false,
+                    enableSaveButton: false,
+                    enableCloseButton: false
+                });
+            }
+        }
+
+    </script>
+
+    <script>
+        var $flowDatagrid = null, flowData = [];
+        var loadFlowUrl = '@Url.Action(ActionName.CapitalManager.LoadTransactionFlows, ControllerName.CapitalManager)';
+        function initDataGrid() {
+            $flowDatagrid = $('#flowDatagrid').datagrid({
+                url: loadFlowUrl,
+                method: 'get',
+                idField: 'Id',
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                minHeight:"100px",
+                pageSize: 10,
+                columns: [
+                    [
+                        { field: 'ConsumptionDate', title: '交易时间', width: '15%', align: 'center', halign: 'center' },
+                        { field: 'AccountName', title: '交易账户', width: '10%', align: 'center', halign: 'center' },
+                        { field: 'PaymentMethod', title: '支付方式', width: '15%', align: 'center', halign: 'center' },
+                        { field: 'CashTypeName', title: '交易类型', width: '15%', align: 'center', halign: 'center' },
+                        {
+                            field: 'Income', title: '收入', width: '11%', align: 'center', halign: 'center',
+                            formatter: function (value, row, index) {
+                                if (value <= 0)
+                                    return '-';
+                                return fmoney(value, 2);
+                            }
+                        },
+                        {
+                            field: 'Expenditure', title: '支出', width: '11%', align: 'center', halign: 'center',
+                            formatter: function (value, row, index) {
+                                if (value <= 0)
+                                    return '-';
+                                return fmoney(value, 2);
+                            }
+                        },
+                        { field: 'Remark', title: '备注', width: '24%', align: 'center', halign: 'center' }
+                    ]
+                ],
+                onBeforeLoad: function (param) {
+                    $('#flowDatasDatagrid').datagrid('unselectAll');
+                },
+                onLoadSuccess: function (data) {
+                    flowData = data.rows;
+                },
+                onLoadError: function (response) {
+                    parseResponse(response);
+                }
+            });
+            var pg = $flowDatagrid.datagrid("getPager");
+            if (pg) {
+                $(pg).pagination({
+                    onBeforeRefresh: function () {
+                        $flowDatagrid.datagrid('unselectAll');
+                    }
+                });
+            }
+        }
+
+        var authPaymentClass = '@(canPayment ? "": "NoAuth")';
+        var getPayablesUrl = '@Url.Action(ActionName.CapitalManager.LoadPayableTop5, ControllerName.CapitalManager)';
+        function getPayables() {
+            ShowMask($('.payables'));
+            $.get(getPayablesUrl,
+                function (data) {
+                    HideMask($('.payables'));
+                    if (data && data.result) {
+                        var $payables = $('#payables').empty();
+                        for (var i = 0; i < data.result.length; i++) {
+                            var item = data.result[i];
+                            $payables.append('<tr><td>' + item.TypeName + '</td>' +
+                                '<td>' + item.SourceName + '</td>' +
+                                '<td>' + (item.Source === 2 ||  item.Source === 4 ?(item.OrderId ===null?'--':item.OrderId):('<a href="javascript:showPayableOrderInfo(\'' + item.OrderId + '\',' + item.Source + ',undefined,' + (item.Remark.indexOf('采购') > -1 ? false : true) + ')">' + item.OrderId + '</a>')) + '</td > ' +
+                                '<td>' + fmoney(item.OrderAmount, 2) + '</td>' +
+                                '<td>' + fmoney(item.PayableAmount - item.AlreadyPayAmount, 2) + '</td>' +
+                                '<td>' + item.StartDateStr + '</td>' +
+                                '<td>' + item.Customer + '</td>' +
+                                '<td class="remark" title="' + item.Remark + '">' + (item.Remark) + '</td>' +
+                                '<td class="status">' + (item.Status === '支付中' ? '<i class="statusDot"></i>' : '<i class="statusDot start"></i>') + (item.Status) + '</td>' +
+                                '<td>' +
+                                ('<a class="' + authPaymentClass + '" href="javascript:goPayment(' + item.Source + ',\'' + item.SourceName + '\',\'' + (item.Source === 4 ? item.PayableNumber : item.OrderId) + '\',' + item.Id + ')">付款</a>' + (item.Source === 4 ? ' <a  class="' + authPaymentClass + '" href="javascript:cancelPayable('+item.Id+')">取消</a>':'') + '</td>') + '</tr>');
+                        }
+                        if (data.result.length === 0)
+                            $payables.append('<tr><td colspan="10">暂无应付数据</td></tr>');
+                        $('.remark', $payables).tooltip({
+                            position: 'left',
+                            onShow: function () {
+                                $(this).tooltip('tip').css({ backgroundColor: '#666', borderColor: '#666', color: '#fff' });
+                            }
+                        });
+                        NoPermissionTip();
+                    }
+                });
+        }
+
+        var payablesUrl = '@Url.Action(ActionName.CapitalManager.Payables, ControllerName.CapitalManager)';
+        function showPayablesMore() {
+            showMaxDialog({ title: '应付管理', href: payablesUrl });
+        }
+    </script>
+
+    <script>
+        var authRemindBuyerClass = '@(canRemindBuyer ? "": "NoAuth")';
+        var getReceivablesUrl = '@Url.Action(ActionName.CapitalManager.LoadReceivableTop5, ControllerName.CapitalManager)';
+        function getReceivables() {
+            ShowMask($('.receivables'));
+            $.get(getReceivablesUrl,
+                function (data) {
+                    HideMask($('.receivables'));
+                    if (data && data.result) {
+                        var $receivables = $('#receivables').empty();
+                        for (var i = 0; i < data.result.length; i++) {
+                            var item = data.result[i];
+                            $receivables.append('<tr><td>' + item.TypeName + '</td>' +
+                                '<td>' + item.SourceName + '</td>' +
+                                '<td>' + '<a href="javascript:showReceivableOrderInfo(\'' + item.OrderId + '\',' + item.Source + ')">' + item.OrderId + '</a>' + '</td > ' +
+                                '<td>' + fmoney(item.OrderAmount, 2) + '</td>' +
+                                '<td>' + fmoney(item.ReceivableAmount - item.AlreadyPayAmount, 2) + '</td>' +
+                                '<td>' + item.StartDateStr + '</td>' +
+                                '<td>' + item.Customer + '</td>' +
+                                '<td class="remark" title="' + item.Remark + '">' + (item.Remark) + '</td>' +
+                                '<td class="status">' + (item.Status === '支付中' ? '<i class="statusDot"></i>' : '<i class="statusDot start"></i>') + (item.Status) + '</td>' +
+                                '<td><a class="' + authRemindBuyerClass+'"  href="javascript:remindingPayment(' + item.Id + ',\''+item.CustomerTenant+'\','+item.Source+')">提醒付款</a></td></tr>');
+                        }
+                        if (data.result.length === 0)
+                            $receivables.append('<tr><td colspan="10">暂无应收数据</td></tr>');
+                        $('.remark', $receivables).tooltip({
+                            position: 'left',
+                            onShow: function () {
+                                $(this).tooltip('tip').css({ backgroundColor: '#666', borderColor: '#666', color: '#fff' });
+                            }
+                        });
+                    }
+                });
+        }
+
+        var receivablesUrl = '@Url.Action(ActionName.CapitalManager.Receivables, ControllerName.CapitalManager)';
+        function showReceivablesMore() {
+            showMaxDialog({ title: '应收汇总', href: receivablesUrl });
+        }
+
+    </script>
+
+    <script>
+        var dialogBoHaiBank = null;
+        function bindingBankAccount() {
+            dialogBoHaiBank = $.easyui.showDialog({
+                title: '绑定银行卡',
+                iconCls: 'icon-more',
+                modal: true,
+                iniframe: true,
+                href: updateBoHaiBankFormUrl,
+                width: "500px",
+                height: "350px",
+                fit: false,
+                border: true,
+                resizable: false,
+                draggable: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                enableSaveButton: false,
+                enableCloseButton: false
+            });
+        }
+
+        var OpenPayment = '@Url.Action(ActionName.CapitalManager.OpenPayment, ControllerName.CapitalManager)';
+        function showOpenPayment() {
+            $openPayClosed = false;
+            var $openPayment = $('#openPayment').clone().show();
+            var $btnOpen = $("#btnOpen", $openPayment);
+            var $chkRead = $("#chkRead", $openPayment);
+            $openPayDialog = $.easyui.showDialog({
+                title: '提示',
+                iconCls: '',
+                width: 500,
+                height: 270,
+                modal: true,
+                topMost: true,
+                content: $openPayment,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                enableSaveButton: false,
+                enableCloseButton: false,
+                onClose: function () {
+                    if (!$openPayClosed)
+                        closeShowTips();
+                }
+            });
+            $btnOpen.linkbutton('disable');
+            $chkRead.click(function () {
+                //获取是否选中
+                var isChecked = $chkRead.get(0).checked;
+                if (isChecked) {
+                    $btnOpen.linkbutton('enable');
+                }
+                else {
+                    $btnOpen.linkbutton('disable');
+                }
+            });
+
+            $("#btnNoOpen", $openPayment).click(function () {
+                closeShowTips();
+            });
+
+            $btnOpen.click(function () {
+                //获取是否选中
+                var isChecked = $chkRead.get(0).checked;
+                if (!isChecked) {
+                    return;
+                }
+                closeDialog();
+                var loadingIndex = layer.msg('正在开通', {
+                    time: 0,
+                    icon: 16,
+                    shade: 0.01
+                });
+
+                $.ajax({
+                    async: true,
+                    type: 'POST',
+                    url: OpenPayment,
+                    success: function (data) {
+                        if (data.success) {
+                            if (data.result.Success) {
+                                layer.confirm("恭喜！您成功开通财富共赢钱包(CFPay)，请前往设置并绑定银行卡信息", { btn: ['去设置', '取消'] },
+                                    function (index) {
+                                    OpenTab(isCsc, "银行卡管理", '/Payment/BankInfo','title=银行卡管理');
+                                    layer.close(index);
+                                        closeDialog();
+                                    }, function () {
+                                    });
+                            }
+                            else {
+                                if (data.result.ErrorCode == "01") {
+                                    layer.confirm(data.result.ErrorMessage, {
+                                        btn: ['确定', '取消'] //按钮
+                                    }, function () {
+                                        window.location = "/Admin/AdminHome/GoSignOut"
+                                    }, function () {
+
+                                    });
+                                }
+                                else {
+                                    layer.alert(data.result.ErrorMessage);
+                                }
+                            }
+                        }
+                    },
+                    complete: function () {
+                        layer.close(loadingIndex);
+                    }
+                });
+            });
+        }
+
+        function closeShowTips() {
+            layer.confirm('若不开通财富共赢钱包(CFPay)将无法在平台进行交易，确定暂不开通吗？', {
+                btn: ['确定', '返回开通']
+            }, function (index) {
+                closeDialog();
+                layer.close(index);
+            }, function (index) {
+                if (!$.isEasyUI($openPayDialog, 'dialog'))
+                    showOpenPayment();
+                layer.close(index);
+            });
+        }
+
+        function closeDialog() {
+            $openPayClosed = true;
+            if ($.isEasyUI($openPayDialog, 'dialog'))
+                $openPayDialog.dialog("close");
+            $openPayDialog = null;
+        }
+
+        var signatureUrl = '@Url.Action("_Signature", ControllerName.Home)';
+        function JumpDetail() {
+            $.get(signatureUrl, function (response) {
+            var index = layer.alert(response,
+                {
+                    title: '财富共赢钱包CFPay服务协议',
+                    closeBtn: 0,
+                    area: ['850px', '450px'],
+                    btn: ['确定'],
+                    yes: function (d) {
+                        layer.close(index);
+                    }
+                });
+            });
+        }
+
+    </script>
+
+}

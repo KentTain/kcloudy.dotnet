@@ -1,0 +1,51 @@
+﻿@using KC.Enums.CRM
+@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@using KC.Web.Util
+
+@model KC.Service.DTO.Customer.CustomerContactInfoDTO
+
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform">
+    @Html.AntiForgeryToken()
+    <div style="display: none;">
+        @Html.HiddenFor(model => model.CustomerId)
+        @Html.HiddenFor(model => model.CustomerContactId)
+    </div>
+    <table class="dialog-form-table" id="PopCustomerInfoForm">
+        <tbody>
+            <tr>
+                <td style="text-align: right">客户类型：</td>
+                <td>
+                    @Html.DropDownList("CustomerType", ((IEnumerable<SelectListItem>)ViewBag.CustomerTypeList).Where(m => m.Text != "请选择"), new { @id = "CustomerType", @class = "easyui-combobox", @style = "width: 350px;height:26px;", @disabled = true })
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right">客户分类：</td>
+                <td>
+                    @Html.DropDownList("ClientType", ((IEnumerable<SelectListItem>)ViewBag.ClientTypeList).Where(m => m.Text != "请选择"), new { @id = "CustomerType", @class = "easyui-combobox", @style = "width: 350px;height:26px;" })
+                </td>
+
+            </tr>
+            <tr>
+                <td style="text-align: right">手机号码：</td>
+                <td>@Html.TextBoxFor(model => model.ContactPhoneNumber, new { @class = "easyui-validatebox easyui-textbox", data_options = "required:true,width:350,validType:'mobile'", prompt = "手机号码: 130XXXXXXXX" })</td>
+            </tr>
+            <tr>
+                <td>联系人姓名：</td>
+                <td>@Html.TextBoxFor(model => model.ContactName, new { @class = "easyui-validatebox easyui-textbox", data_options = "required:true,width:350,validType:'length[2,15]'" })</td>
+            </tr>
+            <tr>
+                <td style="text-align: right">所属单位：</td>
+                <td>@Html.TextBoxFor(model => model.AffiliatedCompany, new { @class = "easyui-validatebox easyui-textbox", style = "width: 350px;" })</td>
+            </tr>
+            <tr>
+                <td style="text-align: right">职位：</td>
+                <td>@Html.TextBoxFor(model => model.PositionName, new { @class = "easyui-validatebox easyui-textbox", style = "width: 350px;" })</td>
+            </tr>
+            <tr>
+                <td style="text-align: right">通话备注：</td>
+                <td><textarea id="callRemark" name="callRemark" style="width: 350px; height: 100px;" class="easyui-validatebox easyui-textbox"></textarea></td>
+            </tr>
+        </tbody>
+    </table>
+</form>

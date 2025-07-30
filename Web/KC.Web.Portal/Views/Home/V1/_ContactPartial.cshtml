@@ -1,0 +1,116 @@
+﻿<style>
+.contact-content {width:52px;position: fixed; bottom:12px;right: 90px; text-align:center;vertical-align:middle; color:#00aae5;background-color:rgba(0,0,0,.05);}
+.contact-content div{margin-top:1px;width:52px;height:52px;margin-top:1px;cursor:pointer;}
+.contact-content div i{margin-top:8px;}
+
+.layui-layer-tips .layui-layer-content{padding:1px!important;width:250px;height:80px;background-color: #fff!important;}
+.layui-layer-tips .layui-layer-content .layui-card{margin: 0px;}
+.layui-layer-tips i.layui-layer-TipsL{border-bottom-color:#fff!important;}
+
+</style>
+<!--contact部分-->
+<div class="contact-content">
+    <div id="contact-service"><i class="fa fa-briefcase fa-3x" aria-hidden="true"></i></div>
+    <div id="contact-qq"><i class="fa fa-qq fa-3x" aria-hidden="true"></i></div>
+    <div id="contact-phone"><i class="fa fa-phone fa-3x" aria-hidden="true"></i></div>
+    <div id="contact-email"><i class="fa fa-envelope fa-3x" aria-hidden="true"></i></div>
+    <div id="contact-up"><i class="fa fa-arrow-up fa-3x" aria-hidden="true"></i></div>
+    @*<div id="contact-webchat"><i class="fa fa-address-card fa-3x" aria-hidden="true"></i></div>*@
+</div>
+
+<script>
+    function HeaderContact() {
+        let serviceTips;
+        $('#contact-service').on({
+            mouseenter: function () {
+                var that = this;
+                telPhoneTips = layer.tips(
+                    "<div class=\"layui-card\">" +
+                    "<div class=\"layui-card-header\">工作时间</div>" +
+                    "<div class=\"layui-card-body\">" +
+                    "<span style='color:#000;'>@(ViewBag.WebSiteInfo==null?"周一至周五":ViewBag.WebSiteInfo.ServiceDate)&nbsp;&nbsp;&nbsp;&nbsp;@(ViewBag.WebSiteInfo==null?"9:00-17:30":ViewBag.WebSiteInfo.ServiceTime)</span>" +
+                    "</div>" +
+                    "</div>", that, { tips: [2, '#eee'], time: 0, area: 'auto', maxWidth: 260 });
+            },
+            mouseleave: function () {
+                layer.close(serviceTips);
+            }
+        });
+
+        let qqTips;
+        $('#contact-qq').on({
+            mouseenter: function () {
+                var that = this;
+                qqTips = layer.tips(
+                    "<div class=\"layui-card\">" +
+                    "<div class=\"layui-card-header\">联系QQ：</div>" +
+                    "<div class=\"layui-card-body\">" +
+                    "<span style='color:#000;'>@(ViewBag.WebSiteInfo==null?"未设置":ViewBag.WebSiteInfo.ContactQQ)</span>" +
+                    "</div>" +
+                    "</div>", that, { tips: [2, '#eee'], time: 0, area: 'auto', maxWidth: 260 });
+            },
+            mouseleave: function () {
+                layer.close(qqTips);
+            }
+        });
+
+        let phoneTips;
+        $('#contact-phone').on({
+            mouseenter: function () {
+                var that = this;
+                phoneTips = layer.tips(
+                    "<div class=\"layui-card\">" +
+                    "<div class=\"layui-card-header\">联系电话：</div>" +
+                    "<div class=\"layui-card-body\">" +
+                    "<span style='color:#000;'>@(ViewBag.WebSiteInfo==null?"未设置":ViewBag.WebSiteInfo.ContactPhoneNumber)</span>" +
+                    "</div>" +
+                    "</div>", that, { tips: [2, '#eee'], time: 0, area: 'auto', maxWidth: 260 });
+            },
+            mouseleave: function () {
+                layer.close(phoneTips);
+            }
+        });
+
+        let emailTips;
+        $('#contact-email').on({
+            mouseenter: function () {
+                var that = this;
+                emailTips = layer.tips(
+                    "<div class=\"layui-card\">" +
+                    "<div class=\"layui-card-header\">电子邮件：</div>" +
+                    "<div class=\"layui-card-body\">" +
+                    "<span style='color:#000;'>@(ViewBag.WebSiteInfo==null?"未设置":ViewBag.WebSiteInfo.ContactEmail)</span>" +
+                    "</div>" +
+                    "</div>", that, { tips: [2, '#eee'], time: 0, area: 'auto', maxWidth: 260 });
+            },
+            mouseleave: function () {
+                layer.close(emailTips);
+            }
+        });
+
+        $('#contact-up').on({
+            click: function () {
+                document.body.scrollTop = 0;
+                document.documentElement.scrollTop = 0;
+            }
+        });
+
+        //let webchatTips;
+        //$('#contact-webchat').on({
+        //    mouseenter: function () {
+        //        var that = this;
+        //        webchatTips = layer.tips(
+        //            "<div class=\"layui-card\">" +
+        //            "<div class=\"layui-card-header\">公司地址：</div>" +
+        //            "<div class=\"layui-card-body\">" +
+        //            "<span style='color:#000;'>湖北省&nbsp;武汉市&nbsp;东湖新技术开发区&nbsp;关山二路特一号&nbsp;武汉国际企业中心&nbsp;5幢502号-A258</span>" +
+        //            "</div>" +
+        //            "</div>", that, { tips: [2, '#eee'], time: 0, area: 'auto', maxWidth: 260 });
+        //    },
+        //    mouseleave: function () {
+        //        layer.close(webchatTips);
+        //    }
+        //});
+
+    }
+</script>

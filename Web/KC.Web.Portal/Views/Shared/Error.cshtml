@@ -1,0 +1,33 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var request_id = Model?.RequestId;
+}
+@section styles{
+}
+<div class="main">
+    <div class="error-page" style="text-align:center;vertical-align:middle;">
+        <div class="lead">
+            <h1>Error</h1>
+            <h2 class="text-center text-danger">505 访问出错，服务器内部错误.</h2>
+            <i class="fa fa-exclamation-circle  fa-5x"></i>
+        </div>
+        <div>
+
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+
+                @if (request_id != null)
+                {
+                    <div class="request-id">请求Id: @request_id</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+}

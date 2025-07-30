@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.Web.Resource</name>
+    </assembly>
+    <members>
+        <member name="T:KC.Web.Resource.Controllers.CaptchaApiController">
+            <summary>
+            获取验证码
+            </summary>
+        </member>
+        <member name="M:KC.Web.Resource.Controllers.CaptchaApiController.IsValid">
+            <summary>
+            接口是否有效
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.Resource.Controllers.CaptchaApiController.GetCaptcha">
+            <summary>
+            获取验证码，前端使用范例：
+            
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:KC.Web.Resource.Controllers.CaptchaApiController.Verify(KC.Common.FileHelper.VerifyRequest)" -->
+        <member name="T:KC.Web.Resource.Controllers.GlobalConfigApiController">
+            <summary>
+            获取系统的全局设置
+            </summary>
+        </member>
+        <member name="M:KC.Web.Resource.Controllers.GlobalConfigApiController.IsValid">
+            <summary>
+            接口是否有效
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.Resource.Controllers.GlobalConfigApiController.GetData">
+            <summary>
+            获取全局配置
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.Resource.Controllers.HomeController.GetCaptchaImage">
+            <summary>
+            返回验证码图片
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Web.Resource.Startup.ConfigureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            This method gets called by the runtime. Use this method to add services to the container.
+            </summary>
+            <param name="services"></param>
+        </member>
+        <member name="M:KC.Web.Resource.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.Extensions.Hosting.IHostEnvironment)">
+            <summary>
+            This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            </summary>
+            <param name="app"></param>
+            <param name="env"></param>
+        </member>
+    </members>
+</doc>

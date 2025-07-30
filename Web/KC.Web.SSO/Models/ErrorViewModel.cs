@@ -1,0 +1,27 @@
+using KC.IdentityServer4.Models;
+using System;
+
+namespace KC.Web.SSO.Models
+{
+    public class ErrorViewModel
+    {
+        public ErrorViewModel()
+        {
+        }
+
+        public ErrorViewModel(string error)
+        {
+            Error = new ErrorMessage { Error = error };
+        }
+
+        public string RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+        public ErrorMessage Error { get; set; }
+
+        public string TenantName { get; set; }
+
+        public string ReturnUrl { get; set; }
+    }
+}

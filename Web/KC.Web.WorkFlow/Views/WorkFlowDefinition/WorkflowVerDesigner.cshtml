@@ -1,0 +1,367 @@
+﻿@using KC.Framework.Extension
+@using KC.Framework.Tenant; 
+@using KC.Web.Workflow.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.Workflow.DTO.WorkflowVerDefinitionDTO
+@{
+    ViewBag.Title = "流程版本设计器";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>鑫亚科技流程设计器</title>
+    <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <link href="~/css/workflow.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/icon.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/metro/easyui.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)css/common.css" rel="stylesheet" />
+    <style>
+.middle #canvasId{width:75%;}
+.middle #attrPanelId{width:24%;}
+    </style>
+
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/locale/easyui-lang-zh_CN.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.common.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/com.easyui.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/mainTabs.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/JsPlumb/dist/js/jsplumb.min.js"></script>
+
+    <script src="~/js/flowDesigner/component/graphlib.min.js"></script>
+    <script src="~/js/flowDesigner/component/html2canvas.min.js"></script>
+    <script src="~/js/flowDesigner/component/canvg.js"></script>
+
+    <script src="~/js/flowDesigner/config/config.js"></script>
+    <script src="~/js/flowDesigner/workflowUtil.js"></script>
+    <script src="~/js/flowDesigner/workflowDesigner.js"></script>
+</head>
+
+<body class="easyui-layout">
+    <!--页中-->
+    <div class="middle">
+        <!--左侧导航区域 -->
+        <div id="toolsBurId" style="display:none;">
+            <div class="easyui-panel" title="工具箱" style="height:inherit;overflow:hidden;">
+                <div class="uncontroler" id="unableDraggableDiv">
+                    <div id="mouseToolsBtn">
+                        <i class="fa fa-mouse-pointer fa-2x" aria-hidden="true" type="3"></i>
+                    </div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">鼠标</span>
+                    </div>
+                </div>
+                <div class="uncontroler" id="enableDraggableDiv">
+                    <div id="connectionToolsBtn">
+                        <i class="fa fa-exchange fa-2x" aria-hidden="true" type="3"></i>
+                    </div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">连线</span>
+                    </div>
+                </div>
+                <div class="controler">
+                    <div id="start" class="startNode"></div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">开始</span>
+                    </div>
+                </div>
+                <div class="controler">
+                    <div id="end" class="endNode"></div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">结束</span>
+                    </div>
+                </div>
+                <div class="controler">
+                    <div id="task" class="taskNode" style="width: 30px;"></div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">审批</span>
+                    </div>
+                </div>
+                <div class="controler">
+                    <div id="condition" class="conditionNode" style="margin-left: 30px; margin-top: 15px;"></div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">条件</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!--中间绘制区域-->
+        <div id="canvasId">
+            <!-- 右侧头部区域 -->
+            <div id="divTopMenu" class="easyui-panel" style="z-index:99;position:absolute;padding:2px;">
+                <a href="javascript: myWORKFLOW.save2Photo();" class="easyui-linkbutton" iconcls=" fa fa-file-image-o fa-2x" data-options="plain:true">保存为图片</a>
+            </div>
+            <div id="Container"></div>
+        </div>
+        <!--右侧属性区域-->
+        <div id="attrPanelId">
+            <div title="流程属性" id="attrForm">
+            </div>
+        </div>
+    </div>
+
+    <!--流程表单数据-->
+    <form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.WorkflowDefinition.SaveWorkflowDefinition, ControllerName.WorkflowDefinition)">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.Code)
+        @Html.HiddenFor(model => model.Version)
+        @Html.HiddenFor(model => model.Name)
+        @Html.HiddenFor(model => model.CategoryId)
+        @Html.HiddenFor(model => model.CategoryName)
+        @Html.HiddenFor(model => model.Status)
+        @Html.HiddenFor(model => model.Description)
+        @Html.HiddenFor(model => model.DefMessageTemplateCode)
+        @Html.HiddenFor(model => model.DefDeadlineInterval)
+
+        @Html.HiddenFor(model => model.IsDeleted)
+        @Html.HiddenFor(model => model.CreatedBy)
+        @Html.HiddenFor(model => model.CreatedName)
+        @Html.HiddenFor(model => model.CreatedDate)
+        @Html.HiddenFor(model => model.ModifiedBy)
+        @Html.HiddenFor(model => model.ModifiedName)
+        @Html.HiddenFor(model => model.ModifiedDate)
+        @if (Model.WorkflowVerFields != null)
+        {
+            int index = 0;
+            @foreach (var item in Model.WorkflowVerFields)
+            {
+                <input type="hidden" name="workflowFields[@index][id]" value="@item.Id" />
+                <input type="hidden" name="workflowFields[@index][text]" value="@item.Text" />
+                <input type="hidden" name="workflowFields[@index][displayName]" value="@item.DisplayName" />
+                <input type="hidden" name="workflowFields[@index][dataType]" value="@item.DataType" />
+                <input type="hidden" name="workflowFields[@index][description]" value="@item.Description" />
+                <input type="hidden" name="workflowFields[@index][isCondition]" value="@item.IsCondition" />
+                <input type="hidden" name="workflowFields[@index][isPrimaryKey]" value="@item.IsPrimaryKey" />
+                <input type="hidden" name="workflowFields[@index][isExecutor]" value="@item.IsExecutor" />
+                index++;
+            }
+        }
+    </form>
+
+    @await Html.PartialAsync("_SelectExecutorSettingPartial")
+    @await Html.PartialAsync("_SelectRulePartial")
+
+    <!--组件初始化-->
+    <script type="text/javascript">
+        // 1、删除数组中的一个元素
+        Array.prototype.deleteOne = function (data) {
+            let i;
+            let $this = this;
+            let index = $this.indexOf(data);
+            if (index != -1) {
+                for (i = index; i < $this.length - 1; i++) {
+                    $this[i] = $this[i + 1];
+                }
+                $this.pop();
+            }
+        }
+
+        $.fn.tooltip.defaults.position = 'right';
+        $.fn.tooltip.defaults.onShow = function () {
+            $(this).tooltip('tip').css({
+                'backgroundColor': '#666',
+                'borderColor': '#666',
+                'border-radius': '4px',
+                'color': '#fff',
+                'font-size': '20px',
+                'line-height': '20px',
+                'white-space': 'normal',
+            });
+        };
+
+        $(function () {
+            $('#topBtnDelete').linkbutton('disable');
+            InitWorkflowChart();
+        })
+
+
+    </script>
+
+    <!--流程图：初始化-->
+    <script>
+        var myWORKFLOW = null;
+        function InitWorkflowChart() {
+            if (myWORKFLOW == null) {
+                let flowId = $('#Id').val();
+                let flowCode = $('#Code').val();
+                let flowName = $('#Name').val();
+                let flowVersion = $('#Version').val();
+                myWORKFLOW = new WorkflowDesigner();
+                myWORKFLOW.init({
+                    flowId: flowId,
+                    flowCode: flowCode,
+                    flowVersion: flowVersion,
+                    flowName: flowName,
+                    createNewNodeFn: createNewNodeEvent,
+                    nodeClickFn: nodeClickEvent,
+                    linkClickFn: nodeClickEvent,
+                    deleteNodeFn: deleteNodeEvent,
+                    deleteLinkFn: deleteLinkEvent,
+                });
+
+                InitPropertyGrid();
+                getStartNode();
+            }
+        }
+
+        var formId = "#saveform";
+        const getStartNodeUrl = '@Url.Action(ActionName.WorkflowDefinition.GetWorkflowStartNode, ControllerName.WorkflowDefinition)';
+        let getStartNode = function () {
+            var wfDefId = $('#Id').val();
+            $.ajax({
+                async: true,
+                url: getStartNodeUrl + "?id=" + wfDefId,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        if (data.result) {
+                            //后台返回的流程节点数据
+                            let wfNodeData = data.result;
+                            //页面表单的属性列表数据
+                            let fieldData = CommonUtil.getArrayFormDataByPropertyName(formId, 'workflowFields');
+                            if (fieldData === undefined || fieldData === null)
+                                fieldData = [];
+
+                            //debugger;
+                            //图形载入节点数据
+                            myWORKFLOW.loadJson(wfNodeData);
+                            //属性列表载入数据
+                            let flowId = $('#Id').val();
+                            let flowCode = $('#Code').val();
+                            let flowName = $('#Name').val();
+                            let flowVersion = $('#Version').val();
+                            WorkflowPropertyUtil.loadPropertyNodeData(propertyGridId, flowId, flowCode, flowName, flowVersion, wfNodeData, fieldData);
+                            //只显示流程信息，其他节点信息隐藏
+                            //WorkflowPropertyUtil.showRowByCode(flowId);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                    } else {
+                        $.messager.showInfoTopCenter('系统提示', data.message);
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+        };
+
+        //创建新的图形Node时，创建相应的节点属性数据
+        let createNewNodeEvent = function (nodeData) {
+            //debugger;
+            let id = CommonUtil.getGuid();
+            let code = nodeData.key;
+            let type = 0;
+            let nodeType = 0;
+            let nodeName = nodeData.text + "【新增-" + code + "】";
+            let nodeSetting = null;
+            let weightValue = null;
+            let wfDefId = $('#Id').val();
+            switch (nodeData.nodeType) {
+                case 'start':
+                    nodeType = 0;
+                    break;
+                case 'task':
+                    nodeType = 1;
+                    break;
+                case 'condition':
+                    nodeType = 2;
+                    break;
+                case 'subflow':
+                    nodeType = 3;
+                    break;
+                case 'end':
+                    nodeType = 4;
+                    break;
+            }
+            let node = WorkflowPropertyUtil.wfNodeVM(id, wfDefId, code, type, nodeType, nodeName, nodeSetting, null, null, weightValue, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
+            let rows = WorkflowPropertyUtil.createPropertyRowsByNodeData(node);
+            rows.forEach(function (row, index, arr) {
+                $(propertyGridId).propertygrid('appendRow', row);
+            });
+            //$(propertyGridId).propertygrid({ showGroup: true });
+            //console.info('---NodeType: ' + nodeType + ', NodeId: ' + id + ', NodeName: ' + nodeName);
+        };
+        //单击图形Node时，显示相应的节点属性数据
+        let nodeClickEvent = function (nodeType, nodeId) {
+            //debugger;
+            //保存选中Node或Link的数据，用于删除所用
+            removeType = nodeType;
+            removeGraphId = nodeId;
+            //清除已选中连线的样式
+            let flowData = myWORKFLOW.getCurrentFlow();
+            let linkData = flowData.linkDataArray;
+            linkData.forEach(function (gRow, gIndex, nodeArr) {
+                let linkId = gRow.routerId;
+                $('#' + linkId).find('path:nth-child(2)').attr('fill', CONFIG.conn.stroke)
+                $('#' + linkId).find('path').attr('stroke', CONFIG.conn.stroke)
+            });
+            //设置选中Node或Link的样式，并设置Canvas或Node的属性列表
+            if (nodeType === 'canvans') {
+                WorkflowPropertyUtil.showAllRows();
+                //WorkflowPropertyUtil.showRowByCode(nodeId);
+
+                $('#' + nodeId).find('path:nth-child(2)').attr('fill', CONFIG.conn.stroke)
+                $('#' + nodeId).find('path').attr('stroke', CONFIG.conn.stroke)
+                $('#topBtnDelete').linkbutton('disable');
+            } else if (nodeType === 'link') {
+                $('#' + nodeId).find('path:nth-child(2)').attr('fill', CONFIG.conn.hoverConnStroke)
+                $('#' + nodeId).find('path').attr('stroke', CONFIG.conn.hoverConnStroke)
+                $('#topBtnDelete').linkbutton('enable');
+            } else {
+                WorkflowPropertyUtil.showRowByCode(nodeId);
+
+                $('#' + nodeId).find('path:nth-child(2)').attr('fill', CONFIG.conn.stroke)
+                $('#' + nodeId).find('path').attr('stroke', CONFIG.conn.stroke)
+                $('#topBtnDelete').linkbutton('enable');
+            }
+            //console.info('---NodeType: ' + nodeType + ', NodeId: ' + nodeId)
+        };
+        //删除图形Node时，删除相应的节点属性数据
+        let deleteNodeEvent = function (nodeId) {
+            WorkflowPropertyUtil.removePropertyRowById(nodeId);
+        };
+        //删除图形Link时，删除相应的节点属性数据
+        let deleteLinkEvent = function (nodeId) {
+            //WorkflowPropertyUtil.removePropertyRowById(nodeId);
+        };
+    </script>
+
+    <!--流程图：流程属性列表-->
+    <script type="text/javascript">
+        const propertyGridId = '#attrForm';
+        function InitPropertyGrid() {
+            let propertyGrid = $(propertyGridId);
+            propertyGrid.propertygrid({
+                idField: 'fid',
+                width: 'auto',
+                height: '120%',
+                showGroup: true,
+                showHeader: false,
+                //scrollbarSize: 0,
+                columns: [[
+                    { field: 'name', title: 'Name', width: '80', align: 'right', },
+                    { field: 'value', title: 'Value', width: '200', formatter: WorkflowPropertyUtil.formatter }
+                ]],
+                onEndEdit: function (index, row) {
+                    //debugger;
+                    //当属性字段为Name时，设置图形节点的Title值
+                    if (row.field === 'Name') {
+                        let key = row.code;
+                        $('#' + key + ' span').text(row.value);
+                    }
+                }
+            });
+        };
+    </script>
+
+</body>
+</html>

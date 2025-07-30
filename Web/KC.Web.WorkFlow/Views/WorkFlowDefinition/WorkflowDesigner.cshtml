@@ -1,0 +1,840 @@
+﻿@using KC.Framework.Extension
+@using KC.Framework.Tenant; 
+@using KC.Web.Workflow.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.Workflow.DTO.WorkflowDefinitionDTO
+@{
+    ViewBag.Title = "鑫亚科技流程设计器";
+    Layout = null;
+    <!--流程定义-流程定义详情-->
+    var canSaveDefinition = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "D380A502-C702-4CEC-9B8C-D095AB427650")).Succeeded)
+    {
+        canSaveDefinition = true;
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>鑫亚科技流程设计器</title>
+    <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <link href="~/css/workflow.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/icon.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/themes/metro/easyui.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)css/common.css" rel="stylesheet" />
+
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/jquery.easyui.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/locale/easyui-lang-zh_CN.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/JsPlumb/dist/js/jsplumb.min.js"></script>
+
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.common.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/com.easyui.extension.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/mainTabs.js"></script>
+
+    <script src="~/js/flowDesigner/component/graphlib.min.js"></script>
+    <script src="~/js/flowDesigner/component/html2canvas.min.js"></script>
+    <script src="~/js/flowDesigner/component/canvg.js"></script>
+
+    <script src="~/js/flowDesigner/config/config.js"></script>
+    <script src="~/js/flowDesigner/workflowUtil.js"></script>
+    <script src="~/js/flowDesigner/workflowDesigner.js"></script>
+
+    <style>
+        .l-btn-icon.fa-2x{font-size:1.2em;}
+        .datagrid-row-selected a span{color:unset!important;}
+        .datagrid-row-selected a:hover{color:unset!important;}
+    </style>
+</head>
+
+<body class="easyui-layout">
+    <!--页中-->
+    <div class="middle">
+        <!--左侧导航区域 -->
+        <div id="toolsBurId">
+
+            <div class="easyui-panel" style="padding:10px 5px;text-align:center;border:none;">
+                <a href="javascript: myWORKFLOW.save();" class="easyui-linkbutton" id="saveStatus" data-options="plain:false,iconCls:'fa fa-floppy-o fa-2x',size:'large',iconAlign:'top'">保存流程</a>
+            </div>
+            <div class="easyui-panel" title="工具箱" style="height:inherit;overflow:hidden;">
+                <div class="uncontroler" id="unableDraggableDiv">
+                    <div id="mouseToolsBtn">
+                        <i class="fa fa-mouse-pointer fa-2x" aria-hidden="true" type="3"></i>
+                    </div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">鼠标</span>
+                    </div>
+                </div>
+                <div class="uncontroler" id="enableDraggableDiv">
+                    <div id="connectionToolsBtn">
+                        <i class="fa fa-exchange fa-2x" aria-hidden="true" type="3"></i>
+                    </div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">连线</span>
+                    </div>
+                </div>
+                <div class="controler">
+                    <div id="start" class="startNode"></div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">开始</span>
+                    </div>
+                </div>
+                <div class="controler">
+                    <div id="end" class="endNode"></div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">结束</span>
+                    </div>
+                </div>
+                <div class="controler">
+                    <div id="task" class="taskNode" style="width: 30px;"></div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">审批</span>
+                    </div>
+                </div>
+                <div class="controler">
+                    <div id="condition" class="conditionNode" style="margin-left: 30px; margin-top: 15px;"></div>
+                    <div class="descTxt">
+                        <span class="nodeSpan">条件</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!--中间绘制区域-->
+        <div id="canvasId">
+            <!-- 右侧头部区域 -->
+            <div id="divTopMenu" class="easyui-panel" style="z-index:99;position:absolute;padding:2px;">
+                <a href="javascript: myWORKFLOW.save2Photo();" class="easyui-linkbutton" iconcls=" fa fa-file-image-o" data-options="plain:true">保存为图片</a>
+
+                <a id="topBtnDelete" href="javascript:void(0)" class="easyui-linkbutton" iconcls=" fa fa-trash" onclick="removeNodeOrLink()" data-options="plain:true">刪除</a>
+                <a href="javascript: myWORKFLOW.undo();" class="easyui-linkbutton" iconcls=" fa fa-reply" data-options="plain:true">撤销</a>
+                <a href="javascript: myWORKFLOW.redo();" class="easyui-linkbutton" iconcls=" fa fa-share" data-options="plain:true">重做</a>
+                <a href="javascript: myWORKFLOW.clearCanvas();" class="easyui-linkbutton" iconcls=" fa fa-refresh fa-fw" data-options="plain:true">重绘</a>
+
+                <a href="javascript:void(0)" class="easyui-linkbutton" iconcls=" fa fa-align-left" onclick="leftAlign()" data-options="plain:true">左对齐</a>
+                <a href="javascript:void(0)" class="easyui-linkbutton" iconcls=" fa fa-align-right" onclick="rightAlign()" data-options="plain:true">右对齐</a>
+                <a href="javascript:void(0)" class="easyui-linkbutton" iconcls=" fa fa-align-center" onclick="verticalCenter()" data-options="plain:true">垂直居中</a>
+
+                <a href="javascript:void(0)" class="easyui-linkbutton" iconcls=" fa fa-align-left rotate-90" onclick="upAlign()" data-options="plain:true">上对齐</a>
+                <a href="javascript:void(0)" class="easyui-linkbutton" iconcls=" fa fa-align-right rotate-90" onclick="downAlign()" data-options="plain:true">下对齐</a>
+                <a href="javascript:void(0)" class="easyui-linkbutton" iconcls=" fa fa-align-center rotate-90" onclick="levelAlign()" data-options="plain:true">水平居中</a>
+
+                @*<a href="javascript: myWORKFLOW.changeGrid();" class="easyui-linkbutton" iconcls=" fa fa-eye" data-options="plain:true">隐藏网格</a>*@
+
+            </div>
+            <div id="Container"></div>
+        </div>
+        <!--右侧属性区域-->
+        <div id="attrPanelId">
+            <div title="流程属性" id="attrForm">
+            </div>
+        </div>
+    </div>
+
+    <!--流程表单数据-->
+    <form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.WorkflowDefinition.SaveWorkflowDefinition, ControllerName.WorkflowDefinition)">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.Code)
+        @Html.HiddenFor(model => model.Version)
+        @Html.HiddenFor(model => model.Name)
+        @Html.HiddenFor(model => model.CategoryId)
+        @Html.HiddenFor(model => model.CategoryName)
+        @Html.HiddenFor(model => model.IsEditMode)
+        @Html.HiddenFor(model => model.Status)
+        @Html.HiddenFor(model => model.Description)
+        @Html.HiddenFor(model => model.DefMessageTemplateCode)
+        @Html.HiddenFor(model => model.DefDeadlineInterval)
+
+        @Html.HiddenFor(model => model.IsDeleted)
+        @Html.HiddenFor(model => model.CreatedBy)
+        @Html.HiddenFor(model => model.CreatedName)
+        @Html.HiddenFor(model => model.CreatedDate)
+        @Html.HiddenFor(model => model.ModifiedBy)
+        @Html.HiddenFor(model => model.ModifiedName)
+        @Html.HiddenFor(model => model.ModifiedDate)
+        @if (Model.WorkflowFields != null)
+        {
+            int index = 0;
+            @foreach (var item in Model.WorkflowFields)
+            {
+                <input type="hidden" name="workflowFields[@index][id]" value="@item.Id" />
+                <input type="hidden" name="workflowFields[@index][text]" value="@item.Text" />
+                <input type="hidden" name="workflowFields[@index][displayName]" value="@item.DisplayName" />
+                <input type="hidden" name="workflowFields[@index][dataType]" value="@item.DataType" />
+                <input type="hidden" name="workflowFields[@index][description]" value="@item.Description" />
+                <input type="hidden" name="workflowFields[@index][isCondition]" value="@item.IsCondition" />
+                <input type="hidden" name="workflowFields[@index][isPrimaryKey]" value="@item.IsPrimaryKey" />
+                <input type="hidden" name="workflowFields[@index][isExecutor]" value="@item.IsExecutor" />
+                index++;
+            }
+        }
+    </form>
+
+    @await Html.PartialAsync("_SelectExecutorSettingPartial")
+    @await Html.PartialAsync("_SelectRulePartial")
+
+    <!--组件初始化-->
+    <script type="text/javascript">
+        // 1、删除数组中的一个元素
+        Array.prototype.deleteOne = function (data) {
+            let i;
+            let $this = this;
+            let index = $this.indexOf(data);
+            if (index != -1) {
+                for (i = index; i < $this.length - 1; i++) {
+                    $this[i] = $this[i + 1];
+                }
+                $this.pop();
+            }
+        }
+
+        $.fn.tooltip.defaults.position = 'right';
+        $.fn.tooltip.defaults.onShow = function () {
+            $(this).tooltip('tip').css({
+                'backgroundColor': '#666',
+                'borderColor': '#666',
+                'border-radius': '4px',
+                'color': '#fff',
+                'font-size': '20px',
+                'line-height': '20px',
+                'white-space': 'normal',
+            });
+        };
+
+        $(function () {
+            $('#topBtnDelete').linkbutton('disable');
+            InitWorkflowChart();
+        })
+
+    </script>
+    <!--流程图：初始化-->
+    <script type="text/javascript">
+        var myWORKFLOW = null;
+        function InitWorkflowChart() {
+            if (myWORKFLOW == null) {
+                let flowId = $('#Id').val();
+                let flowCode = $('#Code').val();
+                let flowName = $('#Name').val();
+                let flowVersion = $('#Version').val();
+                myWORKFLOW = new WorkflowDesigner();
+                myWORKFLOW.init({
+                    flowId: flowId,
+                    flowCode: flowCode,
+                    flowVersion: flowVersion,
+                    flowName: flowName,
+                    createNewNodeFn: createNewNodeEvent,
+                    nodeClickFn: nodeClickEvent,
+                    linkClickFn: nodeClickEvent,
+                    deleteNodeFn: deleteNodeEvent,
+                    deleteLinkFn: deleteLinkEvent,
+                    saveFn: saveWfDefinition
+                });
+
+                InitPropertyGrid();
+                getStartNode();
+            }
+        }
+
+        const getStartNodeUrl = '@Url.Action(ActionName.WorkflowDefinition.GetWorkflowStartNode, ControllerName.WorkflowDefinition)';
+        let getStartNode = function () {
+            var wfDefId = $('#Id').val();
+            $.ajax({
+                async: true,
+                url: getStartNodeUrl + "?id=" + wfDefId,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        if (data.result) {
+                            //后台返回的流程节点数据
+                            let wfNodeData = data.result;
+                            //页面表单的属性列表数据
+                            let fieldData = CommonUtil.getArrayFormDataByPropertyName(formId, 'workflowFields');
+                            if (fieldData === undefined || fieldData === null)
+                                fieldData = [];
+
+                            //debugger;
+                            //图形载入节点数据
+                            myWORKFLOW.loadJson(data.result);
+                            //属性列表载入数据
+                            let flowId = $('#Id').val();
+                            let flowCode = $('#Code').val();
+                            let flowName = $('#Name').val();
+                            let flowVersion = $('#Version').val();
+                            WorkflowPropertyUtil.loadPropertyNodeData(propertyGridId, flowId, flowCode, flowName, flowVersion, wfNodeData, fieldData);
+                            //只显示流程信息，其他节点信息隐藏
+                            //WorkflowPropertyUtil.showRowByCode(flowId);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                    } else {
+                        $.messager.showInfoTopCenter('系统提示', data.message);
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+        };
+
+        //创建新的图形Node时，创建相应的节点属性数据
+        let createNewNodeEvent = function (nodeData) {
+            //debugger;
+            let id = CommonUtil.getGuid();
+            let code = nodeData.key;
+            let type = 0;
+            let nodeType = 0;
+            let nodeName = nodeData.text + "【新增-" + code + "】";
+            let nodeSetting = null;
+            let weightValue = null;
+            let wfDefId = $('#Id').val();
+            switch (nodeData.nodeType) {
+                case 'start':
+                    nodeType = 0;
+                    break;
+                case 'task':
+                    nodeType = 1;
+                    break;
+                case 'condition':
+                    nodeType = 2;
+                    break;
+                case 'subflow':
+                    nodeType = 3;
+                    break;
+                case 'end':
+                    nodeType = 4;
+                    break;
+            }
+            let node = WorkflowPropertyUtil.wfNodeVM(id, wfDefId, code, type, nodeType, nodeName, nodeSetting, null, null, weightValue, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
+            let rows = WorkflowPropertyUtil.createPropertyRowsByNodeData(node);
+            rows.forEach(function (row, index, arr) {
+                $(propertyGridId).propertygrid('appendRow', row);
+            });
+            //$(propertyGridId).propertygrid({ showGroup: true });
+            //console.info('---NodeType: ' + nodeType + ', NodeId: ' + id + ', NodeName: ' + nodeName);
+        };
+        //单击图形Node时，显示相应的节点属性数据
+        let nodeClickEvent = function (nodeType, nodeId) {
+            //debugger;
+            //保存选中Node或Link的数据，用于删除所用
+            removeType = nodeType;
+            removeGraphId = nodeId;
+            //清除已选中连线的样式
+            let flowData = myWORKFLOW.getCurrentFlow();
+            let linkData = flowData.linkDataArray;
+            linkData.forEach(function (gRow, gIndex, nodeArr) {
+                let linkId = gRow.routerId;
+                $('#' + linkId).find('path:nth-child(2)').attr('fill', CONFIG.conn.stroke)
+                $('#' + linkId).find('path').attr('stroke', CONFIG.conn.stroke)
+            });
+            //设置选中Node或Link的样式，并设置Canvas或Node的属性列表
+            if (nodeType === 'canvans') {
+                WorkflowPropertyUtil.showAllRows();
+                //WorkflowPropertyUtil.showRowByCode(nodeId);
+
+                $('#' + nodeId).find('path:nth-child(2)').attr('fill', CONFIG.conn.stroke)
+                $('#' + nodeId).find('path').attr('stroke', CONFIG.conn.stroke)
+                $('#topBtnDelete').linkbutton('disable');
+            } else if (nodeType === 'link') {
+                $('#' + nodeId).find('path:nth-child(2)').attr('fill', CONFIG.conn.hoverConnStroke)
+                $('#' + nodeId).find('path').attr('stroke', CONFIG.conn.hoverConnStroke)
+                $('#topBtnDelete').linkbutton('enable');
+            } else {
+                WorkflowPropertyUtil.showRowByCode(nodeId);
+
+                $('#' + nodeId).find('path:nth-child(2)').attr('fill', CONFIG.conn.stroke)
+                $('#' + nodeId).find('path').attr('stroke', CONFIG.conn.stroke)
+                $('#topBtnDelete').linkbutton('enable');
+            }
+            //console.info('---NodeType: ' + nodeType + ', NodeId: ' + nodeId)
+        };
+        //删除图形Node时，删除相应的节点属性数据
+        let deleteNodeEvent = function (nodeId) {
+            WorkflowPropertyUtil.removePropertyRowById(nodeId);
+        };
+        //删除图形Link时，删除相应的节点属性数据
+        let deleteLinkEvent = function (nodeId) {
+            //WorkflowPropertyUtil.removePropertyRowById(nodeId);
+        };
+    </script>
+    <!--流程图：按钮事件-->
+    <script type="text/javascript">
+        //删除Node或Link
+        var removeType;
+        var removeGraphId;
+        let removeNodeOrLink = function () {
+            let nodeId = $.string.getJQSel(removeGraphId);
+            if (removeType === 'link') {
+                myWORKFLOW.deleteConnection(nodeId);
+            } else {
+                myWORKFLOW.deleteNode(nodeId);
+            }
+        }
+
+        //左对齐
+        let leftAlign = function () {
+            let selectedNodeIdArr = plumbUtil.alignWayCheck();
+            if (selectedNodeIdArr != null) {
+                plumbUtil.leftAlign(selectedNodeIdArr);
+                setTimeout(function () {
+                    plumbUtil.leftAlign(selectedNodeIdArr);
+                    // 更新所有图对象中保存的节点位置
+                    graphUtil.updateAllNode();
+                }, CONFIG.alignParam.alignDuration + 100);
+            }
+        }
+        //右对齐
+        let rightAlign = function () {
+            let selectedNodeIdArr = plumbUtil.alignWayCheck();
+            if (selectedNodeIdArr != null) {
+                plumbUtil.rightAlign(selectedNodeIdArr);
+                setTimeout(function () {
+                    plumbUtil.rightAlign(selectedNodeIdArr);
+                    // 更新所有图对象中保存的节点位置
+                    graphUtil.updateAllNode();
+                }, CONFIG.alignParam.alignDuration + 100);
+            }
+        }
+        //垂直居中
+        let verticalCenter = function () {
+            let selectedNodeIdArr = plumbUtil.alignWayCheck();
+            if (selectedNodeIdArr != null) {
+                plumbUtil.verticalCenter(selectedNodeIdArr);
+                setTimeout(function () {
+                    plumbUtil.verticalCenter(selectedNodeIdArr);
+                    // 更新所有图对象中保存的节点位置
+                    graphUtil.updateAllNode();
+                }, CONFIG.alignParam.alignDuration + 100);
+            }
+        }
+
+        //上对齐
+        let upAlign = function () {
+            let selectedNodeIdArr = plumbUtil.alignWayCheck();
+            if (selectedNodeIdArr != null) {
+                plumbUtil.upAlign(selectedNodeIdArr);
+                setTimeout(function () {
+                    plumbUtil.upAlign(selectedNodeIdArr);
+                    // 更新所有图对象中保存的节点位置
+                    graphUtil.updateAllNode();
+                }, CONFIG.alignParam.alignDuration + 100);
+            }
+        }
+        //下对齐
+        let downAlign = function () {
+            let selectedNodeIdArr = plumbUtil.alignWayCheck();
+            if (selectedNodeIdArr != null) {
+                plumbUtil.downAlign(selectedNodeIdArr);
+                setTimeout(function () {
+                    plumbUtil.downAlign(selectedNodeIdArr);
+                    // 更新所有图对象中保存的节点位置
+                    graphUtil.updateAllNode();
+                }, CONFIG.alignParam.alignDuration + 100);
+            }
+        }
+        //水平居中
+        let levelAlign = function () {
+            let selectedNodeIdArr = plumbUtil.alignWayCheck();
+            if (selectedNodeIdArr != null) {
+                plumbUtil.levelAlign(selectedNodeIdArr);
+                setTimeout(function () {
+                    plumbUtil.levelAlign(selectedNodeIdArr);
+                    // 更新所有图对象中保存的节点位置
+                    graphUtil.updateAllNode();
+                }, CONFIG.alignParam.alignDuration + 100);
+            }
+        }
+
+    </script>
+    <!--流程属性列表：审批人控件-->
+    <script type="text/javascript">
+        var organization = null;
+        var roleId = '@KC.Framework.Tenant.RoleConstants.AdminRoleId';
+        function selectUserForm(hiddenDataId, txtContentId) {
+            organization = new OrganizationVM();
+            //debugger;
+            let searchOrgIds = [@KC.Framework.Tenant.OrganizationConstants.企业_Id];
+            let searchRoleIds = [];
+            let selectNodeString = $('#' + hiddenDataId).val();
+            let selectNode = !$.string.isNullOrEmpty(selectNodeString)
+                ? JSON.parse(selectNodeString)
+                : null;
+            let refCode = $.string.isNullOrEmpty(selectNode.code) ? '' : selectNode.code;
+            let selectSetting = $.string.isNullOrEmpty(selectNode.executorSetting) ? 0 : selectNode.executorSetting;
+            let selectFieldName = $.string.isNullOrEmpty(selectNode.executorFormFieldName) ? '' : selectNode.executorFormFieldName;
+            let selectFieldDisplayName = $.string.isNullOrEmpty(selectNode.executorFormFieldDisplayName) ? '' : selectNode.executorFormFieldDisplayName;
+            let selectOrgIds = $.string.arrayFromCommaDelimitedStrings(selectNode.orgIds);
+            let selectOrgNames = $.string.arrayFromCommaDelimitedStrings(selectNode.orgNames);
+            let selectRoleIds = $.string.arrayFromCommaDelimitedStrings(selectNode.roleIds);
+            let selectRoleNames = $.string.arrayFromCommaDelimitedStrings(selectNode.roleNames);
+            let selectUserIds = $.string.arrayFromCommaDelimitedStrings(selectNode.userIds);
+            let selectUserNames = $.string.arrayFromCommaDelimitedStrings(selectNode.userNames);
+            let selectExceptUserIds = $.string.arrayFromCommaDelimitedStrings(selectNode.exceptUserIds);
+            let selectExceptUserNames = $.string.arrayFromCommaDelimitedStrings(selectNode.exceptUserNames);
+            let isSingle = false;
+            organization.InitializeData({
+                type: 7,                            //7(1+2+4): 组织+角色+用户
+                title: "审批人设置（常用设置或选择组织、角色及用户二选一）",
+                selectSetting: selectSetting,      //已选择的执行人常用设置
+                selectFormFieldName: selectFieldName,
+                selectFormFieldDisplayName: selectFieldDisplayName,
+                orgIds: searchOrgIds,               //需要查询的组织Id列表
+                roleIds: searchRoleIds,             //需要查询的角色Id列表
+                exceptOrgIds: [],                   //需要排除的部门Id列表
+                exceptRoleIds: [],                  //需要排除的角色Id列表
+                selectOrgIds: selectOrgIds,         //已选中的组织Id列表
+                selectOrgNames: selectOrgNames,     //已选中的组织名称列表
+                selectRoleIds: selectRoleIds,       //已选中的角色Id列表
+                selectRoleNames: selectRoleNames,   //已选中的角色名称列表
+                selectUserIds: selectUserIds,       //已选中的人员Id列表
+                selectUserNames: selectUserNames,   //已选中的人员名称列表
+                selectExceptUserIds: selectExceptUserIds,
+                selectExceptUserNames: selectExceptUserNames,
+                isSingleSelect: isSingle,
+                referenceId: refCode,
+                callback: function (data) {
+                    //debugger;
+                    let nodeSetting = data.executorSetting;
+                    let formFieldName = data.executorFormFieldName;
+                    let formFieldDisplayName = data.executorFormFieldDisplayName;
+                    let refCode = data.referenceId;
+                    let orgs = data.orgs;
+                    let roles = data.roles;
+                    let users = data.users;
+                    let exceptUsers = data.exceptUsers;
+                    let selOrgIds = $.array.toCommaSeparatedStringByFilter(orgs, function (r) { return r.organizationCode; });
+                    let selOrgNames = $.array.toCommaSeparatedStringByFilter(orgs, function (r) { return r.text; });
+                    let selRoleIds = $.array.toCommaSeparatedStringByFilter(roles, function (r) { return r.roleId; });
+                    let selRoleNames = $.array.toCommaSeparatedStringByFilter(roles, function (r) { return r.displayName; });
+                    let selUserIds = $.array.toCommaSeparatedStringByFilter(users, function (r) { return r.userId; });
+                    let selUserNames = $.array.toCommaSeparatedStringByFilter(users, function (r) { return r.displayName; });
+                    let selExceptUserIds = $.array.toCommaSeparatedStringByFilter(exceptUsers, function (r) { return r.userId; });
+                    let selExceptUserNames = $.array.toCommaSeparatedStringByFilter(exceptUsers, function (r) { return r.displayName; });
+                    let selectNode = WorkflowPropertyUtil.executorSettingNode(null, refCode, nodeSetting, formFieldName, formFieldDisplayName, selOrgIds, selOrgNames, selRoleIds, selRoleNames, selUserIds, selUserNames, selExceptUserIds, selExceptUserNames);
+
+                    WorkflowPropertyUtil.updateExecutorSettingRowById(refCode, selectNode);
+                }
+            });
+        }
+    </script>
+    <!--流程属性列表：设置规则控件-->
+    <script type="text/javascript">
+        var conditionRule = new ConditionRuleVM();
+        var roleId = '@KC.Framework.Tenant.RoleConstants.AdminRoleId';
+        var selectPersons = [];
+        function selectRuleForm(wfNodeId, wfNodeCode, hideRulesDataId, hideFieldsDataId, txtContentId) {
+
+            let ruleDataString = $('#' + hideRulesDataId).val();
+            let ruleData = !$.string.isNullOrEmpty(ruleDataString)
+                ? JSON.parse(ruleDataString)
+                : null;
+            let fieldDataString = $('#' + hideFieldsDataId).val();
+            let fieldData = !$.string.isNullOrEmpty(fieldDataString)
+                ? JSON.parse(fieldDataString)
+                : null;
+            //弹出条件规则窗口
+            conditionRule.InitializeData({
+                title: "设置规则",
+                referenceId: wfNodeId,
+                referenceCode: wfNodeCode,
+                rules: ruleData,        //已有规则数据
+                fields: fieldData,      //下拉数学列表数据
+                callback: function (data, refId, refCode) {
+                    //debugger;
+                    WorkflowPropertyUtil.updateConditionRulesRowById(refCode, data);
+                }
+            });
+        }
+    </script>
+    <!--流程属性列表：初始化-->
+    <script type="text/javascript">
+        /*
+        * 对easyui-propertygrid的editor的扩展
+        */
+        $.extend($.fn.propertygrid.defaults.editors, {
+            /*
+             * 流程审核设置编辑器，使用示例如下：
+             */
+            wfAuditSetting: {
+                index: 0,
+                init: function (container, options) {
+                    //debugger;
+                    let idx = '-' + this.index++;
+                    let divPrice = $('<div id="priceGroup' + idx + '" style="height:100px;"></div>').appendTo(container);
+                    let divPrice1 = '<input class="rdoProductPrice"  id="rdoProductPrice' + idx + '-0" name="productPrice' + idx + '" data-options="labelPosition:\'after\',labelWidth:130,checked:true,margin:\'10px 0 0 0\'" class="easyui-radiobutton" value="0" label="或签(一个同意即可)">';
+                    let radio1 = $(divPrice1).appendTo(divPrice);
+                    $('<br />').appendTo(divPrice);
+                    let divPrice2 = '<input class="rdoProductPrice" id="rdoProductPrice' + idx + '-1" name="productPrice' + idx + '" data-options="labelPosition:\'after\',labelWidth:130,margin:\'10px 0 0 0\'" class="easyui-radiobutton" value="1" label="会签(按百分比同意)">';
+                    let radio2 = $(divPrice2).appendTo(divPrice);
+
+                    $('<br />').appendTo(divPrice);
+                    let divPrice3 = '<input class="txtProductPrice" id="txtProductPrice' + idx + '" style="margin:0;width:130px;" data-options="min:0,max:100,precision:0" class="easyui-numberspinner"/>';
+                    let input = $(divPrice3).appendTo(divPrice);
+                    input.numberspinner();
+                    //RadioButton事件
+                    //单击：单人审核
+                    radio1.radiobutton({
+                        'onChange': function (checked) {
+                            if (checked) {
+                                $(radio2).radiobutton('uncheck');
+                                let price = input.numberspinner('getValue');
+                                if (price !== undefined && price !== null && price !== '')
+                                    input.numberspinner('setValue', null);
+                            }
+                        }
+                    });
+                    //单击：按百分比审核
+                    radio2.radiobutton({
+                        'onChange': function (checked) {
+                            if (checked) {
+                                $(radio1).radiobutton('uncheck');
+                                let price = input.numberspinner('getValue');
+                                if (price === undefined || price === null || price === '')
+                                    input.numberspinner('setValue', 100);
+                            }
+                        }
+                    });
+
+                    return divPrice;
+                },
+                destroy: function (target) {
+                    $(target).remove();
+                },
+                getValue: function (target) {
+                    //debugger;
+                    let priceSelect = $(target).find('span.radiobutton.radiobutton-checked input.radiobutton-value').val();
+                    //let priceSelect = $(target).find('input:checked').val();
+                    if (priceSelect === "0") {
+                        return null;
+                    } else {
+                        let price = $(target).find('input.txtProductPrice').val();
+                        if (price === undefined || price == null || price === '')
+                            return 0;
+                        else
+                            return price;
+                    }
+                },
+                setValue: function (target, value) {
+                    //debugger;
+                    let radio1 = null;
+                    let radio2 = null;
+                    let radios = $(target).find('.rdoProductPrice');
+                    let price = $(target).find('.txtProductPrice');
+                    $.each(radios, function (i, radio) {
+                        let rdoValue = $(radio).val();
+                        if (rdoValue === '0') {
+                            radio1 = radio;
+                        } else {
+                            radio2 = radio;
+                        }
+                    });
+                    if (value === undefined
+                        || value == null
+                        || value === ''
+                        || value === 0) {
+                        $(radio1).radiobutton('check');
+                    } else {
+                        $(radio2).radiobutton('check');
+                        price.numberspinner('setValue', value);
+                    }
+                },
+                resize: function (target, width) {
+                    //$(target).numberspinner('resize', width);
+                }
+            },
+            /*
+             * 流程审批人设置编辑器，使用示例如下：
+             */
+            wfExecutorSetting: {
+                index: 0,
+                init: function (container, options) {
+                    this.index++;
+                    let idx = '-' + options.code;
+                    let divSpec = $('<div id="executor' + idx + '"></div>').appendTo(container);
+                    let hiddenDataId = 'hiddenExecutorData' + idx;
+                    let txtContentId = 'txtExecutorContent' + idx;
+                    let divHinddenData = '<input type="hidden" class="executor data" id="' + hiddenDataId + '"/>';
+                    let btnSelectUser = '<a href="javascript:void(0)" class="easyui-linkbutton" onclick="selectUserForm(\'' + hiddenDataId + '\',\'' + txtContentId + '\')"  data-options="iconCls:\'fa fa-users\'">选择审批人</a>';
+                    let divContent = '<input class="easyui-textbox content" id="' + txtContentId + '" style="width:100%;height:100px" data-options="multiline:true,editable: false"/>';
+
+                    $(divHinddenData).appendTo(divSpec);
+                    let button = $(btnSelectUser).appendTo(divSpec);
+                    button.linkbutton();
+                    $('<br/>').appendTo(divSpec);
+                    let input = $(divContent).appendTo(divSpec);
+                    input.textbox();
+
+                    return divSpec;
+                },
+                destroy: function (target) {
+                    $(target).remove();
+                },
+                getValue: function (target) {
+                    //debugger;
+                    let data = $(target).find('input.data').val();
+                    if (!$.string.isNullOrEmpty(data))
+                        return JSON.parse(data);
+                    return null;
+                },
+                setValue: function (target, selectNode) {
+                    //debugger;
+                    if (selectNode && selectNode != null) {
+                        $(target).find('input.data').val(JSON.stringify(selectNode));
+                        let resContent = WorkflowPropertyUtil.getExecutorSettingContent(selectNode);
+                        $(target).find('input.content').textbox('setValue', resContent);
+                    }
+                },
+                resize: function (target, width) {
+
+                }
+            },
+            /*
+             * 流程条件规则设置编辑器，使用示例如下：
+             */
+            wfRuleSetting: {
+                index: 0,
+                wfFields: [],
+                init: function (container, options) {
+                    this.index++;
+                    this.wfFields = options.wfFields;
+                    let idx = '-' + options.wfNodeCode;
+
+                    let divSpec = $('<div id="rule' + idx + '"></div>').appendTo(container);
+                    let hiddenFieldsId = 'hiddenFieldsData' + idx;
+                    let hiddenRulesId = 'hiddenRuleData' + idx;
+                    let txtContentId = 'txtRuleContent' + idx;
+                    let divHideRulesData = '<input type="hidden" class="rule data" id="' + hiddenRulesId + '"/>';
+                    let divHideFieldsData = '<input type="hidden" class="rule fields" id="' + hiddenFieldsId + '"/>';
+
+                    let btnSelectUser = '<a href="javascript:void(0)" class="easyui-linkbutton" onclick="selectRuleForm(\'' + options.wfNodeId + '\',\'' + options.wfNodeCode + '\',\'' + hiddenRulesId + '\',\'' + hiddenFieldsId + '\',\'' + txtContentId + '\')"  data-options="iconCls:\'fa fa-thermometer-full\'">设置规则</a>';
+                    let divContent = '<input class="easyui-textbox content" id="' + txtContentId + '" style="width:100%;height:100px" data-options="multiline:true,editable: false"/>';
+
+                    $(divHideFieldsData).appendTo(divSpec);
+                    $(divHideRulesData).appendTo(divSpec);
+                    let button = $(btnSelectUser).appendTo(divSpec);
+                    button.linkbutton();
+                    $('<br/>').appendTo(divSpec);
+                    let input = $(divContent).appendTo(divSpec);
+                    input.textbox();
+
+                    return divSpec;
+                },
+                destroy: function (target) {
+                    $(target).remove();
+                },
+                getValue: function (target) {
+                    //debugger;
+                    let data = $(target).find('input.data').val();
+                    if (!$.string.isNullOrEmpty(data))
+                        return JSON.parse(data);
+                    return null;
+                },
+                setValue: function (target, rules) {
+                    //debugger;
+                    if (rules && rules != null) {
+                        $(target).find('input.data').val(JSON.stringify(rules));
+                        let resContent = WorkflowPropertyUtil.getConditionRuleContent(rules);
+                        $(target).find('input.content').textbox('setValue', resContent);
+                    }
+                    if (this.wfFields && this.wfFields != null) {
+                        $(target).find('input.fields').val(JSON.stringify(this.wfFields));
+                    }
+                },
+                resize: function (target, width) {
+
+                }
+            },
+        });
+
+        const propertyGridId = '#attrForm';
+        function InitPropertyGrid() {
+            let propertyGrid = $(propertyGridId);
+            propertyGrid.propertygrid({
+                idField: 'fid',
+                width: 'auto',
+                height: '100%',
+                showGroup: true,
+                showHeader: false,
+                //scrollbarSize: 0,
+                columns: [[
+                    { field: 'name', title: 'Name', width: '80', align: 'right', },
+                    { field: 'value', title: 'Value', width: '200', formatter: WorkflowPropertyUtil.formatter }
+                ]],
+                onEndEdit: function (index, row) {
+                    //debugger;
+                    //当属性字段为Name时，设置图形节点的Title值
+                    if (row.field === 'Name') {
+                        let key = row.code;
+                        $('#' + key + ' span').text(row.value);
+                    }
+                }
+            });
+        };
+
+    </script>
+    <!--保存流程定义-->
+    <script type="text/javascript">
+        var formId = "#saveform";
+        const wfDeignerUrl = '@Url.Action(ActionName.WorkflowDefinition.WorkflowDesigner, ControllerName.WorkflowDefinition)';
+        const saveFormUrl = '@Url.Action(ActionName.WorkflowDefinition.SaveWorkflowDefinition, ControllerName.WorkflowDefinition)';
+        let saveWfDefinition = function (graphData) {
+            //验证
+            let validate = $(formId).form("enableValidation").form("validate");
+            if (!validate) {
+                let errorMsg = '';
+                let invalidComps = $(formId).find(".validatebox-invalid");
+                $.each(invalidComps, function (i, invalidComp) {
+                    errorMsg += 'id=' + invalidComp.id + ', ';
+                });
+                console.error("---验证失败的组件Id：" + errorMsg);
+                return;
+            }
+
+            //debugger;
+            //通过将图形Node和Link数据与属性Node数据合并，获取后台所需Node数据
+            let gNodeData = graphData.nodeDataArray;
+            let gLinkData = graphData.linkDataArray;
+            let nodeData = WorkflowPropertyUtil.integratedNodeData(gNodeData, gLinkData);
+            //获取表单数据
+            let formData = $(formId).form("getData");
+            formData.WorkflowNodes = nodeData;
+            let postData = AddAntiForgeryToken(nodeData);
+            //console.log(postData);
+            let jsonData = JSON.stringify(postData);
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                async: true,
+                url: saveFormUrl + "?wfDefId=" + formData.Id + "&wfDefName=" + formData.Name ,
+                type: 'POST',
+                dataType: 'json',
+                headers: { 'RequestVerificationToken': $('[name=__RequestVerificationToken]').val() }, 
+                contentType: "application/json;charset=UTF-8",
+                data: jsonData,
+                //contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                //data: postData,
+                success: function (data) {
+                    if (data.success) {
+                        if (data.result) {
+                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                            MainPage_PostMessage("closeSubPage", wfDeignerUrl);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                    } else {
+                        $.messager.showInfoTopCenter('系统提示', data.message);
+                    }
+                },
+                complete: function (XMLHttpRequest, status) {
+                    $.easyui.loaded();
+                }
+            });
+        };
+    </script>
+
+</body>
+</html>

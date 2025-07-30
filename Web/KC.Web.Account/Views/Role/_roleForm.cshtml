@@ -1,0 +1,50 @@
+﻿@using KC.Web.Account.Constants
+@model KC.Service.DTO.Account.RoleDTO
+@{
+    ViewBag.Title = "保存角色表单";
+}
+@using (Html.BeginForm(ActionName.Role.EditRole, ControllerName.Role, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.RoleId)
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label for="RoleName">角色名称：</label></td>
+                <td>
+                    @*@Model.ApplictionName-<input id="RoleName" name="RoleName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:['length[2,30]','isSpace']" onblur="existRoleName($('#RoleId').val())" value="@(null != Model ? Model.RoleName : string.Empty)" />*@
+
+                    <input id="RoleName" name="RoleName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:{validator:['@Url.Action(ActionName.Role.ExistRoleName, ControllerName.Role, new { isEditMode = Model.IsEditMode, orginalUserName = Model.RoleName, area = ""})','UserName', '该角色名已存在']}" value="@(null != Model ? Model.RoleName : string.Empty)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label for="DisplayName">角色显示名：</label></td>
+                <td>
+                    <input id="DisplayName" name="DisplayName" class="easyui-textbox" data-options="width:200,validType:['length[2,15]']" value="@(null != Model ? Model.DisplayName : string.Empty)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="PositionLevel">归属业务类型：</label></td>
+                <td>
+                    <select id="BusinessType" name="BusinessType" class="easyui-combobox"
+                            data-options="width:200,editable: false, required:true,"
+                            asp-items="ViewBag.BusinessTypes" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Description">描述：</label></td>
+                <td><input id="Description" name="Description" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:['length[3,50]', 'isSpace']" value="@Model.Description" /></td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+

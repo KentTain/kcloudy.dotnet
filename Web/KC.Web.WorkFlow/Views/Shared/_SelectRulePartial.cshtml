@@ -1,0 +1,355 @@
+﻿<style>
+    #userLayout [id*='_easyui_tree'] {
+        height: 22px;
+    }
+</style>
+<script type="text/javascript">
+    function ConditionRuleVM() {
+        let me = this;
+        me._ruleInfos = [];
+        let ruleDataGridId = '#ruleDateGrid';
+        let options = {
+            title: "条件设置规则",
+            rules: [],        //已有规则数据
+            fields: [],      //下拉属性字段列表数据
+            wfNodeId: null,
+            referenceId: null,
+            referenceCode: null,
+            allowClose: true,
+            callback: null,
+        };
+        me.ShowDialog = function () {
+            let $layout = $('<div id="ruleLayout" style="width:680px;height:460px;margin: 5px;"></div>');
+            //选择结果
+            let $inputDiv = $('<div></div>');
+            let $inputDiv1 = $('<div style="margin:5px 40px">' +
+                '<input id="txtRule" class="easyui-textbox" name="name" style="width:96%" data-options = "label:\'设置结果:\',readonly:true" >' +
+                '</div>');
+            //$inputDiv1.appendTo($inputDiv);
+            let $ruleLayout = $('<div id="toolbarRule"><div style="float:left;color:red;font-weight:bold;line-height:20px;height:20px;margin:5px 0 0 10px;">双击编辑规则</div><div style="float:right;"><a id="btnAddRule" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus">添加</a><a id="btnRemoveRule" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash">删除</a></div></div><table id="ruleDateGrid"></table>');
+            $layout.layout();
+            $layout.layout('add', {
+                region: 'center',
+                content: $ruleLayout,
+                split: true,
+                collapsible: false,
+                border: false
+            });
+            $.easyui.showDialog({
+                title: options.title,
+                // 弹框top=滚动条到页面顶部的距离+（页面显示的高度-弹框的高度）/2
+                top: $(document).scrollTop() + 22,
+                width: 720,
+                height: 520,
+                modal: true,
+                topMost: false,
+                draggable: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                content: $layout,
+                onSave: function (d) {
+                    let fields = getRowData();
+                    if (options.callback !== null)
+                        options.callback(fields, options.referenceId, options.referenceCode);
+                    if (!options.allowClose)
+                        return false;
+                },
+                onClose: function () {
+                    me.HideDialog();
+                }
+            });
+        };
+        me.HideDialog = function () {
+            $('#divSelectUser').hide();
+        };
+
+        me.InitializeData = function (opt) {
+            options = $.extend(options, opt);
+            if (opt.rules && opt.rules.length)
+                me._ruleInfos = opt.rules;
+            me.ShowDialog();
+
+            $("#btnAddRule").click(function () {
+                addEditRow();
+            });
+            $("#btnRemoveRule").click(function () {
+                removeConditionRule();
+            });
+
+            //if (me._ruleInfos == undefined
+            //    || me._ruleInfos == null
+            //    || me._ruleInfos.length <= 0) {
+            //    //设置第一条默认
+            //    me._ruleInfos.push({
+            //        ruleType: 0,
+            //        ruleTypeString: '',
+            //        fieldName: '',
+            //        operatorType: 0,
+            //        operatorTypeString: '',
+            //        fieldValue: '',
+            //    });
+            //} 
+
+            initRuleDatagrid();
+        };
+        let initRuleDatagrid = function () {
+            //debugger;
+            let fieldsList = options.fields;
+            let ruleTypeList = [{ "value": 0, "text": "无" }, { "value": 1, "text": "并且" }, { "value": 2, "text": "或者" }];
+            let operatorTypeList = [{ "value": 0, "text": "等于" }, { "value": 1, "text": "不等于" }, { "value": 2, "text": "包含(字符串)" }, { "value": 10, "text": "大于" }, { "value": 11, "text": "小于" }, { "value": 12, "text": "大于等于" }, { "value": 13, "text": "小于等于" }];
+            $(ruleDataGridId).datagrid({
+                data: me._ruleInfos,
+                idField: 'id',
+                toolbar: 'toolbarRule',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: false,
+                nowrap: false,
+                fit: true,
+                showFooter: false,
+                columns: [[
+                    { field: 'id', title: '编号', width: 20, align: 'left', hidden: true },
+                    {
+                        field: 'ruleType', title: '连接', width: 60, align: 'left',
+                        formatter: function (value, row, index) {
+                            switch (value) {
+                                case 1:
+                                    return "并且";
+                                case 2:
+                                    return "或者";
+                                default:
+                                    return "";
+                            }
+                        },
+                        editor: {
+                            type: 'combobox',
+                            options: {
+                                data: ruleTypeList,
+                                valueField: "value",
+                                textField: "text",
+                                panelHeight: 'auto',
+                                editable: false,
+                                required: true
+                            }
+                        }},
+                    {
+                        field: 'fieldDisplayName', title: '列', width: 100, align: 'left',
+                        editor: {
+                            type: 'combobox',
+                            options: {
+                                data: fieldsList,
+                                valueField: "text",
+                                textField: "displayName",
+                                panelHeight: 'auto',
+                                //editable: false,
+                                required: true
+                            }
+                        }},
+                    {
+                        field: 'operatorType', title: '操作', width: 100, align: 'left',
+                        formatter: function (value, row, index) {
+                            switch (value) {
+                                case 0:
+                                    return "等于";
+                                case 1:
+                                    return "不等于";
+                                case 2:
+                                    return "包含";
+                                case 10:
+                                    return "大于";
+                                case 11:
+                                    return "小于";
+                                case 12:
+                                    return "大于等于";
+                                case 13:
+                                    return "小于等于";
+                                default:
+                                    return "";
+                            }
+                        },
+                        editor: {
+                            type: 'combobox',
+                            options: {
+                                data: operatorTypeList,
+                                valueField: "value",
+                                textField: "text",
+                                panelHeight: 'auto',
+                                editable: false,
+                                required: true
+                            }
+                        }},
+                    {
+                        field: 'fieldValue', title: '值', width: 100, align: 'left',
+                        editor: {
+                            type: 'textbox',
+                            options: {
+                                text: true,
+                                required: true,
+                            }
+                        }},
+                    ]
+                ],
+                onLoadSuccess: function (data) {
+                    //$(".btnDelete").linkbutton({ iconCls: 'fa fa-trash' });
+                },
+                onDblClickRow: function (index, row) {
+                    $(this).datagrid('beginEdit', index);
+                    editIndex = index;
+                },
+                onBeforeEdit: function (index, row) {
+                    row.editing = true;
+                },
+                onAfterEdit: function (index, row, changes) {
+                    row.editing = false;
+                },
+                onCancelEdit: function (index, row) {
+                    row.editing = false;
+                    $(this).datagrid('cancelEdit', index);
+                },
+                onEndEdit: function (index, row) {
+                    //debugger;
+                }
+            });
+        };
+
+        //当前编辑行的index
+        let editIndex = undefined;
+        let isEndEditing = function (dgId) {
+            if (editIndex === undefined) {
+                return true
+            }
+            if ($(ruleDataGridId).datagrid('validateRow', editIndex)) {
+                $(ruleDataGridId).datagrid('endEdit', editIndex);
+                editIndex = undefined;
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        //获取行
+        let getRowIndex = function (target) {
+            let tr = $(target).closest('tr.datagrid-row');
+            return parseInt(tr.attr('datagrid-row-index'));
+        };
+        //获取行数据
+        let getRowData = function () {
+            let fields = [];
+            let rows = $(ruleDataGridId).datagrid('getRows');
+            for (let i = 0; i < rows.length; i++) {
+                let row = rows[i];
+                let fieldName = row.fieldName;
+                let fieldText = row.fieldDisplayName;
+                let isEditing = row.editing === undefined ? false : row.editing;
+                if (isEditing) {
+                    let isValid = $(ruleDataGridId).datagrid('validateRow', i);
+                    if (isValid !== undefined && isValid) {
+                        //debugger;
+                        let ed = $(ruleDataGridId).datagrid('getEditor', { index: i, field: 'fieldDisplayName' });
+                        fieldName = $(ed.target).combobox('getValue');
+                        fieldText = $(ed.target).combobox('getText');
+                        //关闭第i行的编辑
+                        $(ruleDataGridId).datagrid('selectRow', i).datagrid('endEdit', i);
+                    } else {
+                        continue;
+                    }
+                }
+                if (!$.string.isNullOrEmpty(fieldName))
+                    row.fieldName = fieldName;
+                if (!$.string.isNullOrEmpty(fieldText))
+                    row.fieldDisplayName = fieldText;
+                if (row.workflowNodeId === undefined || row.workflowNodeId === null)
+                    row.workflowNodeId = options.referenceId;
+                if (row.workflowNodeCode === undefined || row.workflowNodeCode === null)
+                    row.workflowNodeCode = options.referenceCode;
+                if (row.ruleType !== undefined
+                    && $.string.isString(row.ruleType))
+                    row.ruleType = parseInt(row.ruleType);
+                if (row.operatorType !== undefined
+                    && $.string.isString(row.operatorType))
+                    row.operatorType = parseInt(row.operatorType);
+
+                fields.push(row);
+            }
+            return fields;
+        };
+        //新增一行
+        let addEditRow = function () {
+            var rows = $(ruleDataGridId).datagrid('getData');
+            let rIndex = rows.total;
+            $(ruleDataGridId).datagrid('insertRow', {
+                index: rows.total,   // 索引从0开始
+                row: {
+                    isNewRecord: true,
+                    workflowNode: null,
+                    workflowNodeId: options.referenceId,
+                    workflowNodeCode: options.referenceCode,
+                    ruleType: rows.total > 0 ? 1 : 0,
+                    ruleTypeString: rows.total > 0 ? '' : '并且',
+                    operatorType: 0,
+                    operatorTypeString: '等于',
+                }
+            });
+            $(ruleDataGridId).datagrid('selectRow', rIndex);
+            $(ruleDataGridId).datagrid('beginEdit', rIndex);
+
+            //var ed = $(ruleDataGridId).datagrid('getEditor', { index: rIndex, field: 'text' });
+            //$(ed.target).focus();
+            editIndex = rIndex;
+        };
+        //取消编辑
+        let rejectEditRow = function () {
+            $(ruleDataGridId).datagrid('rejectChanges');
+            editIndex = undefined;
+        };
+        //删除一条规则
+        let removeConditionRule = function () {
+            let rows = $(ruleDataGridId).datagrid('getRows');
+            let selectRow = $(ruleDataGridId).datagrid('getSelected');
+            for (let i = 0; i < rows.length; i++) {
+                let row = rows[i];
+                let isEditing = row.editing === undefined ? false : row.editing;
+                if (isEditing) {
+                    let isValid = $(ruleDataGridId).datagrid('validateRow', i);
+                    if (isValid !== undefined && isValid) {
+                        //关闭第i行的编辑
+                        $(ruleDataGridId).datagrid('selectRow', i).datagrid('endEdit', i);
+                    }
+                } 
+                //如果为删除第一个规则，需要将第二个规则的ruleType改为（ruleType.None：0）
+                if (i === 0 && row.id === selectRow.id) {
+                    let row2 = rows[1];
+                    if (row2 !== undefined && row2 !== null) {
+                        row2.ruleType = 0;
+                        let index = $(ruleDataGridId).datagrid('getRowIndex', row2);
+                        $(ruleDataGridId).datagrid('updateRow', {
+                            index: index,
+                            row: { data: row2 }
+                        });
+                    }
+                }
+            }
+
+            //单行删除
+            let index = $(ruleDataGridId).datagrid('getRowIndex', selectRow);
+            $(ruleDataGridId).datagrid('deleteRow', index);
+
+            //多行删除有问题，改为单行删除
+            //var selections = $(ruleDataGridId).datagrid('getSelections');
+            //var selectRows = [];
+            //for (var i = 0; i < selections.length; i++) {
+            //    selectRows.push(selections[i]);
+            //}
+            //for (var j = 0; j < selectRows.length; j++) {
+            //    let selectRow = selectRows[j];
+            //    let isEditing = selectRow.editing === undefined ? false : selectRow.editing;
+            //    let isNew = selectRow.isNewRecord === undefined ? false : selectRow.isNewRecord;
+            //    let index = $(ruleDataGridId).datagrid('getRowIndex', selectRow);
+            //    $(ruleDataGridId).datagrid('deleteRow', index);
+            //}
+        };
+    };
+
+</script>

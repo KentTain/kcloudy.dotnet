@@ -1,0 +1,223 @@
+﻿@using KC.Web.App.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "推送设置管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+}
+
+<div id="toolbar">
+    <div>
+        @*推送设置管理-保存推送设置*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "0ADC6488-A975-4E52-AEC4-85962B9D8988")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editPushSetting()">编辑</a>
+        }
+        @*推送设置管理-删除推送设置*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "3DC34E69-432B-466D-9104-64039FF632C5")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removePushSetting()">删除</a>
+        }
+    </div>
+
+    <div>
+        @Html.DropDownList("ApplicationId", (IEnumerable<SelectListItem>)ViewBag.ApplicationList, new { @id = "ApplicationId", @class = "easyui-combobox", @style = "width: 260px;height:26px;" })
+        <input id="searchbox" class="easyui-textbox" data-options="prompt:'请输入业务名称'">
+        <a href="#" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="#" onclick="refreshSearch()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+        var $dataGrid = $('#datagrid');
+        $(function () {
+            InitDataGrid();
+        });
+
+        function refreshSearch() {
+            $('#ApplicationId')[0].selectedIndex = 0;
+            $("#searchbox").searchbox('setValue', '');
+            reloadDatagrid();
+        }
+        function reloadDatagrid() {
+            $("#datagrid").datagrid("load", {
+                appId: $("#searchbox").val(),
+                busName: $("#searchbox").searchbox("getValue"),
+            });
+        }
+
+        var loadDataUrl = '@Url.Action(ActionName.ApplicationSetting.LoadPushSettingList, ControllerName.ApplicationSetting)';
+        var loadTargetSettingDataUrl = '@Url.Action(ActionName.ApplicationSetting.LoadTargetSettingList, ControllerName.ApplicationSetting)';
+        function InitDataGrid() {
+            $dataGrid.datagrid({
+                view: detailview,
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'pushSettingId',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                showFooter: false,
+                columns: [[
+                    //{ field: 'pushSettingId', title: '应用推送设置Id', width: 160, align: 'left' },
+                    { field: 'businessCode', title: '业务代码', width: 160, align: 'left' },
+                    { field: 'businessName', title: '业务名称', width: 100, align: 'left' },
+                    { field: 'businessTypeString', title: '业务类型', width: 60, align: 'left' },
+                    { field: 'pushObjectNameSpace', title: '推送对象命名空间', width: 200, align: 'left' },
+                    {
+                        field: 'operator', title: '操作', width: 160, align: 'center',
+                        formatter: function addPushSettingButton(value, row, index) {
+                            var tdContext = '<a href="##" class="btnAddTargetSetting" onclick="MainPage_PostMessage(\'openPage\', \'' + editTargetSettingUrl + '\', \'id=0\')">添加目标接口设置</a>';
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                    /*var bId = $("#txtBId").val();
+                    var AllSearchKey = $("#txtAllSearchKey").val();
+                    param.bId = bId;
+                    param.AllSearchKey = AllSearchKey;*/
+                },
+                onLoadSuccess: function (data) {
+                    $(".btnAddTargetSetting").linkbutton({  iconCls: 'fa fa-plus' });
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function () {
+                },
+                detailFormatter: function (index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                },
+                onExpandRow: function (index, row) {
+                    var ddv = $(this).datagrid('getRowDetail', index).find('table.ddv');
+                    ddv.datagrid({
+                        url: loadTargetSettingDataUrl + '?settingId=' + row.pushSettingId,
+                        fitColumns: true,
+                        singleSelect: true,
+                        rowNumbers: true,
+                        loadMsg: '',
+                        height: 'auto',
+                        columns: [[
+                            { field: 'targetSettingId', title: '推送目标接口设置Id', width: 40, align: 'left' },
+                            { field: 'targetApiUrl', title: '接口地址', width: 280, align: 'left' },
+                            { field: 'securityTypeString', title: '接口安全类型', width: 60, align: 'left' },
+                            { field: 'targetObjectNameSpace', title: '接收对象命名空间', width: 200, align: 'left' },
+                            { field: 'statisticOpera', title: '任务操作', width: 150, align: 'center', formatter: addTargetSettingButton }
+                        ]],
+                        onResize: function () {
+                            $('#datagrid').datagrid('fixDetailRowHeight', index);
+                        },
+                        onLoadSuccess: function () {
+                            $(".btnEditTargetSetting").linkbutton({  iconCls: 'fa fa-pencil' });
+                            $(ddv).datagrid('fixRowHeight');
+
+                            setTimeout(function () {
+                                $('#datagrid').datagrid('fixDetailRowHeight', index);
+
+                            }, 0);
+                        }
+                    });
+                }
+            });
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.ApplicationSetting.GetPushSettingForm, ControllerName.ApplicationSetting)';
+        var saveFormUrl = '@Url.Action(ActionName.ApplicationSetting.SavePushSetting, ControllerName.ApplicationSetting)';
+        function opentForm(id) {
+            var dialog = $.easyui.showDialog({
+                title: "保存数据",
+                width: 400,
+                height: 220,
+                href: getFormUrl + "?id=" + id,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data:AddAntiForgeryToken(d.form("getData")),
+                            success: function (data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#datagrid').datagrid('clearSelections');
+                                        $('#datagrid').datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message);
+                                }
+                            },
+                            complete: function () {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function () {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        function editPushSetting() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                opentForm(row.PushSettingId);
+            }
+        }
+        var removeUrl = '@Url.Action(ActionName.ApplicationSetting.RemovePushSetting, ControllerName.ApplicationSetting)';
+        function removePushSetting() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('系统提示', '是否确定删除该条记录?', function (r) {
+                    if (r) {
+                        $.post(removeUrl, { id: row.pushSettingId }, function (result) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload'); // reload the user data
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                                }
+                            } else {
+                                $.data.showErrorTopCenter('错误消息', data.message);
+                            }
+                        }, 'json');
+                    }
+                });
+            }
+        }
+
+        var editTargetSettingUrl = '@Url.Action(ActionName.ApplicationSetting.EditTargetSetting, ControllerName.ApplicationSetting)';
+        function addTargetSettingButton(value, row, index) {
+            var tdContext = '<a href="javascript:void(0);" class="btnEditTargetSetting" onclick="MainPage_PostMessage(\'openPage\', \'' + editTargetSettingUrl + '\', \'id=' + row.targetSettingId + '\')" style="text-decoration: none; color: #0000ff">编辑目标接口设置</a>'
+            return tdContext;
+        }
+
+
+    </script>
+}

@@ -1,0 +1,214 @@
+﻿@using KC.Web.Admin.Constants
+@using KC.Web.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+<div id="toolbar">
+    <div>
+        @*队列日志管理-删除队列日志*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "7CA9D1F5-236E-4890-8A68-0C2B504FF79F")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="deleteData(1)">清空日志</a>
+        }
+        @*队列日志管理-删除队列日志*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "7CA9D1F5-236E-4890-8A68-0C2B504FF79F")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="deleteData(0)">删除选中日志</a>
+        }
+        @*队列日志管理-重置队列*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "91A26722-C66D-4FCE-A631-327054070C93")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="openForm()">重新激活队列</a>
+        }
+    </div>
+
+    <div>
+        <label style="margin-left: 10px">信息类型：</label>
+        <select id="QueueName" class="easyui-combobox" style="width: 150px">
+            <option value="全部">全部</option>
+            <option value="comemailInfo">发送电子邮件队列</option>
+            <option value="comsmsInfo">发送短信队列</option>
+            <option value="comtenantapplications">开通租户应用</option>
+            <option value="compenaltyinterestinfo">计算还款罚息</option>
+            <option value="comuncallentity">下载长鑫通话录音</option>
+        </select>
+        <a href="javascript:void(0);" class="easyui-linkbutton" onclick="searchData()" data-options="iconCls:'icon-search'" style="margin-left: 5px">查询</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+<div align="justify"></div>
+<div class="easyui-dialog" closed="true" id="dlg" title="详细错误" style="width:80%;height:400px;max-width:900px;padding:10px" data-options="iconCls:'icon-save',border:false">
+    <h2 id="queueNameTitle">队列名</h2>
+    <p id="queueNameContent">
+    </p>
+    <br /><h2 id="queueSourceTitle">队列对象命名空间</h2>
+    <p id="queueSourceContent">
+    </p>
+    <br />
+    <h2 id="queueMessageTitle">队列对象XML</h2>
+    <p id="queueMessageContent">
+    </p>
+    <br />
+    <h2 id="errorMessageTitle">错误消息</h2>
+    <p id="errorMessageContent">
+    </p>
+    <br />
+    <h2 id="errorSourceTitle">错误源</h2>
+    <p id="errorSourceContent">
+    </p>
+</div>
+@section scripts
+    {
+    <script type="text/javascript">
+        $(function () {
+            InitTreeDataGrid();
+            $('#QueueName').combobox({
+                editable: false
+            });
+        });
+        var loadDataUrl = '@Url.Action(ActionName.QueueErrorMessage.GetQueueErrorMessageJson, ControllerName.QueueErrorMessage)';
+        var deteleDataUrl = '@Url.Action(ActionName.QueueErrorMessage.DeleteQueueErrorMessage, ControllerName.QueueErrorMessage)';
+        function InitTreeDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: '',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                showFooter: false,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                columns: [
+                [
+                    { field: 'queueName', title: '队列名称', width: 100, align: 'center' },
+                    { field: 'sourceFrom', title: '队列消息来源', width: 180, align: 'center' },
+                    { field: 'errorFrom', title: '错误来源', width: 100, align: 'center' },
+                    //{ field: 'errorMessage', title: '错误消息', width: 150, align: 'center' },
+                    //{ field: 'queueMessage', title: '队列对象XML', width: 200, align: 'center' },
+                    { field: 'createdDate', title: '创建时间', width: 100, align: 'center', formatter: FormatterUtil.DateTimeSecondFormatter, sortable: true },
+                    //{ field: 'rowKey', title: '操作', width: 100, align: 'center',
+                    //    formatter: function () {
+                    //        var tbContent = '';
+                    //        tbContent += '<a href="javascript:void(0);"  onclick="openForm()" class="exception">查看详细</a>';
+                    //        tbContent += '<a href="javascript:void(0);"  onclick="resetQueue()" class="exception">重新激活队列</a>';
+                    //        return tbContent;
+                    //    }
+                    //}
+                ]],
+                onBeforeLoad: function (param) {
+
+                },
+                onLoadSuccess: function (data) {
+                    $('.exception').linkbutton({
+                        iconCls: 'icon-search'
+                    });
+                    $('.delete').linkbutton({
+                        iconCls: 'icon-remove'
+                    });
+                },
+                onLoadError: function () {
+                }
+            });
+
+        }
+        function openForm() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row == null)
+                return;
+            $('#queueNameContent').html(row.queueName != null ? row.QueueName : "无队列名");
+            $('#queueSourceContent').html(row.sourceFrom != null ? row.SourceFrom : "无队列对象命名空间");
+            $('#queueMessageContent').html(row.queueMessage != null ? row.QueueMessage : "无队列对象XML");
+            $('#errorMessageContent').html(row.errorMessage != null ? row.ErrorMessage : "无错误消息");
+            $('#errorSourceContent').html(row.errorFrom != null ? row.ErrorFrom : "无错误来源");
+            $('#dlg').dialog('open');
+        }
+
+        function deleteData(value) {
+            var title = value == 0 ? '是否要删除该条记录？' : '是否要清空全部类型的日志？（PS:清空日志所需一定时间,请耐心等待！）';
+            var keyValue;
+            if (value == 0) {
+                var row = $('#datagrid').datagrid('getSelected');
+                if (row == null) {
+                    $.messager.showErrorTopCenter('系统提示', '请选择需要删除的数据', 2000);
+                    return;
+                }
+                keyValue = row.rowKey;
+            } else {
+                keyValue = "";
+            }
+            $.messager.confirm('系统提示', title, function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(deteleDataUrl, { rowKey: keyValue }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+        function searchData() {
+            $('#datagrid').datagrid('unselectAll');
+            $('#datagrid').datagrid('load', {
+                "queueName": $('#QueueName').combobox('getValue'),
+            });
+        }
+
+        var resetQueueUrl = '@Url.Action(ActionName.QueueErrorMessage.ResetQueue, ControllerName.QueueErrorMessage)';
+        function resetQueue() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row == null)
+                return;
+            var jsonData =  JSON.stringify(row);
+            $.messager.confirm('系统提示', "是否重新激活队列？", function(r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        //async: true,
+                        type: "post",
+                        dataType: "json",
+                        contentType: 'application/json; charset=utf-8',
+                        url: resetQueueUrl,
+                        data: jsonData,
+                        success: function (data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}
+
+

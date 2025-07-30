@@ -1,0 +1,135 @@
+﻿@using KC.Web.Blog.Constants
+@using Microsoft.AspNetCore.Authorization
+@model KC.Service.DTO.Blog.BlogDTO
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = Model.IsEditMode ? "编辑文章" : "新增文章";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--配置管理-保存配置属性-->
+    var cansaveAtt = true;
+    if ((await AuthorizationService.AuthorizeAsync(User, "686B465A-6163-48E3-A825-6137BB774688")).Succeeded)
+    {
+        cansaveAtt = true;
+    }
+}
+@section styles{
+    <link href="~/css/admin.css" rel="stylesheet" />
+}
+@using (Html.BeginForm(ActionName.Blog.SaveBlog, ControllerName.Blog, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    @Html.HiddenFor(model => model.CreateTime)
+    <table class="dialog-form-table basicTable">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="Title">文章标题：</label></td>
+                <td><input id="Title" name="Title" class="easyui-validatebox easyui-textbox" data-options="required:true,validType:'length[1,200]'" style="height:22px; width:280px;" value="@Model.Title" /></td>
+                <td><label for="Name">文章类型：</label></td>
+                <td>
+                    @Html.DropDownList("CategoryId", (IEnumerable<SelectListItem>)ViewBag.CategoryList, new { @id = "CategoryId", @class = "easyui-combobox", @data_options = "width:280,editable: false, required:true" })
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Tags">标签（以,分隔）：</label></td>
+                <td><input id="Tags" name="Tags" class="easyui-validatebox easyui-textbox" data-options="required:false,validType:'length[0,1000]'" style="height:22px; width:280px;" value="@Model.Tags" /></td>
+                <td><label for="Name">是否置顶：</label></td>
+                <td>
+                    @Html.CheckBoxFor(model => model.IsTop)
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Summary">简介：</label></td>
+                <td colspan="3">
+                    <input id="Summary" name="Summary" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,multiline:true,width:'100%',height:60,validType:'length[0,1000]'"
+                           value="@(null != Model ? Model.Summary : "")" />
+                </td>
+            </tr>
+
+            <tr>
+                <td><label for="Content">内容:</label></td>
+                <td colspan="3">
+                    <textarea id="Content" name="Content" class="textarea textbox easyui-validatebox"
+                              data-options="required:false,validType:'length[0,4000]'"
+                              style="height:360px; ">@(null != Model ? Model.Content : "")</textarea>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" style="text-align:center;">
+                    <a href="javascript:void(0)" onclick="saveBlog()" class="easyui-linkbutton @(cansaveAtt ? "" : "NoAuth")" data-options="iconCls:'fa fa-save'">保存</a>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+}
+
+@section scripts
+    {
+    <script src="/js/ueditor/ueditor.config.js"></script>
+    <script src="/js/ueditor/ueditor.all.min.js"></script>
+    <script>
+        //解决UEditor跨域上传问题
+        let uploadUrl = '@(ViewBag.DocWebApiDomain)Resources/Upload';
+        UE.Editor.prototype._bkGetActionUrl = UE.Editor.prototype.getActionUrl;
+        UE.Editor.prototype.getActionUrl = function (action) {
+            //debugger;
+            if (action == 'uploadimage'
+                || action == 'uploadfile'
+                || action == 'listimage'
+                || action == 'uplistfile') {
+                return uploadUrl + "?parm=" + action;
+            } else {
+                return this._bkGetActionUrl.call(this, action);
+            }
+        }
+        var ueditorContent = null;
+        $(function () {
+            ueditorContent = UE.getEditor('Content', {
+                serverUrl: '/Home/Upload',
+                initialFrameWidth: '100%'
+            });
+        });
+
+        var saveFormUrl = '@Url.Action(ActionName.Blog.SaveBlog, ControllerName.Blog)';
+        var closeUrl = '@Url.Action(ActionName.Blog.GetBlogForm, ControllerName.Blog)';
+        var openUrl = '/Admin/Home/Index';
+        function saveBlog() {
+            var d = $("#saveform");
+            var validate = d.form("enableValidation").form("validate");
+            if (validate) {
+                $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                $.ajax({
+                    async: true,
+                    type: "post",
+                    dataType: "json",
+                    url: saveFormUrl,
+                    data: AddAntiForgeryToken(d.form("getData")),
+                    success: function (data) {
+                        if (data.success) {
+                            $.messager.showInfoTopCenter('系统提示', '文章保存成功。');
+                            MainPage_PostMessage("closePage", closeUrl);
+                            MainPage_PostMessage("refreshPage", openUrl);
+                        } else {
+                            $.messager.showErrorTopCenter('系统提示', data.message);
+                        }
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+                return false;
+            } else {
+                return false;
+            }
+        }
+    </script>
+}

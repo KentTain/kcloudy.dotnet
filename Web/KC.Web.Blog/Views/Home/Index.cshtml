@@ -1,0 +1,157 @@
+﻿﻿@using KC.Web.Blog.Constants
+
+@{
+    ViewData["Title"] = "主页";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<div id="lstBlog">
+    <p id="searchText" style="display:none;padding-top:10px;margin-bottom:0px;"></p>
+    <div class="blog-item" v-for="item in Data">
+        <div id="divBlogs" class="panel-body">
+        </div>
+    </div>
+
+    <nav aria-label="Page navigation">
+        <ul id="pagination" class="pagination">
+            正在搜索相关数据.....
+        </ul>
+    </nav>
+</div>
+
+@section Scripts {
+    <script>
+
+    var btnStyles = ["btn btn-default btn-xs", "btn btn-primary btn-xs",
+        "btn btn-success btn-xs", "btn btn-default btn-xs", "btn btn-info btn-xs", "btn btn-warning btn-xs", "btn btn-default btn-xs", "btn btn-danger btn-xs"];
+    var colorIndex = 0;
+    function getColor() {
+        colorIndex++;
+        return btnStyles[colorIndex % btnStyles.length];
+    }
+
+    var qs = (function (a) {
+        if (a == "") return {};
+        var b = {};
+        for (var i = 0; i < a.length; ++i) {
+            var p = a[i].split('=');
+            if (p.length != 2) continue;
+            b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+        }
+        return b;
+    })(window.location.search.substr(1).split('&'));
+
+    $(document).ready(function () {
+        setTimeout(function () {
+            $('pre code').each(function (i, block) {
+                hljs.highlightBlock(block);
+                $('pre code').css("background-color", '#ffffff');
+                $('pre code').css("color", '#000');
+            });
+        }, 500);
+        $.goup({
+            trigger: 100,
+            bottomOffset: 50,
+            locationOffset: 20,
+            title: '',
+            titleAsText: true
+        });
+
+        var categoryId = qs["categoryId"];
+        var tag = qs["article"];
+        var title = qs["title"]; // undefined (object)
+
+        searchBlog(1, 10, categoryId, tag, title);
+    });
+
+    var loadBlogsUrl = '@Url.Action(ActionName.Home.GetBlogList, ControllerName.Home)';
+    function searchBlog(page, rows, categoryId, tag, title) {
+        $.ajax({
+            async: true,
+            type: "post",
+            dataType: "json",
+            url: loadBlogsUrl,
+            data: { page: page, rows: rows, categoryId: categoryId, tag: tag, title: title },
+            success: function (data) {
+                var content = "";
+                if (data.rows.length <= 0) {
+                    $('#searchText').html('<span class="btn btn-warning "style="border:none">没找到符合搜索条件相关数据</span>');
+                } else {
+                    for (var i = 0, len = data.rows.length; i < len; i++) {
+                        var row = data.rows[i];
+                        if (row.SourceUrl != null) {
+                            content += "<div class='form-inline blog-title'><span class='label label-warning blog-type'>转</span><h4><a href='/home/BlogDetail?id=" + row.id + "'>" + row.title + "</a></h4></div>";
+                        } else {
+                            content += "<div class='form-inline blog-title'><span class='label label-success blog-type'>原</span><h4><a  href='/home/BlogDetail?id=" + row.id + "'>" + row.title + "</a></h4></div>";
+                        }
+
+                        content += "<div style='margin-bottom:6px;'><span class='btn btn-xs'><img src='/images/date.png' />" + row.createTime + "</span><a href='javascript:void(0)'><img src='/images/category.png' />" + row.categoryName + "</a><img src='/images/tags.png' />";
+
+                        for (var j = 0, len2 = row.tagList.length; j < len2; j++) {
+                            var color = getColor();
+                            content += "<a href='javascript:void(0)' class='" + color + "'>" + row.tagList[j] + "</a>";
+                        }
+                        content += "</div>";
+                        content += "<div>" + row.summary + "</div>";
+                    }
+
+                    $("#divBlogs").html(content);
+
+                    var totalPage = Math.ceil(data.total / data.pageSize);
+                    pagination_blog(data.pageIndex, totalPage);
+                    window.scrollTo(0, 0);
+                }
+            },
+            complete: function () {
+            }
+        });
+    }
+
+    function pagination_blog(page, rows) {
+        $('#pagination').empty();
+        if (rows <= 1)
+            return;
+        if (rows < 10) {
+            for (i = 0; i < rows; i++) {
+                var item = '<li><a class="btn-xs" href="javascript:void(0)" onclick=searchBlog(' + (i + 1) +')>' + (i + 1) + '</a></li>';
+                $('#pagination').append(item);
+            }
+        }
+        else {
+            var item = '<li><a class="btn-xs" href="javascript:void(0)" onclick=searchBlog(1)>1</a></li>';
+            $('#pagination').append(item);
+
+            for (i = page - 5; i < page + 1; i++) {
+                if (i > 0 && i < rows - 1) {
+                    var item = '<li><a class="btn-xs"  href="javascript:void(0)" onclick=searchBlog(' + (i + 1) +')>' + (i + 1) + '</a></li>';
+                    $('#pagination').append(item);
+                }
+            }
+
+            for (i = page + 1; i < page + 5; i++) {
+                if (i < (rows - 1)) {
+                    var item = '<li><a class="btn-xs" href="javascript:void(0)" onclick=searchBlog(' + (i + 1) +')>' + (i + 1) + '</a></li>';
+                    $('#pagination').append(item);
+                }
+            }
+            if (rows > 1) {
+                var item = '<li><a class="btn-xs" href="javascript:void(0)" onclick=searchBlog(' + (rows) + ')>' + (rows) + '</a></li>';
+                $('#pagination').append(item);
+            }
+        }
+
+        console.log($('#pagination'));
+
+        $('a').each(function () {
+            if ($(this).attr('page')) {
+                $(this).css("margin", "2px")
+            };
+            if ($(this).attr('page') == page) {
+                $(this).html('<span class="badge">' + (page + 1) + '</span>');
+            }
+        })
+    }
+    </script>
+
+}

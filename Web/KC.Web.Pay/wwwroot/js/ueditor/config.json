@@ -1,0 +1,70 @@
+{
+    "imageActionName": "uploadimage",
+    "imageFieldName": "file",
+    "imageMaxSize": "{imageMaxSize}",
+    "imageAllowFiles": [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".bmp"
+    ],
+    "imageCompressEnable": true,
+    "imageCompressBorder": 1600,
+    "imageInsertAlign": "none",
+    "imageUrlPrefix": "{ApiDomain}Resources/ShowImage",
+    "imagePathFormat": "/upload/image/{yyyy}{mm}{dd}/{time}{rand:6}",
+
+
+    "imageManagerActionName": "listimage",
+    "imageManagerListPath": "/upload/image",
+    "imageManagerListSize": 20,
+    "imageManagerUrlPrefix": "{ApiDomain}Resources/ShowImage",
+    "imageManagerInsertAlign": "none",
+
+    "fileActionName" : "uploadfile",
+    "fileFieldName": "file", 
+    "filePathFormat": "/upload/file/{yyyy}{mm}{dd}/{time}{rand:6}",
+    "fileUrlPrefix":"{ApiDomain}Resources/DownloadFile",
+    "fileMaxSize": "{fileMaxSize}",
+    "fileAllowFiles": [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".bmp",
+        ".txt",
+        ".zip",
+        ".rar",
+        ".doc",
+        ".docx",
+        ".ppt",
+        ".pptx",
+        ".xls",
+        ".xlsx",
+        ".pdf"
+    ],
+
+    "fileManagerActionName": "listfile",
+    "fileManagerListPath": "/upload/file/",
+    "fileManagerUrlPrefix":  "{ApiDomain}Resources/DownloadFile",
+    "fileManagerListSize": 20,
+    "fileManagerAllowFiles": 
+    [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".bmp",
+        ".txt",
+        ".zip",
+        ".rar",
+        ".doc",
+        ".docx",
+        ".ppt",
+        ".pptx",
+        ".xls",
+        ".xlsx",
+        ".pdf"
+    ]
+}

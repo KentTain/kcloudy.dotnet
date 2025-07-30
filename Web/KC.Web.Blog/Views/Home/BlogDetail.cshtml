@@ -1,0 +1,148 @@
+﻿@using KC.Web.Blog.Constants
+@using KC.Web.Config.Models
+@model KC.Service.DTO.Blog.BlogDTO
+@{
+    ViewData["Title"] = "博客";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var icomment = 0;
+    var btnStyles = new string[] {"btn btn-default btn-xs", "btn btn-primary btn-xs",
+"btn btn-success btn-xs", "btn btn-default btn-xs", "btn btn-info btn-xs", "btn btn-warning btn-xs", "btn btn-default btn-xs", "btn btn-danger btn-xs" };
+    var colorIndex = 0;
+}
+@section styles{
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
+}
+<div id="viewBlog">
+    <div class="blog-Detail">
+        <div class="panel-body">
+            <div class="form-inline blog-title">
+                @if (!string.IsNullOrEmpty(Model.SourceUrl))
+                {
+                    <span class="label label-warning blog-type">转</span>
+                }
+                else
+                {
+                    <span class="label label-success blog-type">原</span>
+                }
+                <h4>
+                    <a href="#">@Model.Title</a>
+                </h4>
+            </div>
+
+            <div style="margin-bottom:4px;">
+                <span class="btn btn-xs"><img src="/images/date.png" />@Model.CreateTime</span>
+                <a><img src="/images/category.png" />@Model.CategoryName</a>
+                <img src="/images/tags.png" />
+                @foreach (var tag in Model.TagList)
+                {
+                    colorIndex++;
+                    var color = HomeViewModel.GetColor(colorIndex);
+                    <a class="@color">@tag</a>
+                }
+
+            </div>
+            <div class="blog-Body" style=" line-height: 28px;padding-left:10px;">
+                @Html.Raw(@Model.Content)
+            </div>
+        </div>
+
+    </div>
+    @if (!string.IsNullOrEmpty(Model.SourceUrl))
+    {
+        <div>
+            <b> 原文:<a href="@Model.SourceUrl" target="_blank">@Model.SourceUrl</a></b>
+        </div>
+    }
+</div>
+<div class="comment-panel">
+    <h5>评论列表</h5>
+    <div id="lstComments">
+        @foreach (var comment in Model.Comments)
+        {
+            icomment++;
+            <div class="comment-item">
+                <div class="comment-header">
+                    <a><span class="badge">#{@icomment}楼</span></a>
+                    <a class="btn btn-xs"><img src="/images/date.png" />@comment.CreateTime</a>
+                    <a href="#">(@comment.NickName)</a>
+                </div>
+                <div style="padding-left:20px;">
+                    @Html.Raw(@comment.Content)
+                </div>
+            </div>
+        }
+    </div>
+    <hr />
+
+    <!--comment-->
+    <form class="form-horizontal" id="saveform">
+        <input type="hidden" id="txtBlogId" class="form-control" placeholder="昵称" value="@Model.Id">
+        <div class="form-group">
+            <label class="col-sm-offset-0 col-sm-11">发表评论</label>
+            <div class="col-sm-offset-0 col-sm-11">
+                <input type="text" id="txtnickName" class="form-control" placeholder="昵称">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-0 col-sm-11" style="margin-bottom:6px;">
+                支持Markdown内容
+            </div>
+
+            <div id="txtEditor" class="col-sm-offset-0 col-sm-11">
+                <textarea id="txtcontent" rows="10" style="width:100%"></textarea>
+            </div>
+            <div id="txtView" style="display:none;height:220px;overflow-y: auto; overflow-x:hidden;" class="col-sm-offset-0 col-sm-11" v-html="compiledMarkdown">
+
+            </div>
+        </div>
+        <button type="button" onclick="saveComment()" class="col-sm-offset-0 btn btn-default">提交</button>
+    </form>
+</div>
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script>
+        toastr.options.positionClass = 'toast-top-center';
+        $(document).ready(function () {
+            $("#successAlert").alert('close');
+            $("#failedAlert").alert('close');
+        });
+
+        var saveFormUrl = '@Url.Action(ActionName.Home.SaveComment, ControllerName.Home)';
+        function saveComment() {
+            var blogId = $("#txtBlogId").val();
+            var name = $("#txtnickName").val();
+            var content = $("#txtcontent").val();
+            $.ajax({
+                async: true,
+                type: "post",
+                dataType: "json",
+                url: saveFormUrl,
+                data: { blogId: blogId, name: name, content: content},
+                success: function (data) {
+                    if (data.success) {
+                        toastr.success('评论保存成功！');
+                        setTimeout(function () {
+                            location.reload();
+                        }, 2000)
+                    } else {
+                        toastr.error('评论保存失败，请重试！');
+                    }
+                },
+                complete: function () {
+                }
+            });
+        }
+
+        function searchBlog(page, rows, categoryId, tag, title) {
+            if (categoryId == undefined || categoryId == null)
+                categoryId = 0;
+            if (tag == undefined || tag == null)
+                tag = "";
+            if (title == undefined || title == null)
+                title = "";
+
+            window.location = "/home/index?categoryId=" + categoryId + "&tag=" + tag + "&title=" + title;
+        }
+    </script>
+}

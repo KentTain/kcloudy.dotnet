@@ -1,0 +1,396 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "门户分类管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--门户分类管理-保存门户分类-->
+    var canEditCategory = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "6868DCC7-3911-4F7D-9DE9-3659A16A2378")).Succeeded)
+    {
+        canEditCategory = true;
+    }
+    <!--门户分类管理-删除门户分类-->
+    var canDeleteCategory = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "50364705-C3D4-45D4-A80B-B382626B03F2")).Succeeded)
+    {
+        canDeleteCategory = true;
+    }
+
+}
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',collapsible:false" style="width:30%;min-width:350px;">
+        <div id="categoryToolbar">
+            <div>
+            </div>
+            <div>
+                <input id="txtCategoryName" class="easyui-textbox" style="width: 140px;height:26px;" data-options="prompt:'请输入名称'" />
+                <a href="javascript:void(0)" onclick="reloadCategory()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshCategory()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+                <!--门户分类管理-保存门户分类-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "6868DCC7-3911-4F7D-9DE9-3659A16A2378")).Succeeded)
+                {
+                    <a id="btnAddCategory" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addCategory()">添加</a>
+                }
+            </div>
+        </div>
+        <table id="cagtegoryTreeGrid"></table>
+    </div>
+    <div data-options="region:'center'">
+        <div id="toolbar" class="toolbar-f">
+            <div>
+            </div>
+            <div>
+                <input id="txtName" class="easyui-textbox" data-options="prompt:'请输入名称'">
+                <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="datagrid"></table>
+    </div>
+</div>
+
+
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+
+@section styles{
+    <style>
+        .reviewDiv {
+            padding-top: 50px;
+        }
+
+        .datagrid-row-selected {
+            background: #00bbee;
+            color: #fff;
+        }
+    </style>
+}
+
+@section scripts{
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <script type="text/javascript">
+        var fileSetting = {
+            fileNumLimit: 1,
+            postUrl: '@(ViewBag.DocWebApiDomain)Resources/UploadFileToTemp',
+            chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+            chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+            fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+            fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+            downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+            imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+            imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+            showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+            params: { isArchive: false }
+        };
+        $(document).ready(function () {
+            InitTreeGrid();
+            InitDataGrid();
+        });
+
+    </script>
+
+    <!--门户推荐分类-->
+    <script type="text/javascript">
+        //推荐分类（左侧）
+        var selectCategoryId = 0;
+        const categoryTreeId = '#cagtegoryTreeGrid';
+        const canEditCategory = '@canEditCategory' === 'True';
+        const canDeleteCategory = '@canDeleteCategory' === 'True';
+        const loadCategoryTreeUrl = '@Url.Action(ActionName.PortalInfo.LoadRecommendCategoryTree, ControllerName.PortalInfo)';
+        let InitTreeGrid = function () {
+            $(categoryTreeId).treegrid({
+                url: loadCategoryTreeUrl,
+                toolbar: '#categoryToolbar',
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                queryParams: {
+                    excludeId: null,
+                    selectedId: null,
+                    hasAll: true,
+                    hasRoot: false,
+                    maxLevel: 3
+                },
+                striped: true,
+                fit: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                lines: true,
+                showFooter: false,
+                checkbox: false,
+                checkOnSelect: false,
+                cascadeCheck: true,
+                cache: true,
+                pagination: false,
+                columns: [[
+                    { field: 'id', title: 'Id', hidden: true },
+                    { field: 'text', title: '分类名称', width: 140 },
+                    {
+                        field: 'c', title: ' 操作', width: 60,
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            let name = row.text;
+                            let parentId = row.parentId;
+                            let hasChild = row.children && row.children.length > 0;
+                            let tdContext = '';
+                            if (canEditCategory && (id != 0 && id != -1)) {
+                                tdContext += '<a class="btnEdit" style="cursor:pointer;margin:0 5px;" onclick="editCategory(\'' + id + '\',\'' + parentId + '\',' + hasChild + ')" > </a>';
+                            }
+                            if (canDeleteCategory && (id != 0 && id != -1) && !hasChild) {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer;margin:0 5px;" onclick="removeCategory(\'' + id + '\',\'' + name + '\',' + hasChild + ')" > </a>';
+                            }
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (node, data) {
+                    CommonUtil.buttonStyle();
+                    $(categoryTreeId).treegrid('unselectAll');
+                    $(categoryTreeId).treegrid('expandAll');
+                    $(categoryTreeId).treegrid("fixRowHeight");
+
+                    //默认选中第一个节点
+                    if (data.length > 0) {
+                        selectCategoryId = data[0].id;
+                        $(categoryTreeId).treegrid("selectRow", 0);
+                    }
+                },
+                onLoadError: function () {
+                },
+                onSelect: function (row) {
+                    if (selectCategoryId == row.id) return;
+                    //点击左侧消息类型，显示右侧列表信息
+                    let id = row.id;
+                    selectCategoryId = id;
+                    if (id == -1) {
+                        $('#btnAddCategory').linkbutton('disable');
+                    } else {
+                        $('#btnAddCategory').linkbutton('enable');
+                    }
+
+                    //只能创建两级流程分类
+                    let level = row.level;
+                    if (level > 2) {
+                        $('#btnAddCategory').linkbutton('disable');
+                    } else {
+                        $('#btnAddCategory').linkbutton('enable');
+                    }
+
+                    $(dataGridId).datagrid("reload", { categoryId: id });
+                }
+            });
+        }
+
+        let refreshCategory = function () {
+            $(categoryTreeId).treegrid('unselectAll');
+            $("#txtCategoryName").searchbox('setValue', '');
+            reloadCategory();
+        }
+        let reloadCategory = function () {
+            $(categoryTreeId).treegrid('unselectAll');
+            $(categoryTreeId).treegrid("reload", {
+                name: $("#txtCategoryName").textbox("getValue"),
+                excludeId: null,
+                selectedId: null,
+                hasAll: true,
+                hasRoot: false,
+                maxLevel: 3
+            });
+        }
+
+        //新增/编辑
+        let addCategory = function () {
+            var categorySelectedRow = $(categoryTreeId).treegrid("getSelected");
+            if (categorySelectedRow) {
+                if (categorySelectedRow.level == 3) {
+                    $.messager.showErrorTopCenter("错误", "文件分类只有三级数据，该条数据已经是子级，请选择父级进行添加子级操作。");
+                    return false;
+                }
+                openCategoryForm(null, categorySelectedRow.id, false);
+            }
+            else {
+                openCategoryForm(null, 0, false);
+            }
+        }
+        //编辑类型
+        let editCategory = function (id, pid, hasChild) {
+            if (id <= 0) {
+                $.messager.showErrorTopCenter('系统提示', '此分类无法编辑', 1000);
+            }
+            else {
+                openCategoryForm(id, pid, hasChild);
+            }
+        }
+
+        //类型表单
+        const getCategoryUrl = '@Url.Action(ActionName.PortalInfo.GetRecommendCategory, ControllerName.PortalInfo)';
+        const saveCategoryUrl = '@Url.Action(ActionName.PortalInfo.SaveRecommendCategory, ControllerName.PortalInfo)';
+        let openCategoryForm = function (id, pid, hasChild) {
+            var dialogC = $.easyui.showDialog({
+                title: id == null ? "新增分类" : "编辑分类",
+                width: 450,
+                height: 320,
+                modal: true,
+                topMost: false,
+                href: getCategoryUrl + "?id=" + id + "&pid=" + pid ,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                pagination: true,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (!validate) {
+                        let errorMsg = '';
+                        let invalidComps = d.find(".validatebox-invalid");
+                        $.each(invalidComps, function (i, invalidComp) {
+                            errorMsg += 'id=' + invalidComp.id + ', ';
+                        });
+                        console.error("---验证失败的组件Id：" + errorMsg);
+                        return;
+                    }
+                    var dataInfo = AddAntiForgeryToken(d.form("getData"));
+                    if (hasChild && dataInfo.category != null && dataInfo.category != "") {
+                        $.messager.showErrorTopCenter("错误", "该组下面已有子分类，不能直接移动，请先移动或删除子分类。");
+                        return false;
+                    }
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: saveCategoryUrl,
+                        data: dataInfo,
+                        success: function (data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    //d.window('close');
+                                    $(categoryTreeId).treegrid('clearSelections');
+                                    $(categoryTreeId).treegrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter("错误", data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                },
+                onLoad: function () {
+                },
+                onClose: function () {
+                }
+            });
+        }
+
+        //删除推荐分类（左侧）
+        const removeCategoryUrl = '@Url.Action(ActionName.PortalInfo.RemoveRecommendCategory, ControllerName.PortalInfo)';
+        let removeCategory = function (id) {
+            if (id <= 0) {
+                $.messager.showErrorTopCenter('系统提示', '此消息类型无法删除', 1000);
+                return;
+            }
+            if (hasChild) {
+                $.messager.showErrorTopCenter('错误消息', '无法删除有子部门的部门，请先删除子部门后再重试。', 1000);
+                return;
+            }
+            $.messager.confirm('确定删除该文件分类：' + name + '?', function (f) {
+                if (f) {
+                    $.post(removeCategoryUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $.messager.showInfoTopCenter("提示", '删除成功。', 1500);
+                                $(categoryTreeId).treegrid('reload');
+                                $(categoryTreeId).treegrid('clearSelections');
+                            }
+                            else {
+                                $.messager.showErrorTopCenter("错误", data.result.message);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter("错误", data.message);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+    </script>
+
+    <!--门户推荐-->
+    <script type="text/javascript">
+        //门户推荐（右侧）
+        const dataGridId = '#datagrid';
+        const canPreview = '@canEditCategory' === 'True';
+        const loadReviewInfoUrl = '@Url.Action(ActionName.PortalInfo.FindRecommendInfos, ControllerName.PortalInfo)';
+        let InitDataGrid = function () {
+            $(dataGridId).datagrid({
+                url: loadReviewInfoUrl,
+                method: 'get',
+                idField: 'recommendId',
+                toolbar: '#toolbar',
+                queryParams: {
+                    categoryId: selectCategoryId,
+                    name: $("#txtName").textbox("getValue"),
+                },
+                striped: true,
+                fit: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: false,
+                nowrap: false,
+                lines: true,
+                showFooter: false,
+                pagination: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                columns: [[
+                    { field: 'recommendName', title: '推荐名称', width: 150, align: 'left'},
+                    { field: 'typeString', title: '推荐类型', width: 80, align: 'left' },
+                    { field: 'statusString', title: '推荐状态', width: 60, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    { field: 'isTop', title: '是否置顶', width: 60, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    { field: 'description', title: '描述', width: 120, align: 'left' },
+                    { field: 'modifiedDate', title: '修改时间', width: 80, align: 'left', formatter: FormatterUtil.DateFormatter },
+                    { field: 'createdName', title: '创建人', width: 80, align: 'left' },
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $(dataGridId).datagrid('unselectAll');
+                    $(dataGridId).datagrid('clearSelections');
+                    $(dataGridId).datagrid("fixRowHeight");
+                    CommonUtil.buttonStyle();
+                },
+                onClickRow: function (row) {
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+
+        //刷新
+        let refreshSearch = function () {
+            $("#txtName").textbox('setValue', '');
+            reloadDatagrid();
+        }
+        //查询
+        let reloadDatagrid = function () {
+            $(dataGridId).datagrid("reload", {
+                categoryId: selectCategoryId,
+                name: $("#txtName").textbox("getValue")
+            });
+        }
+
+    </script>
+}

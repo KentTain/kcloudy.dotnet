@@ -1,0 +1,483 @@
+﻿@using KC.Web.Extension
+@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.DTO.Portal.CompanyInfoDTO
+@{
+    ViewBag.Title = "企业基本信息";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--企业信息管理-保存基本信息-->
+    var canSave = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "8225119B-3AF4-47D4-8537-9D1C012CF5CC")).Succeeded)
+    {
+        canSave = true;
+    }
+}
+
+@section styles{
+    <link href="~/css/admin/shopInfo.css" rel="stylesheet" />
+    <style>
+        .main-div .div-list ul li {
+            float: left;
+            margin-left: 20px;
+            padding-left: 20px;
+            width: 400px;
+            height: 560px;
+            background-color: #fff2f2
+        }
+
+        .main-div {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px
+        }
+
+            .main-div .div-list ul li table {
+                margin-top: 10px
+            }
+
+        .menuContent {
+            left: 5px !important;
+            top: 45px !important
+        }
+
+        .title {
+            border-left: 5px solid #496ab4;
+            padding-left: 10px;
+            font-size: 16px;
+            font-weight: bolder;
+            margin-bottom: 10px
+        }
+
+        .tree {
+            padding: 10px
+        }
+    </style>
+    <style>
+        .table-form > tbody > tr > td:nth-child(odd) {
+            width: 20% !important;
+        }
+
+        .table-form > tbody > tr > td:nth-child(even) {
+            width: 80% !important;
+        }
+    </style>
+}
+@using (Html.BeginForm(ActionName.CompanyInfo.SaveCompanyInfo, ControllerName.CompanyInfo, FormMethod.Post, new { @id = "myForm", area = "Admin" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.CompanyCode)
+    <table class="table table-bordered table-form tr-col2">
+        <tr>
+            <td><label class="required">*</label><label>企业编码：</label></td>
+            <td>
+                @Model.CompanyCode
+            </td>
+        </tr>
+        <tr>
+            <td><label class="required">*</label><label>企业名称：</label></td>
+            <td>
+                <input id="CompanyName" name="CompanyName" class="easyui-validatebox easyui-textbox" style="width:360px; " data-options="required:true" value="@(null != Model ? Model.CompanyName: string.Empty)" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label class="required"></label><label for="CompanyLogo">企业Logo：</label>
+            </td>
+            <td>
+                @Html.HiddenFor(model => model.CompanyLogo)
+                <div class="imageUploaderEditor">
+                    <div style="display: flex;height: 110px;">
+                        <div id="imageUploader">
+                            <a href="javascript:void(0)">
+                                <i class="fa fa-plus-square fa-5x"></i>
+                            </a>
+                        </div>
+                        <div id="imageList" class="webUploader-image-list">
+                        </div>
+                    </div>
+                    <label style="padding: 3px;">文件个数：1个；文件格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，文件大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                    <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><label>经营模式：</label></td>
+            <td>
+                @{
+                    var count = 0;
+                    //var count = Enumerable.Count(ViewBag.BusinessModels);
+                    foreach (var item in ViewBag.BusinessModels)
+                    {
+                        @*<input type="checkbox" id="BusinessModel" name="BusinessModel" value="@item.Value" checked="@item.Selected" /> @item.Text*@
+                        if (count == 3)
+                        {
+                            <input type="radio" class="easyui-radiobutton" name="BusinessModel" value="@item.Value" label="@item.Text" labelwidth="140" labelPosition="after" checked="@item.Selected">
+                        }
+                        else if (count > 5)
+                        {
+                            <input type="radio" class="easyui-radiobutton" name="BusinessModel" value="@item.Value" label="@item.Text" labelwidth="70" labelPosition="after" checked="@item.Selected">
+                        }
+                        else
+                        {
+                            <input type="radio" class="easyui-radiobutton" name="BusinessModel" value="@item.Value" label="@item.Text" labelwidth="90" labelPosition="after" checked="@item.Selected">
+                        }
+                        count++;
+                    }
+                }
+            </td>
+        </tr>
+        <tr>
+            <td><label class="required">*</label><label>所属行业：</label></td>
+            <td>
+                <div style="float:left">
+                    <input id="IndustryId" name="IndustryId" class="easyui-combotree" style="width:360px; ">
+                    <a href="javascript:void(0)" onclick="openModelDefDialog();" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">快速找到分类</a>
+                    @Html.HiddenFor(m => m.IndustryName)
+                </div>
+
+                <div id="quickSearch">
+                    <div style="width: 80px; float: left;line-height:30px">行业分类：</div>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="key" placeholder="请输入关键字之后点击右侧按钮搜索">
+                        <span class="input-group-btn">
+                            <input class="btn btn-info" type="button" value="快速找到分类" onclick="quickSearchCategory(this)" />
+                        </span>
+                    </div>
+                    <div class="panel panel-default categoryResult">
+                        <div class="panel-heading">匹配到<label id="count" style="margin: 0 5px; color: red;font-weight:bold"></label>个分类<span style="color:gray">(双击直接选中)</span></div>
+                        <div class="panel-body">
+
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td><label>企业联系人：</label></td>
+            <td>
+                <input type="hidden" name="ContactId" id="ContactId" value="@(Model.ContactId)">
+                <input id="ContactName" name="ContactName" class="easyui-validatebox easyui-textbox" style="width:360px; " data-options="required:true" value="@(null != Model ? Model.ContactName : string.Empty)" />
+                <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-users " onclick="selectUserForm()">选择现有人员</a>
+
+                <br />
+                <span style="color: #999;margin-left:10px">(负责接收一些系统消息,例如采购商添加公司为合格供应商等系统消息</span>
+            </td>
+        </tr>
+        <tr>
+            <td><label for="Introduction">企业联系电话：</label></td>
+            <td colspan="3">
+                <input id="ContactPhone" name="ContactPhone" class="easyui-validatebox easyui-textbox" style="width:360px; " data-options="required:true" value="@(null != Model ? Model.ContactPhone: string.Empty)" />
+            </td>
+        </tr>
+        <tr>
+            <td><label for="Introduction">企业联系邮箱：</label></td>
+            <td colspan="3">
+                <input id="ContactEmail" name="ContactEmail" class="easyui-validatebox easyui-textbox" style="width:360px; " data-options="required:true" value="@(null != Model ? Model.ContactEmail: string.Empty)" />
+            </td>
+        </tr>
+        <tr>
+            <td><label for="Introduction">企业简介：</label></td>
+            <td colspan="3">
+                <input class="easyui-textbox" id="Introduction" name="Introduction" data-options="multiline:true" value="@(null != Model ? Model.Introduction : "")" style="height: 120px;width:100%;">
+            </td>
+        </tr>
+    </table>
+}
+<div style="height: 50px;"></div>
+@if ((await AuthorizationService.AuthorizeAsync(User, "8225119B-3AF4-47D4-8537-9D1C012CF5CC")).Succeeded)
+{
+    <div class="bottom">
+        <a href="javascript:void(0)" onclick="SaveForm()" style="width:100px;height:30px" class="easyui-linkbutton" data-options="iconCls:'fa fa-save'">保 存</a>
+    </div>
+}
+<!--dialog和dialog中的 datagrid -->
+<div id="dialogModelDef" class="easyui-dialog" data-options="title:'请选择已有表单定义',modal:true,closed:true,cache:false">
+    <div id="toolbarModelDef">
+        <div>
+        </div>
+        <div>
+            <input id="txtIndestryName" class="easyui-textbox" data-options="prompt:'请输入名称'" style="width:200px">
+            <a href="javascript:void(0)" onclick="reloadDatagridModelDef()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+            <a href="javascript:void(0)" onclick="refreshSearchModelDef()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+        </div>
+    </div>
+    <table id="dgModelDef"></table>
+</div>
+
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+
+@section scripts{
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <!--组件初始化-->
+    <script>
+        var selectedIndustryId = '@Model.IndustryId';
+        var selectedIndustryText = '@Model.IndustryName';
+        var fileSetting = {
+            fileNumLimit: 1,
+            postUrl: '@(ViewBag.DocWebApiDomain)Resources/Upload',
+            chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+            chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+            fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+            fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+            downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+            imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+            imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+            showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+            //isArchive：归档设置
+            //blobId：用于拷贝其他blob后，所使用新的blobId
+            params: { isArchive: true }
+        };
+        let imageWebUploader = null;
+        let companyLogoJsonString = '@Model.CompanyLogo';
+        $(function () {
+            $("#divSelectUser").hide();
+
+            // 企业Logo
+            imageWebUploader = defaultInitImageUploader('CompanyLogo', 'imageUploader', 'imageList', fileSetting);
+
+            initIndustryTree();
+            InitModelDefDialog();
+        });
+
+        const loadIndustryTreeUrl = '@Url.Action(ActionName.GetRootIndustryClassfications, ControllerName.Home, new { area = "Admin" })'
+        function initIndustryTree() {
+            $('#IndustryId').combotree({
+                url: loadIndustryTreeUrl,
+                method: 'get',
+                valueField: 'id',
+                treeField: 'text',
+                required: true,
+                editable: false,
+                loadFilter: function (data) {
+                    if (data.success && data.result) {
+                        return data.result;
+                    }
+
+                    return [];
+                },
+                onSelect: function (row) {
+                    //debugger;
+                    selectedIndustryId = row.id;
+                    selectedIndustryText = row.text;
+                    $('#IndustryName').val(row.text);
+                },
+                onLoadSuccess: function ()
+                {
+                    var treeList = $('#IndustryId').combotree('tree').tree('collapseAll');
+                    if (selectedIndustryId != 0) {
+                        $('#IndustryId').combotree('setValue', { id: selectedIndustryId, text: selectedIndustryText });
+                    }
+                }
+            });
+        }
+    </script>
+    <!--弹出表单定义-->
+    <script>
+        const $dgModelDef = $('#dgModelDef');
+        let reloadDatagridModelDef = function () {
+            $dgModelDef.treegrid("reload", {
+                key: $("#txtIndestryName").textbox("getValue"),
+            });
+        }
+        let refreshSearchModelDef = function () {
+            $("#txtIndestryName").textbox('setValue', '');
+            reloadDatagrid();
+        }
+
+        function InitModelDefDataGrid() {
+            let name = $("#txtIndestryName").textbox('getValue');
+            $dgModelDef.treegrid({
+                url: loadIndustryTreeUrl + "?key=" + name,
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                toolbar: "#toolbarModelDef",
+                striped: true,
+                fit: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: false,
+                nowrap: false,
+                showFooter: false,
+                columns: [[
+                    //{ field: 'propertyId', title: 'Id', width: 20, align: 'left' },
+                    { field: 'text', title: '国民经济分类名称', width: 280, align: 'left' },
+                ]],
+                loadFilter: function (data) {
+                    if (data.success && data.result) {
+                        return data.result;
+                    }
+
+                    return [];
+                },
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    CommonUtil.buttonStyle();
+
+                    $dgModelDef.datagrid('unselectAll');
+                    $dgModelDef.datagrid('clearSelections');
+                    $dgModelDef.datagrid("fixRowHeight");
+                },
+                onLoadError: function (data) {
+                },
+                onSelect: function (index, row) {
+                    //$(this).datagrid("collapseRow", index);
+                }
+            });
+        }
+
+        const $dialogModelDef = $('#dialogModelDef');
+        let openModelDefDialog = function (pId, level) {
+            InitModelDefDataGrid();
+            InitModelDefDialog(pId, level);
+            $dialogModelDef.window('open');
+        }
+        function InitModelDefDialog(pId, level) {
+            $dialogModelDef.dialog({
+                width: 660,
+                height: 550,
+                modal: true,
+                closed: true,
+                cache: false,
+                buttons: [
+                    {
+                        text: '&nbsp;确&nbsp;&nbsp;定&nbsp;',
+                        iconCls: 'icon-save',
+                        handler: function () {
+                            var row = $dgModelDef.datagrid('getSelected');
+                            if (row) {
+                                $('#IndustryName').val(row.text);
+                                $('#IndustryId').combotree('setValue', { id: row.id, text: row.text });
+                            }
+                            $dialogModelDef.window('close');
+                        }
+                    },
+                    {
+                        text: '&nbsp;关&nbsp;&nbsp;闭&nbsp;',
+                        iconCls: 'icon-cancel',
+                        handler: function () {
+                            $dialogModelDef.window('close');
+                        }
+                    }
+                ],
+                onClose: function () {
+                    //$(this).dialog('destroy');
+                    $dgModelDef.datagrid('unselectAll');
+                    $dgModelDef.datagrid('clearSelections');
+                },
+                onLoad: function () {
+                },
+                onBeforeOpen: function () {
+                    //dialog展示之前，使它绝对居中
+                    $dialogModelDef.dialog("center");
+                }
+            });
+        }
+    </script>
+    <!--选人控件-->
+    <script>
+        const roleId = '@KC.Framework.Tenant.RoleConstants.AdminRoleId';
+        const selectUserUrl = '@Url.Action(ActionName.GetOrgsWithUsersByRoleIdsAndOrgids, ControllerName.Home, new { Area = "admin" })';
+        const saveContactsUrl = '@Url.Action(ActionName.CompanyInfo.SaveCompanyContacts, ControllerName.CompanyInfo, new { Area = "admin" })';
+        let selectUserForm = function () {
+            let organization = new OrganizationVM();
+            organization.InitializeData({
+                selectUserUrl: selectUserUrl,
+                type: 4,                  //7(1+2+4): 组织+角色+用户
+                title: "选择现有人员",
+                orgIds: [],               //需要查询的组织Id列表
+                roleIds: [],              //需要查询的角色Id列表
+                exceptOrgIds: [],         //需要排除的部门Id列表
+                exceptRoleIds: [],        //需要排除的角色Id列表
+                selectOrgCodes: null,     //已选中的组织Id列表
+                selectOrgNames: null,     //已选中的组织名称列表
+                selectRoleIds: null,      //已选中的角色Id列表
+                selectRoleNames: null,    //已选中的角色名称列表
+                selectUserIds: null,      //已选中的人员Id列表
+                selectUserNames: null,    //已选中的人员名称列表
+                selectExceptUserIds: null,
+                selectExceptUserNames: null,
+                isSingleSelect: true,
+                referenceId: null,
+                callback: function (data) {
+                    if (data.users === 0)
+                        return;
+
+                    //debugger;
+                    let orgs = data.orgs;
+                    let roles = data.roles;
+                    let users = data.users;
+                    let exceptUsers = data.exceptUsers;
+                    let user = users[0];
+                    $("#ContactId").val(user.userId);
+                    $("#ContactName").textbox('setValue', user.displayName);
+                    $("#ContactEmail").textbox('setValue', user.email);
+                    $("#ContactPhone").textbox('setValue', user.phoneNumber);
+                }
+            });
+        }
+    </script>
+    <!--保存数据-->
+    <script type="text/javascript">
+
+        const saveUrl = '@Url.Action(ActionName.CompanyInfo.SaveCompanyInfo, ControllerName.CompanyInfo, new { area = "Admin" })';
+        function SaveForm() {
+            var industryId = $('#IndustryId').combobox('getValue');
+            if (industryId == "" || industryId == "0" || industryId == null) {
+                $.messager.alert("请选择所属行业");
+                return;
+            }
+            if ($("input[name='ContactName']").val().trim() == "") {
+                $("#ContactName").textbox('setValue', "");
+            }
+            if ($("input[name='ContactPhone']").val().trim() == "") {
+                $("#ContactPhone").textbox('setValue', "");
+            }
+            if ($("input[name='ContactEmail']").val().trim() == "") {
+                $("#ContactEmail").textbox('setValue', "");
+            }
+            let formData = $("#myForm").form("getData");
+            let businessModelList = [];
+            if (formData.BusinessModel)
+                businessModelList = $.string.arrayFromCommaDelimitedStrings(formData.BusinessModel);
+            let businessModel = 0;
+            businessModelList.forEach(function (value, index, array) {
+                businessModel += $.string.toInteger(value);
+            });
+            formData.BusinessModel = businessModel;
+
+            //var data = $("#myForm").serialize();
+            var f = $("#myForm").form("validate");
+            if (f) {
+                $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                $.post(saveUrl, AddAntiForgeryToken(formData), function (result) {
+                    $.easyui.loaded();
+                    if (result.success) {
+                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        setTimeout(function () { location.reload(); }, 2000);
+                    } else {
+                        $.messager.showErrorTopCenter('系统提示', result.message, 2000);
+                    }
+                });
+            }
+        }
+
+        function isQQ(value) {
+            if (value.search(/^\d{5,15}$/) != -1) {
+                //redflag = 0;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+    </script>
+}

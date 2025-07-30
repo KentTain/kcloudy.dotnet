@@ -1,0 +1,41 @@
+﻿@using KC.Web.Customer.Constants
+@using KC.Web.Extension
+@model KC.Service.DTO.Customer.CustomerExtInfoProviderDTO
+
+@using (Html.BeginForm(ActionName.CustomerSea.SaveCustomerExtInfoProviderForm, ControllerName.CustomerSea, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.PropertyAttributeId)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="ContactName">数据类型：</label></td>
+                <td>@Html.DropDownList("DataType", (IEnumerable<SelectListItem>)ViewBag.DataType, new { @id = "DataType", @class = "easyui-combobox", @style = "width: 200px;height:26px;" })</td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Name">属性名称：</label></td>
+                <td><input id="Name" name="Name" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[2,50]'" value="@(null != Model ? Model.Name : string.Empty)" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="IsRequired">是否必填：</label></td>
+                <td>
+                    @if (Model == null || Model.IsRequire == false)
+                    {
+                        <input type="radio" name="IsRequire" value="True"><label>是</label>
+                        <input type="radio" name="IsRequire" value="False" checked="checked"><label>否</label>
+                    }
+                    else
+                    {
+                        <input type="radio" name="IsRequire" value="True" checked="checked"><label>是</label>
+                        <input type="radio" name="IsRequire" value="False"><label>否</label>
+                    }
+                    @*<input type="checkbox" name="IsRequired" value="@(null != Model ? Model.IsRequired : false)" />*@
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Value">默认值：</label></td>
+                <td><input id="Value" name="Value" class="easyui-validatebox easyui-textbox" data-options="width:200,validType:'length[0,500]'" value="@(null != Model ? Model.Value : string.Empty)" /></td>
+            </tr>
+        </tbody>
+    </table>
+}

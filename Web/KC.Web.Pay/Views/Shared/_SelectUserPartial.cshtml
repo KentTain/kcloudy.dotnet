@@ -1,0 +1,393 @@
+﻿@*<style>
+    .panel-title {
+        color: #767676;font-size: 14px
+    }
+</style>
+
+<div id="divSelectUser" class="easyui-dialog" title="选择负责人" data-options="iconCls:'icon-save',modal:true">
+    <div class="easyui-layout" style="width:600px;height:400px;margin: 0px 10px;padding: 0">
+        <div data-options="region:'west',split:true,collapsible:false,border: false" style="width:30%; margin-top: 10px;">
+            <ul id="selectOrgTree" class="easyui-tree"></ul>
+        </div>
+        <div data-options="region:'center',split:true,collapsible:false,border: false" style="width:35%;">
+            <ul id="UnselectedUsersData"  class="easyui-datalist" title="双击添加"></ul>
+        </div>
+        <div data-options="region:'east',split:true,collapsible:false,border: false" style="width:35%;">
+            <ul id="SelectedUsersData" class="easyui-datalist" title="选中负责人（双击移除）"></ul>
+        </div>
+        <div data-options="region:'south',split:true,collapsible:false,border: false" style="height:50px;">
+            <input type="hidden" id="_txbInspectorInvolved" />
+            <input type="hidden" id="_txbInspectorInvolvedValue" />
+            <a id="btnSelectedClose" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove'" style="float:right;">取消</a>
+            <a id="btnSelectedOk" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" style="float:right;margin-right: 10px">确定</a>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function OrganizationVM() {
+        var me = this;
+        var _singleSelect = true;
+        var _selectedOrg = null;
+        var _orgInfos = new Array();
+        var _unSelectedStarffs = new Array();
+        var _selectedStarffs = new Array();
+
+        me.ShowDialog = function () {
+            $('#divSelectUser').dialog('open');
+        };
+        me.HideDialog = function () {
+            $('#divSelectUser').dialog('close');
+        };
+        me.InitializeData = function (selectUserUrl, parmsData, isSingleSelect, callback) {
+            me.ShowDialog();
+            _singleSelect = true;
+            _selectedOrg = null;
+            _orgInfos = new Array();
+            _unSelectedStarffs = new Array();
+            _selectedStarffs = new Array();
+            
+            if (isSingleSelect != null
+                && isSingleSelect != ''
+                && typeof (isSingleSelect) == typeof (Boolean)) {
+                    _singleSelect = Boolean(isSingleSelect);
+            }
+            if (_orgInfos.length <= 0) {
+                //$.easyui.loading({ msg: '正在载入数据，请稍等...' });
+                $.ajax({
+                    url: selectUserUrl,
+                    type: "post",
+                    async: false,
+                    data: { 'roleIds': parmsData },
+                    success: function(data) {
+                        //$.easyui.loaded();
+                        _orgInfos = data.orgInfos;
+
+                        initOrganzation();
+                        initUnselectedUsers();
+                        initSelectedUsers();
+                    },
+                    error: function() {
+                        $.messager.showErrorTopCenter('系统提示', '载入组织用户数据失败，请重试。');
+                    }
+                });
+            }
+
+            $('#btnSelectedOk').on('click', function (event) {
+                callback(_selectedStarffs);
+                //me.HideDialog();
+            });
+            
+            $('#btnSelectedClose').on('click', function (event) {
+                me.HideDialog();
+            });
+        };
+
+        var initOrganzation = function () {
+            $('#selectOrgTree').tree({
+                data: _orgInfos,
+                onClick: function (node) {
+                    _selectedOrg = node;
+                    initUnselectedUsers();
+                }
+            });
+        };
+        var initUnselectedUsers = function () {
+            _unSelectedStarffs = new Array();
+            if (_selectedOrg != null) {
+                var orgs = new Array();
+                orgs.push(_selectedOrg);
+                getAllOrgsNestedUsers(_unSelectedStarffs, orgs, _selectedStarffs);
+            } else {
+                getAllOrgsNestedUsers(_unSelectedStarffs, _orgInfos, _selectedStarffs);
+            }
+
+            for (var j = 0; j < _selectedStarffs.length; j++) {
+                var selectedUser = _selectedStarffs[j];
+                for (var k = 0; k < _unSelectedStarffs.length; k++) {
+                    var unSelectedUser = _unSelectedStarffs[k];
+                    if (unSelectedUser.UserId == selectedUser.UserId) {
+                        _unSelectedStarffs.splice(k, 1);
+                    }
+                }
+            }
+
+            $('#UnselectedUsersData').datalist({
+                data: _unSelectedStarffs,
+                valueField: 'UserId',
+                textField: 'DisplayName',
+                fit: true,
+                fitColumns: true,
+                _singleSelect: true,
+                onDblClickRow: function (index, row) {
+                    var addToUserId = row.UserId;
+                    for (var i = 0; i < _unSelectedStarffs.length; i++) {
+                        var curUser = _unSelectedStarffs[i];
+                        if (curUser.UserId == addToUserId) {
+                            _unSelectedStarffs.splice(i, 1);
+                            if (_singleSelect) {
+                                _selectedStarffs = new Array();
+                                _selectedStarffs.push(curUser);
+                            } else {
+                                _selectedStarffs.push(curUser);
+                            }
+                        }
+                    }
+                    initUnselectedUsers();
+                    initSelectedUsers();
+                }
+            });
+        };
+        var initSelectedUsers = function () {
+            $('#SelectedUsersData').datalist({
+                data: _selectedStarffs,
+                valueField: 'UserId',
+                textField: 'DisplayName',
+                fit: true,
+                fitColumns: true,
+                _singleSelect: true,
+                onDblClickRow: function (index, row) {
+                    var removeUserId = row.UserId;
+                    for (var i = 0; i < _selectedStarffs.length; i++) {
+                        var curUser = _selectedStarffs[i];
+                        if (curUser.UserId == removeUserId) {
+                            _selectedStarffs.splice(i, 1);
+                            _unSelectedStarffs.push(curUser);
+                        }
+                    }
+                    initUnselectedUsers();
+                    initSelectedUsers();
+                }
+            });
+        };
+        var getAllOrgsNestedUsers = function(users, orgsWithUsers, selectedUsers) {
+            if (typeof (orgsWithUsers) == "undefined"
+            || orgsWithUsers.length == 0)
+                return;
+            for (var i = 0; i < orgsWithUsers.length; i++) {
+                var org = orgsWithUsers[i];
+                for (var j = 0; j < org.Users.length; j++) {
+                    var user = org.Users[j];
+                    users.push(user);
+                }
+                getAllOrgsNestedUsers(users, org.children, selectedUsers);
+            }
+        };
+    };
+
+</script>*@
+
+
+
+<style>
+    #userLayout .datagrid-row {
+        line-height: 40px;
+        height: 40px;
+    }
+
+    #userLayout [id*='_easyui_tree'] {
+        height: 22px;
+    }
+</style>
+<script type="text/javascript">
+    function OrganizationVM() {
+        var me = this;
+        me._orgInfos = new Array();
+        var _unSelectedStarffs = new Array();
+        var _unSelectedUserIds = new Array();
+        var _selectedStarffs = new Array();
+        var options = {
+            selectUserUrl: "/Home/GetRootOrganizationsWithUsers",
+            roleIds: null,
+            isSingleSelect: true,
+            callback: null,
+            selectUserId: null,
+            title: "选择负责人",
+            orgInfos: new Array(),
+            allowClose: true,
+            showUserName: true
+        };
+        me.ShowDialog = function () {
+            var $layout = $('<div id="userLayout" style="width:100%;height:400px;"></div>');
+            var $org = $('<ul id="selectOrgTree"></ul>');
+            var $unselected = $('<ul id="UnselectedUsersData"></ul>');
+            var $selected = $('<ul id="SelectedUsersData"></ul>');
+            $layout.layout();
+            $layout.layout('add', {
+                region: 'west', content: $org, title: '组织机构', split: true, width: '30%', collapsible: false, border: false
+            }).layout('add', {
+                region: 'center', content: $unselected, title: '双击添加用户', split: true, width: '35%', collapsible: false, border: false
+            }).layout('add', {
+                region: 'east', content: $selected, title: '选中用户（双击移除用户）', split: true, width: '35%', collapsible: false, border: false
+            });
+            $.easyui.showDialog({
+                title: options.title,
+                width: 614,
+                height: 486,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                content: $layout,
+                onSave: function (d) {
+                    options.callback(_selectedStarffs, d);
+                    if (!options.allowClose)
+                        return false;
+                },
+                onClose: function () {
+                    me.HideDialog();
+                }
+            });
+        };
+        me.HideDialog = function () {
+            $('#divSelectUser').hide();
+        };
+
+        me.InitializeData = function (opt) {
+            $.extend(true, options, opt);
+            if (options.selectUserId != null) {
+                for (var i = 0; i < options.selectUserId.length; i++)
+                    options.selectUserId[i] = $.trim(options.selectUserId[i].toLowerCase());//变成小写后面比较用
+            }
+            if (opt.orgInfos && opt.orgInfos.length)
+                me._orgInfos = opt.orgInfos;
+            me.ShowDialog();
+
+            if (me._orgInfos.length <= 0) {
+                $.easyui.loading({ msg: '正在载入数据，请稍等...' });
+                $.ajax({
+                    url: options.selectUserUrl,
+                    type: "post",
+                    async: true,
+                    data: { 'roleIds': options.roleIds },
+                    success: function (data) {
+                        me._orgInfos = data.orgInfos;
+                        initOrganzation();
+                        if (options.selectUserId != null)
+                            loadUsersByUserId(me._orgInfos);
+
+                        initUnselectedUsers();
+                        initSelectedUsers();
+                    },
+                    error: function () {
+                        $.messager.showErrorTopCenter('', '载入组织用户数据失败，请重试。');
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+            } else {
+                _selectedStarffs = new Array();
+                if (options.selectUserId != null && options.selectUserId.length > 0) {
+                    loadUsersByUserId(me._orgInfos);
+                }
+                initOrganzation();
+                initUnselectedUsers();
+                initSelectedUsers();
+            }
+        };
+        var initOrganzation = function () {
+            $('#selectOrgTree').tree({
+                data: me._orgInfos,
+                onClick: function (node) {
+                    initUnselectedUsers();
+                }
+            });
+        };
+        var initUnselectedUsers = function () {
+            _unSelectedStarffs = new Array();
+            _unSelectedUserIds = new Array();
+            var selectedOrg = $("#selectOrgTree").tree('getSelected');
+            selectedOrg == null ? getAllOrgsNestedUsers(me._orgInfos) : getAllOrgsNestedUsers([selectedOrg]);
+            for (var j = 0; j < _selectedStarffs.length; j++) {
+                var userId = $.trim(_selectedStarffs[j].UserId.toLowerCase());
+                for (var k = 0; k < _unSelectedUserIds.length; k++) {
+                    if (userId == _unSelectedUserIds[k]) {
+                        _unSelectedStarffs.splice(k, 1);
+                        _unSelectedUserIds.splice(k, 1);
+                    }
+                }
+            }
+            $('#UnselectedUsersData').datalist({
+                data: _unSelectedStarffs,
+                valueField: 'UserId',
+                textField: 'DisplayName',
+                fit: true,
+                fitColumns: true,
+                _singleSelect: true,
+                onDblClickRow: function (index, row) {
+                    if (options.isSingleSelect) {
+                        _selectedStarffs = [];
+                    }
+                    _selectedStarffs.push(row);
+                    initUnselectedUsers();
+                    initSelectedUsers();
+
+                },
+                textFormatter: function (value, row, index) {
+                    if (options.showUserName)
+                        return value + "(" + row.UserName + ")";
+                    return value;
+                }
+            });
+        };
+        var initSelectedUsers = function () {
+            $('#SelectedUsersData').datalist({
+                data: _selectedStarffs,
+                valueField: 'UserId',
+                textField: 'DisplayName',
+                fit: true,
+                fitColumns: true,
+                _singleSelect: true,
+                onDblClickRow: function (index, row) {
+                    _selectedStarffs.splice(index, 1);
+                    initUnselectedUsers();
+                    initSelectedUsers();
+                }, textFormatter: function (value, row, index) {
+                    if (options.showUserName)
+                        return value + "(" + row.UserName + ")";
+                    return value;
+                }
+            });
+        };
+        var getAllOrgsNestedUsers = function (orgsWithUsers) {
+            if (typeof (orgsWithUsers) == "undefined" || orgsWithUsers.length == 0)
+                return;
+            for (var i = 0; i < orgsWithUsers.length; i++) {
+                var org = orgsWithUsers[i];
+                for (var j = 0; j < org.Users.length; j++) {
+                    var userId = $.trim(org.Users[j].UserId.toLowerCase());
+                    var index = $.inArray(userId, _unSelectedUserIds);
+                    if (index == -1) {
+                        _unSelectedStarffs.push(org.Users[j]);
+                        _unSelectedUserIds.push(userId);
+                    }
+                }
+                getAllOrgsNestedUsers(org.children);
+            }
+        };
+        var loadUsersByUserId = function (org) {//筛选初始化选中的数据
+            if (options.selectUserId.length == 0)
+                return;
+            if (typeof (org) == "undefined" || org.length == 0)
+                return;
+            for (var i = 0; i < org.length; i++) {
+                loadUsersByUserId(org[i].children);
+                if (org[i].Users == null)
+                    continue;
+                for (var j = 0; j < org[i].Users.length; j++) {
+                    var userId = $.trim(org[i].Users[j].UserId.toLowerCase());
+                    var index = $.inArray(userId, options.selectUserId);
+                    if (index != -1) {
+                        _selectedStarffs.push(org[i].Users[j]);
+                        options.selectUserId.splice(index, 1);
+                        if (options.selectUserId.length == 0)
+                            return;
+                    }
+                }
+            }
+        };
+    };
+
+</script>

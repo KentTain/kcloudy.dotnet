@@ -1,0 +1,99 @@
+﻿@using KC.Web.Message.Constants
+@model KC.Service.DTO.Message.MessageClassDTO
+
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform" action="@Url.Action(ActionName.Message.SaveMessageClassForm, ControllerName.Message)">
+    @Html.AntiForgeryToken()
+    <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+    <input id="Code" name="Code" type="hidden" value="@Model.Code" />
+    <input id="Index" name="Index" type="hidden" value="@Model.Index" />
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.ApplicationId)
+    @Html.HiddenFor(model => model.ApplicationName)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="MessageCategoryId">消息分类：</label></td>
+                <td><input id="MessageCategoryId" name="MessageCategoryId" class="textbox" data-options="required:true,width:260," panelHeight="auto" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Name">消息模板名称：</label></td>
+                <td>
+                    <input id="Name" name="Name" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:260,validType:['length[2,100]','isSpace',
+                           'existName[\'@Url.Action(ActionName.Message.ExistMessageClassName, ControllerName.Message)\',\'\',\'@Model.IsEditMode\',\'@Model.Name\',\'系统已存在该模板名称\']']"
+                           value="@(null != Model ? Model.Name : string.Empty)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Type">业务类型：</label></td>
+                <td>
+                    @*https://docs.microsoft.com/en-us/aspnet/core/mvc/views/working-with-forms?view=aspnetcore-5.0#the-select-tag-helper*@
+                    <select id="Type" name="Type" class="easyui-combobox"
+                            data-options="width:260,editable: false, required:true,"
+                            asp-items="ViewBag.MessageTypes" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="ReplaceParametersString">可替换参数：</label></td>
+                <td>
+                    <input id="ReplaceParametersString" name="ReplaceParametersString"
+                           class="easyui-validatebox easyui-textbox"
+                           data-options="multiline:true,width:260,height:120,validType:'length[0,500]'"
+                           value="@(null != Model ? Model.ReplaceParametersString : string.Empty)" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</form>
+
+<script type="text/javascript">
+
+    $(function () {
+        $("#Type").combobox({
+            editable: false
+        });
+        //显示消息类型列表
+        let treeId = '#MessageCategoryId';
+        let url = '@Url.Action(ActionName.Message.LoadCategoryTree, ControllerName.Message)';
+        $(treeId).combotree({
+            url: url,
+            queryParams: {
+                name: null,
+                excludeId: null,
+                selectedId: "@Model.MessageCategoryId",
+                hasAll: false,
+                hasRoot: false,
+                maxLevel: 3
+            },
+            required: true,
+            editable: false,
+            valueField: 'id',
+            textField: 'text',
+            cache: false,
+            onLoadSuccess: function (node, data) {
+                $(treeId).combotree('tree').tree('expandAll');
+                let categoryId = '@(Model != null && Model.MessageCategoryId != null ? Model.MessageCategoryId : 0)';
+                if (categoryId && categoryId != '-1' && categoryId != '0') {
+                    //编辑时，设置模型中的值（Model.MessageCategoryId）为选中值
+                    $(treeId).combotree('setValues', categoryId);
+                } else if (selectCategoryId && selectCategoryId !== -1 && selectCategoryId !== 0) {
+                    //主页面选中左侧分类后（selectCategoryId），设置弹出框中分类为其选中值
+                    $(treeId).combotree('setValues', selectCategoryId);
+                } else if (data != null && data.length > 0) {
+                    //默认选中第一个树的值
+                    $(treeId).combotree('setValue', { id: data[0].id, text: data[0].text });
+                }
+            }
+        });
+    });
+
+</script>
+
+
+

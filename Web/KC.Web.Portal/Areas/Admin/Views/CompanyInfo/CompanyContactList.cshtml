@@ -1,0 +1,293 @@
+﻿@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "企业对外联系人";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--企业对外联系人-保存企业联系人-->
+    var canEdit = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "15BE64EF-5787-4A23-A353-1C6228048ADE")).Succeeded)
+    {
+        canEdit = true;
+    }
+    <!--企业对外联系人-删除企业联系人-->
+    var canRemove = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "B0CA0F0E-FC09-468D-978E-7C9BA47F1E35")).Succeeded)
+    {
+        canRemove = true;
+    }
+}
+
+<div id="toolbar">
+    <div>
+        @*企业对外联系人-保存企业联系人*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "15BE64EF-5787-4A23-A353-1C6228048ADE")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addCompanyContact()">添加</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-users " onclick="selectUserForm()">选择现有人员</a>
+        }
+    </div>
+    <div>
+        <span>
+            <span>
+                职能：
+                @Html.DropDownList("BusinessType", (IEnumerable<SelectListItem>)ViewBag.BusinessTypes, new { @id = "BusinessType", @class = "easyui-combobox", @style = "width: 120px;height:26px;" })
+            </span>
+        </span>
+        <input id="txtName" class="easyui-textbox" data-options="prompt:'请输入联系人姓名'" style="width:140px;height:26px;" />
+        <input id="txtPhone" class="easyui-textbox" data-options="prompt:'请输入联系人手机号'" style="width:140px;height:26px;" />
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid" title=""></table>
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+
+@section scripts {
+    <!--选人控件-->
+    <script>
+        const userIds = '@ViewBag.SelectUserIds';
+        const selectUserUrl = '@Url.Action(ActionName.GetOrgsWithUsersByRoleIdsAndOrgids, ControllerName.Home, new { Area = "admin" })';
+        const saveContactsUrl = '@Url.Action(ActionName.CompanyInfo.SaveCompanyContacts, ControllerName.CompanyInfo, new { Area = "admin" })';
+        let selectUserForm = function () {
+            let selectUserIds = $.string.arrayFromCommaDelimitedStrings(userIds.replace(/\s+/g, ''));
+            let organization = new OrganizationVM();
+            organization.InitializeData({
+                selectUserUrl: selectUserUrl,
+                type: 4,                  //7(1+2+4): 组织+角色+用户
+                title: "选择现有人员",
+                orgIds: [],               //需要查询的组织Id列表
+                roleIds: [],              //需要查询的角色Id列表
+                exceptOrgIds: [],         //需要排除的部门Id列表
+                exceptRoleIds: [],        //需要排除的角色Id列表
+                exceptUserIds: [],        //需要排除的用户Id列表
+                selectOrgCodes: null,     //已选中的组织Id列表
+                selectOrgNames: null,     //已选中的组织名称列表
+                selectRoleIds: null,      //已选中的角色Id列表
+                selectRoleNames: null,    //已选中的角色名称列表
+                selectUserIds: selectUserIds,      //已选中的人员Id列表
+                selectUserNames: null,    //已选中的人员名称列表
+                selectExceptUserIds: null,
+                selectExceptUserNames: null,
+                isSingleSelect: false,
+                referenceId: null,
+                callback: function (data) {
+                    //debugger;
+                    let orgs = data.orgs;
+                    let roles = data.roles;
+                    let users = data.users;
+                    let exceptUsers = data.exceptUsers;
+
+                    let contacts = [];
+                    users.forEach(function (item, index, arr) {
+                        let contact = {};
+                        contact.contactId = item.userId;
+                        contact.contactName = item.displayName;
+                        contact.contactEmail = item.email;
+                        contact.contactPhoneNumber = item.phoneNumber;
+                        contact.contactWeixin = item.phoneNumber;
+                        contact.contactTelephone = item.telephone;
+                        contact.positionName = item.positionLevelName;
+                        contacts.push(contact);
+                    });
+
+                    //console.log(contacts);
+                    let jsonData = JSON.stringify(contacts);
+                    $.ajax({
+                        async: true,
+                        url: saveContactsUrl,
+                        type: 'POST',
+                        dataType: 'json',
+                        // here have to set the token
+                        headers: { 'RequestVerificationToken': $('[name=__RequestVerificationToken]').val() },
+                        contentType: "application/json;charset=UTF-8",
+                        data: jsonData,
+                        //contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                        //data: contacts,
+                        success: function (data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+
+    <!--列表-->
+    <script type="text/javascript">
+        const canEdit = ('@canEdit' === 'True');
+        const canRemove =  ('@canRemove' === 'True');
+        $(function() {
+            InitDataGrid();
+        });
+
+        const loadDataUrl = '@Url.Action(ActionName.CompanyInfo.LoadCompanyContactList, ControllerName.CompanyInfo, new { Area = "admin" })';
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [20, 30, 50, 100],
+                showFooter: false,
+                toolbar: "#toolbar",
+                //toolbar: [{ text: document.getElementById('toolbar') }],
+                columns: [[
+                    { field: 'id', title: 'Id', hidden:true, width: 30, align: 'left' },
+                    { field: 'contactName', title: '对外联系人', width: 120, align: 'left' },
+                    { field: 'businessTypeString', title: '职能', width: 80, align: 'left' },
+                    { field: 'positionName', title: '职务', width: 80, align: 'left' },
+                    { field: 'contactEmail', title: '邮箱', width: 160, align: 'left' },
+                    { field: 'contactPhoneNumber', title: '手机号', width: 160, align: 'left' },
+                    { field: 'contactQQ', title: 'QQ', width: 120, align: 'left' },
+                    {
+                        field: 'operator', title: '操作', width: 80, align: 'center',
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            //debugger;
+                            let tdContext = '';
+                            if (canEdit) {
+                                tdContext += '<a class="btnEdit" style="cursor:pointer" onclick="editCompanyContact(\'' + id + '\')" >编辑</a>';
+                            }
+                            if (canRemove) {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer" onclick="removeCompanyContact(\'' + id + '\')" >删除</a>';
+                            }
+
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function(param) {
+                    /*var bId = $("#txtBId").val();
+                var AllSearchKey = $("#txtAllSearchKey").val();
+                param.bId = bId;
+                param.AllSearchKey = AllSearchKey;*/
+                },
+                onLoadSuccess: function (data) {
+                    $dataGrid.datagrid('unselectAll');
+                    $dataGrid.datagrid('clearSelections');
+                    $dataGrid.datagrid("fixRowHeight");
+                    CommonUtil.buttonStyle();
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function (index,row) {
+                },
+                onExpandRow: function (index, row) {
+                }
+            });
+        }
+
+        const getFormUrl = '@Url.Action(ActionName.CompanyInfo.GetCompanyContactForm, ControllerName.CompanyInfo, new { Area = "admin" })';
+        const saveFormUrl = '@Url.Action(ActionName.CompanyInfo.SaveCompanyContact, ControllerName.CompanyInfo, new { Area = "admin" })';
+        function opentForm(id) {
+            $.easyui.showDialog({
+                title: "保存数据",
+                href: getFormUrl + "?id=" + id,
+                width: 560,
+                height: 420,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#datagrid').datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                }
+            });
+        }
+
+        function refreshSearch() {
+            $("#BusinessType").combobox("setValue", '');
+            $("#txtName").searchbox('setValue', '');
+            $("#txtPhone").searchbox('setValue', '');
+            reloadDatagrid('', '');
+        }
+        function reloadDatagrid() {
+            $('#datagrid').datagrid('unselectAll');
+            var type = $('#BusinessType').combobox("getValue");
+            $("#datagrid").datagrid("load", {
+                name: $("#txtName").searchbox("getValue"),
+                phone: $("#txtPhone").searchbox("getValue"),
+                type: type
+            });
+        }
+
+        function addCompanyContact() {
+            opentForm(0);
+        }
+        function editCompanyContact(id) {
+            opentForm(id);
+        }
+
+        const removeUrl = '@Url.Action(ActionName.CompanyInfo.RemoveCompanyContact, ControllerName.CompanyInfo, new { Area = "admin" })';
+        function removeCompanyContact(id) {
+            $.messager.confirm('确认', '是否确定删除该条记录?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeUrl, { id: id }, function (data) {
+                        $.easyui.loaded();
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+    </script>
+}
+

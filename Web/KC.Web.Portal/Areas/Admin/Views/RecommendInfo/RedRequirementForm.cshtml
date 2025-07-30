@@ -1,0 +1,364 @@
+﻿@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@model KC.Service.DTO.Portal.RecommendRequirementDTO
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = Model.IsEditMode ? "编辑推荐采购需求" : "新增推荐采购需求";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+<div class="easyui-layout" style="width:99%;">
+    <form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.RecommendInfo.SaveRedRequirement, ControllerName.RecommendInfo)">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.IsEditMode)
+        @Html.HiddenFor(model => model.RecommendId)
+        @Html.HiddenFor(model => model.RecommendRefCode)
+        @Html.HiddenFor(model => model.RecommendCode)
+        @Html.HiddenFor(model => model.IsInnerPush)
+        @Html.HiddenFor(model => model.IsTop)
+
+        @Html.HiddenFor(model => model.IsDeleted)
+        @Html.HiddenFor(model => model.CreatedBy)
+        @Html.HiddenFor(model => model.CreatedName)
+        @Html.HiddenFor(model => model.CreatedDate)
+        @Html.HiddenFor(model => model.ModifiedBy)
+        @Html.HiddenFor(model => model.ModifiedName)
+        @Html.HiddenFor(model => model.ModifiedDate)
+        <table class="table table-bordered table-form tr-col2">
+            <tbody>
+                <tr>
+                    <td><label class="required">*</label><label for="Title">采购需求名称：</label></td>
+                    <td>
+                        <input id="RecommendName" name="RecommendName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:280,validType:'length[1,200]'" value="@Model.RecommendName" />
+                    </td>
+                    <td><label for="Name">采购需求类型：</label></td>
+                    <td>
+                        <select id="RequirementType" name="RequirementType" class="easyui-combobox"
+                                data-options="width:260,editable:false,required:true,"
+                                asp-items="ViewBag.RequirementTypeList" panelHeight="auto"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required"></label><span for="b">推荐分类：</span></td>
+                    <td>
+                        <select class="easyui-combotree" name="CategoryId" id="CategoryId"
+                                data-options="width:280,editable: false,"
+                                panelHeight="auto" style="padding-top: 20px;" />
+                    </td>
+
+                    <td><label class="required"></label><label for="Index">排序：</label></td>
+                    <td>
+                        <input id="Index" name="Index" class="easyui-validatebox easyui-numberspinner"
+                               data-options="width:'100%',min:0,max:1000"
+                               value="@(null != Model ? Model.Index : "")" />
+                    </td>
+                    @*<td><label for="IsTop">是否置顶：</label></td>
+            <td>
+                <input type="checkbox" asp-for="@Model.IsTop">
+            </td>*@
+                </tr>
+                <tr>
+                    <td><label class="required"></label><span for="b">指定地区：</span></td>
+                    <td>
+                        <select id="ProvinceId" name="ProvinceId" class="easyui-combobox"
+                                data-options="width:140,editable:false,required:true,"
+                                asp-items="ViewBag.ProvinceList"></select>
+                        <select name="CityId" id="CityId" class="easyui-combobox"
+                                data-options="width:140,editable:false,"></select>
+                        <br />
+                        @Html.HiddenFor(m => m.ProvinceName)
+                        @Html.HiddenFor(m => m.CityName)
+                    </td>
+
+                    <td><label class="required"></label><label for="ExpiredDate">截止日期：</label></td>
+                    <td>
+                        <input id="ExpiredDate" name="ExpiredDate" class="easyui-datebox"
+                               data-options="width:280,editable:false,required:true,"
+                               value="@Model.ExpiredDate">
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="Name">推荐采购需求图片：</label></td>
+                    <td>
+                        @Html.HiddenFor(model => model.RequirementImage)
+                        <div class="imageUploaderEditor">
+                            <div style="display: flex;height: 110px;">
+                                <div id="imageUploader">
+                                    <a href="javascript:void(0)">
+                                        <i class="fa fa-plus-square fa-5x"></i>
+                                    </a>
+                                </div>
+                                <div id="imageList" class="webUploader-image-list">
+                                </div>
+                            </div>
+                            <label style="padding: 3px;">文件个数：1个；文件格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，文件大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                            <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <label class="required"></label>
+                            <span for="a">上传文档：</span>
+                        </div>
+                    </td>
+                    <td>
+                        @Html.HiddenFor(m => m.RequirementFile)
+                        <div class="fileUploaderEditor" style="display: flex;">
+                            <div id="fileList" class="webUploader-file-single"></div>
+                            <a id="fileUploader" href="javascript:void(0)" class="easyui-linkbutton"
+                               iconcls="fa fa-pencil">选择</a>
+                        </div>
+                        <label style="padding: 3px;">
+                            文档个数：1个；
+                            文档大小：@KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize M<br />
+                            文档格式：@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+
+                    <td><label class="required"></label><label for="Description">采购需求简介：</label></td>
+                    <td colspan="3">
+                        <input id="Description" name="Description" class="easyui-validatebox easyui-textbox"
+                               data-options="multiline:true,width:'100%',height:120,validType:'length[0,1000]'"
+                               value="@(null != Model ? Model.Description : "")" />
+                    </td>
+                </tr>
+                <!--UEditor编辑器：详细介绍-->
+                <tr>
+                    <td><label for="Content">详细介绍：</label></td>
+                    <td colspan="3">
+                        <textarea id="Content" name="Content" class="textarea textbox easyui-validatebox"
+                                  data-options="required:false,validType:'length[0,4000]'"
+                                  style="height:360px; ">@(null != Model ? Model.Content : "")</textarea>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
+<div style="height: 50px;"></div>
+@if ((await AuthorizationService.AuthorizeAsync(User, "A7C8FDF6-8EC7-4F92-93DF-7E8383774F73")).Succeeded)
+{
+<div class="bottom">
+    <a href="javascript:void(0)" onclick="saveRecommendInfo(0)" style="width:90px;height:30px" class="easyui-linkbutton" data-options="iconCls:'fa fa-save'">保存草稿</a>
+    <a href="javascript:void(0)" onclick="saveRecommendInfo(1)" style="width:90px;height:30px" class="easyui-linkbutton" data-options="iconCls:'fa fa-check'">提交审核</a>
+</div>
+}
+
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.config.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.all.min.js"></script>
+    <!--组件初始化-->
+    <script>
+        var fileSetting = {
+            fileNumLimit: 1,
+            postUrl: '@(ViewBag.DocWebApiDomain)Resources/Upload',
+            chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+            chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+            fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+            fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+            downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+            imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+            imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+            showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+            //isArchive：归档设置
+            //blobId：用于拷贝其他blob后，所使用新的blobId
+            params: { isArchive: true }
+        };
+
+        //解决UEditor跨域上传问题
+        let uploadUrl = '@(ViewBag.DocWebApiDomain)Resources/Upload';
+        UE.Editor.prototype._bkGetActionUrl = UE.Editor.prototype.getActionUrl;
+        UE.Editor.prototype.getActionUrl = function (action) {
+            //debugger;
+            if (action == 'uploadimage'
+                || action == 'uploadfile'
+                || action == 'listimage'
+                || action == 'uplistfile') {
+                return uploadUrl + "?parm=" + action;
+            } else {
+                return this._bkGetActionUrl.call(this, action);
+            }
+        }
+
+        var organization;
+        var ueditorContent = null;
+        $(function () {
+            // 设置经验范围默认值
+            @*let selectBusinessModel = '@((int)Model.BusinessModel)'
+            $(":radio[name='BusinessModel'][value='" + selectBusinessModel+"']").attr('checked', 'checked');*@
+
+            InitCategoryTree();
+
+            queryCitys('@Model.ProvinceId', '@Model.CityId');
+
+            defaultInitImageUploader('RequirementImage', 'imageUploader', 'imageList', fileSetting);
+
+            defaultInitFileUploader('RequirementFile', 'fileUploader', 'fileList', fileSetting);
+
+            ueditorContent = UE.getEditor('Content', {
+                serverUrl: '/Home/Upload',
+                initialFrameWidth: '100%'
+            });
+        });
+
+        //显示分类列表
+        const treeId = '#CategoryId';
+        const categoryDataUrl = '@Url.Action(ActionName.PortalInfo.LoadRecommendCategoryTree, ControllerName.PortalInfo)';
+        let selectCategoryId = '@ViewBag.CategoryId';
+        let InitCategoryTree = function () {
+            $(treeId).combotree({
+                method: 'get',
+                url: categoryDataUrl,
+                queryParams: {
+                    excludeId: null,
+                    selectedId: selectCategoryId,
+                    hasAll: false,
+                    hasRoot: false,
+                    maxLevel: 3
+                },
+                editable: false,
+                valueField: 'id',
+                textField: 'text',
+                cache: false,
+                onLoadSuccess: function (node, data) {
+                    $(treeId).combotree('tree').tree('expandAll');
+                    let categoryId = '@(Model != null && Model.CategoryId != null ? Model.CategoryId : 0)';
+                    if (data != null && data.length == 0) {
+                        $(treeId).combotree('setValue', null);
+                    } else if (categoryId && categoryId != "0" && categoryId != "1") {
+                        $(treeId).combotree('setValues', categoryId);
+                    } else if (selectCategoryId && selectCategoryId !== -1){
+                        $(treeId).combotree('setValues', selectCategoryId.toString());
+                    } else if (data != null && data.length > 0) {
+                        //默认选中第一个
+                        $(treeId).combotree('setValue', { id: data[0].id, text: data[0].text });
+                    }
+                }
+            });
+        }
+    </script>
+    <!--选城市控件-->
+    <script>
+        function queryCitys(selectProvinceId, selectCityId) {
+            $("[name='ProvinceId']").validatebox({ required: true, missingMessage: "请选择省" });
+            $("[name='ProvinceId']").removeClass('validatebox-text');
+
+            $("#ProvinceId").combobox({
+                valueField: 'provinceId',
+                textField: 'name',
+                required: true,
+                editable: false,
+                onSelect: function (row) {
+                    //debugger;
+                    selectProvinceId = $.string.toInteger(row.provinceId);
+                    selectCityId = null;
+                    $("#CityId").val();
+                    $("#CityId").combobox('reload');
+                    $('#ProvinceName').val(row.name);
+                },
+                onLoadSuccess: function () { //默认选中第一条数据
+                    var data = $(this).combobox("getData");
+                    if (data.length > 0) {
+                        if (selectProvinceId) {
+                            $(this).combobox('select', selectProvinceId);
+                        } else {
+                            $(this).combobox('select', data[0].provinceId);
+                        }
+                    }
+                }
+            })
+
+            $("#CityId").combobox({
+                url: '/Admin/Home/LoadCityList',
+                valueField: 'id',
+                textField: 'name',
+                required: true,
+                editable: false,
+                loadFilter: function (data) {
+                    if (data.success && data.result) {
+                        if (selectProvinceId) {
+                            return data.result.filter(function (value, index, array) {
+                                return value.provinceId === selectProvinceId;
+                            });
+                        }
+                    }
+
+                    return [];
+                },
+                onSelect: function (row) {
+                    $('#CityName').val(row.name);
+                },
+                onLoadSuccess: function () { //默认选中第一条数据
+                    var data = $(this).combobox("getData");
+                    if (data.length > 0) {
+                        if (selectCityId) {
+                            $(this).combobox('select', selectCityId);
+                        } else {
+                            $(this).combobox('select', data[0].id);
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+    <!--保存事件-->
+    <script>
+        const saveFormUrl = '@Url.Action(ActionName.RecommendInfo.SaveRedRequirement, ControllerName.RecommendInfo)';
+        const listUrl = '@Url.Action(ActionName.RecommendInfo.RedRequirementList, ControllerName.RecommendInfo)';
+        const closeUrl = '@Url.Action(ActionName.RecommendInfo.GetRedRequirementForm, ControllerName.RecommendInfo)';
+        let saveRecommendInfo = function (status) {
+            var d = $("#saveform");
+            var validate = d.form("enableValidation").form("validate");
+            if (validate) {
+                //debugger;
+                let formData = d.form("getData");
+                formData.status = status;
+                // Checkbox多选时，为多个值
+                //let businessModelList = [];
+                //if (formData.BusinessModel)
+                //    businessModelList = $.string.arrayFromCommaDelimitedStrings(formData.BusinessModel);
+                //let businessModel = 0;
+                //businessModelList.forEach(function (value, index, array) {
+                //    businessModel += $.string.toInteger(value);
+                //});
+
+                // RadioButton时，为单个值
+                //let selectBusinessModel = $(".radiobutton-checked>input[name='BusinessModel']").val();
+                //formData.BusinessModel = selectBusinessModel;
+
+                //Razor引擎中的checkbox会自动生成一个隐藏的input，其值为false
+                //传值的时候其值为："true,false"(CheckBox选中)，"false"(CheckBox不选中)
+                //对传值进行判断，赋予后台所需的值：true、false
+                formData.IsTop = $.string.contains(formData.IsTop, "true");
+                $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                $.ajax({
+                    async: true,
+                    type: "post",
+                    dataType: "json",
+                    url: saveFormUrl,
+                    data: AddAntiForgeryToken(formData),
+                    success: function (data) {
+                        if (data.success) {
+                            $.messager.showInfoTopCenter('系统提示', '推荐采购需求保存成功。');
+                            MainPage_PostMessage("refreshPage", listUrl, true);
+                            MainPage_PostMessage("closeSubPage", closeUrl);
+                        } else {
+                            $.messager.showErrorTopCenter('系统提示', data.message);
+                        }
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+                return false;
+            } else {
+                return false;
+            }
+        }
+    </script>
+}

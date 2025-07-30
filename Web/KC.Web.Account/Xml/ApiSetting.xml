@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.WebApi.Account</name>
+    </assembly>
+    <members>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadAllOrganization">
+            <summary>
+            获取所有部门信息(非树状list类型)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadAllOrgTrees">
+            <summary>
+            获取所有的部门信息（部门树结构：包含下属部门）
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadOrgTreesWithUsers">
+            <summary>
+            获取所有的部门信息及下属员工
+            </summary>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:KC.WebApi.Account.Controllers.AccountApiController.LoadOrgTreesByOrgIds(System.Collections.Generic.List{System.Int32})" -->
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadOrganizationsWithUsersByUserId(System.String)">
+            <summary>
+            根据用户Id，获取其所属部门及部门下属员工(非树状list类型)
+            </summary>
+            <param name="userId">用户Id</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadHigherOrganizationsWithUsersByUserId(System.String)">
+            <summary>
+            根据用户Id，获取其所属上级部门及部门下属员工(非树状list类型)
+            </summary>
+            <param name="userId">用户Id</param>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:KC.WebApi.Account.Controllers.AccountApiController.LoadOrgTreesWithUsersByOrgIds(KC.Service.DTO.Search.OrgTreesWithUsersSearchDTO)" -->
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadUserMenusByRoleIds(System.Collections.Generic.List{System.String})">
+            <summary>
+            获取角色Id列表下的所有菜单
+            </summary>
+            <param name="roleIds">角色Id列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadUserPermissionsByRoleIds(System.Collections.Generic.List{System.String})">
+            <summary>
+            获取角色Id列表下的所有权限
+            </summary>
+            <param name="roleIds">角色Id列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadAllRoles">
+            <summary>
+            获取角色列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.FindRolesWithUsersByUserId(System.String)">
+            <summary>
+            根据用户UserId，获取角色列表
+            </summary>
+            <param name="userId">用户UserId</param>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:KC.WebApi.Account.Controllers.AccountApiController.LoadRolesWithUsersByRoleIds(KC.Service.DTO.Search.RolesWithUsersSearchDTO)" -->
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.GetRoleWithUsersByRoleId(System.String)">
+            <summary>
+            根据角色Id，获取角色信息（包含所有角色的用户）
+            </summary>
+            <param name="roleId">角色Id</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.SavePermissionsAsync(System.Collections.Generic.List{KC.Service.DTO.Account.PermissionDTO},System.Guid)">
+            <summary>
+            保存应用的权限数据
+            </summary>
+            <param name="permissions"></param>
+            <param name="appId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.SaveMenusAsync(System.Collections.Generic.List{KC.Service.DTO.Account.MenuNodeDTO},System.Guid)">
+            <summary>
+            保存应用的菜单数据
+            </summary>
+            <param name="menus"></param>
+            <param name="appId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadUserManagersByUserId(System.String)">
+            <summary>
+            根据用户Id列表，获取主管信息
+            </summary>
+            <param name="userId">用户Id列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadUserSupervisorsByUserId(System.String)">
+            <summary>
+            根据用户Id列表，获取上级主管信息
+            </summary>
+            <param name="userId">用户Id列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadUsersByIds(System.Collections.Generic.List{System.String})">
+            <summary>
+            根据用户Id列表，获取所有员工
+            </summary>
+            <param name="userIds">用户Id列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadUsersByOrgId(System.Int32)">
+            <summary>
+            根据组织架构Id，获取该组织下的所有员工
+            </summary>
+            <param name="orgId">组织Id</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadUsersByOrgIds(System.Collections.Generic.List{System.Int32})">
+            <summary>
+            根据组织架构Id列表，获取所有组织的下的所有员工
+            </summary>
+            <param name="orgIds">所有组织的Id列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadUsersByRoleIds(System.Collections.Generic.List{System.String})">
+            <summary>
+            获取所有组织的下的所有员工
+            </summary>
+            <param name="roleIds">所有组织的Id列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.LoadUsersByIdsAndRoleIdsAndOrgCodes(KC.Service.DTO.Search.DataPermissionSearchDTO)">
+            <summary>
+            根据用户Id列表、角色Id列表、部门编码列表，获取所有的所有员工
+            </summary>
+            <param name="searchModel">用户Id列表、角色Id列表、部门编码列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.GetUserWithOrgsAndRolesByUserId(System.String)">
+            <summary>
+            获取用户的简单数据 <br/>
+            （包含：所属的组织架构列表，不包含：系统用参数--邮箱是否确定、加密密码等等）
+            </summary>
+            <param name="userId">用户Guid</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.GetUserContactInfoByUserId(System.String)">
+            <summary>
+            获取企业内部员工的联系方式
+            </summary>
+            <param name="userId">用户UserId</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.ChangeAdminRawInfoAsync(System.String,System.String,System.String)">
+            <summary>
+            修改租户的系统管理员的默认密码：123456
+            </summary>
+            <param name="password"></param>
+            <param name="adminEmail"></param>
+            <param name="adminPhone"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.ChangePasswordAsync(System.String,System.String,System.String)">
+            <summary>
+            修改用户密码
+            </summary>
+            <param name="userId">用户UserId</param>
+            <param name="currentPassword">用户当前密码</param>
+            <param name="newPassword">用户新密码</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.AccountApiController.ChangeMailPhoneAsync(System.String,System.String,System.String)">
+            <summary>
+            修改用户邮箱、手机
+            </summary>
+            <param name="userId">用户UserId</param>
+            <param name="email">用户邮箱</param>
+            <param name="phone">用户手机</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.TestApiController.GetTenant">
+            <summary>
+            获取当前Tenant编码及名称
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Account.Controllers.TestApiController.GetEnv">
+            <summary>
+            获取当前环境类型
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

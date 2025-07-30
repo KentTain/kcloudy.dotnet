@@ -1,0 +1,230 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Account.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "权限列表";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    @*权限角色管理-权限角色管理*@
+    var canRoleInPermission = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "1B152A1B-231A-4576-8C66-22F142284207")).Succeeded)
+    {
+        canRoleInPermission = true;
+    }
+}
+
+<div id="toolbar">
+    <div>
+        @*权限管理-保存权限数据*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "58679DF4-30DB-42E3-A344-07D4169F932D")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addMenu()">新增</a>
+        }
+        @*权限管理-保存权限数据*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "58679DF4-30DB-42E3-A344-07D4169F932D")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editMenu()">编辑</a>
+        }
+        @*权限管理-删除权限数据*@
+        @*@if ((await AuthorizationService.AuthorizeAsync(User, "353C94F6-BC38-44F4-A599-2A56BE939D8E")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeMenu()">删除</a>
+        }*@
+        <a id="expandCloseBtn" class="easyui-linkbutton" style="margin-left: 5px" onclick="expandCloseTreeNode()" iconCls="fa fa-minus" href="javascript:void(0)">折叠所有节点</a>
+
+    </div>
+
+    <div>
+        <input id="searchbox" class="easyui-textbox" data-options="prompt:'请输入权限名称'">
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+        @*<a id="closeMenuInRoleBtn" class="easyui-linkbutton" style="margin-left: 5px" onclick="closeMenuInRole()" iconCls="icon-close" href="javascript:void(0)">关闭角色权限页面</a>*@
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        var preSelectRoleId = '';
+
+        var canRoleInPermission = '@canRoleInPermission' === 'True';
+        var permissionData;
+        $(function () {
+            InitTreeDataGrid();
+            $('body').css('overflow', 'auto');
+        });
+
+        var expandCloseBtn = $('#expandCloseBtn');
+        function expandCloseTreeNode() {
+            if (expandCloseBtn.linkbutton('options').iconCls === 'fa fa-plus') {
+                $datagrid.treegrid('expandAll')
+                expandCloseBtn.linkbutton({ iconCls: 'fa fa-minus' });
+                expandCloseBtn.linkbutton({ text: '折叠所有节点' });
+            }
+            else if (expandCloseBtn.linkbutton('options').iconCls === 'fa fa-minus') {
+                $datagrid.treegrid('collapseAll')
+                expandCloseBtn.linkbutton({ iconCls: 'fa fa-plus' });
+                expandCloseBtn.linkbutton({ text: '展开所有节点' });
+            }
+        }
+
+        function refreshSearch() {
+            $("#searchbox").searchbox('setValue', '');
+            reloadDatagrid();
+        }
+        function reloadDatagrid() {
+            $datagrid.treegrid("load", {
+                searchValue: $("#searchbox").searchbox("getValue")
+            });
+        }
+
+        //权限列表
+        var $datagrid = $('#datagrid');
+        var loadPermissionsUrl = '@Url.Action(ActionName.Permission.LoadPermissionList, ControllerName.Permission)';
+        function InitTreeDataGrid() {
+            $datagrid.treegrid({
+                url: loadPermissionsUrl,
+                idField: 'id',
+                treeField: 'text',
+                striped: true,
+                pagination: false,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                lines: true,
+                showFooter: false,
+                checkbox: false,
+                checkOnSelect: false,
+                cascadeCheck: true,
+                toolbar: '#toolbar',
+                columns: [[
+                    { field: 'id', title: '编号', width: 50, align: 'left', hidden: true },
+                    { field: 'text', title: '权限名称', width: 240, align: 'left' },
+                    //{ field: 'ActionName', title: 'Action', width: 200, align: 'left' },
+                    //{ field: 'ControllerName', title: 'Controller', width: 200, align: 'left' },
+                    //{ field: 'URL', title: 'URL', width: 250, align: 'left' },
+                    { field: 'level', title: '等级', width: 60, align: 'left' },
+                    { field: 'index', title: '排序', width: 50, align: 'left' },
+                    { field: 'description', title: '描述', width: 260, align: 'left' },
+                    { field: 'oper', title: "操作", width: 150, align: 'left',
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            let level = row.level
+                            let tdContext = '';
+                            if (canRoleInPermission && level !== 0)
+                                tdContext += "<a class='btnContacts' style='cursor:pointer' onclick='addRoleToUser(" + id + ")' href='#'>权限角色</a>";
+                            return tdContext;
+                        }
+                    }]
+                ],
+                onBeforeLoad: function (row, param) {
+                },
+                onLoadSuccess: function(row, data) {
+                    $(".btnContacts").linkbutton({ iconCls: 'fa fa-user' });
+                    $datagrid.treegrid("fixRowHeight");
+                }
+            });
+        }
+
+        var roleInPermission = '@Url.Action(ActionName.Permission.RoleInPermission, ControllerName.Permission)';
+        function addRoleToUser(userId) {
+            var url = roleInPermission;
+            var queryString = "id=" + userId;
+
+            MainPage_PostMessage("openSubPage", url, queryString);
+        }
+
+        function addMenu() {
+            opentPermissionForm(0);
+        }
+        function editMenu() {
+            var row = $datagrid.treegrid('getSelected');
+            if (row) {
+                opentPermissionForm(row.id);
+            } else {
+                $.messager.showErrorTopCenter('系统提示', "请选择需要编辑的数据", 3000);
+            }
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.Permission.PermissionForm, ControllerName.Permission)';
+        var saveFormUrl = '@Url.Action(ActionName.Permission.SavePermission, ControllerName.Permission)';
+        function opentPermissionForm(id) {
+            $.easyui.showDialog({
+                title: id > 0 ? '编辑权限' : '添加权限',
+                width: 510,
+                height: 490,
+                modal: true,
+                topMost: false,
+                href: getFormUrl + "?id=" + id,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $datagrid.treegrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                }
+            });
+        }
+
+        var removeUrl = '@Url.Action(ActionName.Permission.RemovePermission, ControllerName.Permission)';
+        function removeMenu() {
+            var row = $datagrid.treegrid('getSelected');
+            if (row) {
+                $.messager.confirm('确认', '是否确定删除该条记录?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUrl, { id: row.id }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    //permissionsInGroup.treegrid('clearSelections');
+                                    $datagrid.treegrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                }
+                            } else {
+                                $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                            $.easyui.loaded();
+                        }, 'json');
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter('系统提示', '请选择需要删除的数据');
+            }
+        }
+
+    </script>
+
+}
+

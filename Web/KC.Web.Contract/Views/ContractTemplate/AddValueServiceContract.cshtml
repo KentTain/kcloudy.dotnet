@@ -1,0 +1,251 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout_ContractTempletView.cshtml";
+    var systemAppreciationDTO = ViewBag.SystemAppreciationDTO as List<KC.Service.DTO.Contract.SystemAppreciationDTO>;
+}
+<div>
+    <p style="text-align:right;padding-right: 100pt;">
+        <span style="font-size:16px;line-height:120%;font-family: 楷体;color:black">合同编号：</span>
+        <span style="text-decoration:underline;">
+            <span style="color:gray">
+                @if (ViewBag.contractNo != null)
+                {
+                    @Html.Raw(ViewBag.contractNo);
+                }
+                else
+                {
+                    @Html.Raw("_______________________________");
+                }
+            </span>
+        </span>
+    </p>
+    <p style="margin-top:0;text-align:center"><strong><span style="font-size:45px;font-family:宋体">&nbsp;</span></strong></p>
+    <p style="text-align:center;line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="margin-top:0;text-align:center"><strong><span style="font-size:45px;font-family:宋体">&nbsp;</span></strong></p>
+    <p style="text-align:center"><strong><span style="font-size:35px;font-family:宋体">云</span></strong></p>
+    <p style="text-align:center"><strong><span style="font-size:35px;font-family:宋体">服</span></strong></p>
+    <p style="text-align:center"><strong><span style="font-size:35px;font-family:宋体">务</span></strong></p>
+    <p style="text-align:center"><strong><span style="font-size:35px;font-family:宋体">协</span></strong></p>
+    <p style="text-align:center"><strong><span style="font-size:35px;font-family:宋体">议</span></strong></p>
+    <p style="margin-top:0;text-align:center"><strong><span style="font-size:45px;font-family:宋体">&nbsp;</span></strong></p>
+    <p style="margin-top:0;text-align:center"><strong><span style="font-size:45px;font-family:宋体">&nbsp;</span></strong></p>
+    <p style="margin-top:0;text-align:center"><strong><span style="font-size:45px;font-family:宋体">&nbsp;</span></strong></p>
+    <p style="text-align:center"><span style="font-size:20px;font-family:宋体">合同签订地点：深圳市罗湖区</span></p>
+    <p style="text-align:center">
+        <span style="font-size:20px;font-family:宋体">合同签订时间：</span>
+        <span style="font-size:20px"> @Html.Raw(System.DateTime.UtcNow.AddHours(8).ToString("yyyy 年 MM 月 dd 日"))</span>
+    </p>
+
+    <p style="text-align:center;line-height:150%"><strong><span style="font-size: 24px;line-height:150%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="">
+        <span style="font-size:19px;font-family:仿宋">甲方（购买方）：</span>
+        <span style="font-size:19px;">
+            @ViewBag.CompanyName
+        </span>
+    </p>
+    <p style="">
+        <span style="font-size:19px;font-family:仿宋">统一社会信用代码：</span>
+        <span style="font-size:19px;">
+            @ViewBag.UnifiedSocialCreditCode
+        </span>
+    </p>
+    <p style="">
+        <span style="font-size:19px;font-family:仿宋">地址：</span>
+        <span style="font-size:19px;">
+            @ViewBag.CompanyAddress
+        </span>
+    </p>
+    <p style="">
+        <span style="font-size:19px;font-family:仿宋">法定代表人/负责人：</span>
+        <span style="font-size:19px;">
+            @ViewBag.LegalPerson
+        </span>
+    </p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="">
+        <span style="font-size:19px;font-family:仿宋">乙方（服务方）：</span>
+        <span style="font-size:19px;">
+            大陆之星股份有限公司
+        </span>
+    </p>
+    <p style="">
+        <span style="font-size:19px;font-family:仿宋">统一社会信用代码：</span>
+        <span style="font-size:19px;">
+            91440300793852544R
+        </span>
+    </p>
+    <p style="">
+        <span style="font-size:19px;font-family:仿宋">地址：</span>
+        <span style="font-size:19px;">
+            深圳市罗湖区桂园街道深南中路5045号深业中心2706室
+        </span>
+    </p>
+    <p style="">
+        <span style="font-size:19px;font-family:仿宋">法定代表人/负责人：</span>
+        <span style="font-size:19px;">
+            尹谋
+        </span>
+    </p>
+    <p style="margin-top:10px;text-indent:28px;line-height:120%"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">【@ViewBag.CompanyName】 （以下简称“甲方”）和大陆之星股份有限公司（以下简称“乙方”）依照《中华人民共和国合同法》和国家知识产权及软件管理的有关规定，遵循平等、自愿、公平和诚实信用的原则，双方就甲方向乙方购买财富共赢云技术服务之事宜，订立本合同（以下简称“合同”）</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第一条　合作内容</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">财富共赢云技术服务。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第二条	价格（含税）</span></strong></p>
+
+    <div style="text-align:center">
+        <table cellspacing="0" cellpadding="0" style="border-collapse:collapse; width:450pt">
+            <tbody>
+                <tr style="height:37.3pt">
+                    <td style="border-bottom:#808080 solid 0.75pt;  border-left:#808080 solid 0.75pt;border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt;  padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle;width:100pt"><p style="font-size:10.5pt; line-height:150%; margin:0pt; text-align:center"><span style="font-family:宋体; font-size:11pt; font-weight:bold">增值服务</span></p></td>
+                    <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt;  padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:250pt;text-align:left"><p style="font-size:10.5pt; line-height:150%; margin:0pt; text-align:center"><span style="font-family:宋体; font-size:11pt; font-weight:bold">服务描述</span></p></td>
+                    <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt;  padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:100pt"><p style="font-size:10.5pt; line-height:150%; margin:0pt; text-align:center"><span style="font-family:宋体; font-size:11pt; font-weight:bold">定价标准</span></p></td>
+                    <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt;  padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:100pt"><p style="font-size:10.5pt; line-height:150%; margin:0pt; text-align:center"><span style="font-family:宋体; font-size:11pt; font-weight:bold">使用时间</span></p></td>
+                </tr>
+                @{ var it = 0; var isbl = false;}
+                @if (systemAppreciationDTO != null && systemAppreciationDTO.Any())
+                {
+                    foreach (var item in systemAppreciationDTO)
+                    {
+                        if (item != null && item.Id < 13)
+                        {
+                            it++;
+                            <tr style="height: 30px;">
+                                <td style="border-bottom:#808080 solid 0.75pt; border-left:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle;width:100pt"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">@item.AppreciationName</span></p></td>
+                                <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:150pt;text-align:left"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">@item.Description</span></p></td>
+                                <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:100pt"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">@item.PriceStr</span></p></td>
+                                <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:100pt"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">@item.QuantityStr</span></p></td>
+                            </tr>
+                        }
+                    }
+                }
+                @if (systemAppreciationDTO != null && systemAppreciationDTO.Any(m => m.Id >= 13))
+                {
+                    isbl = true;
+                    <tr style="height: 30px;">
+                        <td rowspan="6" style="border-bottom:#808080 solid 0.75pt; border-left:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle;width:100pt"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">定制开发</span></p></td>
+                        <td rowspan="1" style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:250pt;text-align:left"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">定制门户网站</span></p></td>
+                        <td rowspan="6" style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:100pt"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">面议</span></p></td>
+                        <td rowspan="6" style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:100pt"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">/</span></p></td>
+                    </tr>
+                    <tr style="height: 30px;">
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:250pt;text-align:left"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">产融系统部署在独立域名</span></p></td>
+                    </tr>
+                    <tr style="height: 30px;">
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:250pt;text-align:left"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">定制开发ERP及专属接口对接</span></p></td>
+                    </tr>
+                    <tr style="height: 30px;">
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:250pt;text-align:left"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">系统对接及开发微信小程序</span></p></td>
+                    </tr>
+                    <tr style="height: 30px;">
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:250pt;text-align:left"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">私有云+独立数据库</span></p></td>
+                    </tr>
+                    <tr style="height: 30px;">
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:250pt;text-align:left"><p style="font-size:10.5pt; line-height:150%; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">搭建供应链协同体系</span></p></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">本合同服务费用合计为人民币【@ViewBag.AllMoneyStr】整（￥【@ViewBag.AllMoney】），以上费用为包含增值税专用发票价格。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">注：定制开发服务的价格以附加协议为准，另行支付。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第三条	付款</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">3.1 付款时间：根据项目进度阶段性付款；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">3.2 支付方式：默认使用财富共赢产融协作系统线上支付合同款项，或者银行转账，乙方收款账户为：</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">户名：大陆之星股份有限公司</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">账号：7441610182600172878</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">开户行：中信银行深圳福田支行</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第四条	项目实施</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">4.1 本合同生效后，按双方确定的项目实施进度表的安排实施；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">4.2 如因甲方原因使项目进度拖延的，工期予以顺延且乙方不承担任何责任；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">4.3 如因甲方未按合同约定支付款项而影响项目施工，则工期可相应顺延。</span></p>
+
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第五条	保密条款</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5.1 除按照法律法规规定和有权机关要求应当公开外，甲乙双方对于及其他相关内容对外披露都应事先征得对方的书面同意。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5.2 本协议终止之后，甲乙双方在协议项下的保密义务并不随之终止，双方仍需遵守本协议之保密条款，履行其所承诺的保密义务，保密期限为永久。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5.3 除非按本协议授权的方式或许可范围使用保密信息，合同任何一 方对保密信息无权取得任何明示或暗示的使用或占有的许可。获取方 应尽最大努力将保密信息的传递限制在为了上述目的而必须知晓该 保密信息的雇员之内。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5.4 不论本协议的其它条款有何规定，双方承认保密信息不应包括以下信息：</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5.4.1 是为公众熟知的或非因获取方不正当行为而成为公知的信息；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5.4.2 被合理地令人满意地向透露方证明，已由获取方在不违反本协议的情况下而独立开发的信息；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5.4.3 经透露方书面授权发布的信息；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5.4.4 被规定由获取方向具有管辖权的法院或恰当授权的政府部门透露的信息。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5.5 合同期满后，获取方同意应原始透露方要求向原始透露方归还含有保密信息的所有资料。甲乙双方应采取相应措施促使各自雇员、合作方以及其他能够接触保密信息的相关各方遵守本条约定。任何一方违反本条约定的，全部责任由违约方承担，给另一方造成损失的，应全额赔偿。</span></p>
+
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第六条	合同的修改、变更和解除</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">6.1 甲乙双方在合同履行过程中需修改合同的部分内容，应友好协商， 并在双方取得共识的基础上，形成书面协议或备忘录，经双方签章后生效；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">6.2 本合同的任何变更或解除，均需双方同意并签署书面文件或按照合同约定履行相应的通知义务后方为有效。因变更或解除本合同致使一方受到损失时，由责任方赔偿相应损失。</span></p>
+
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第七条	违约责任</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">7.1 甲方违反本合同逾期付款的，每逾期一日，应按照合同总金额的千分之一向乙方支付违约金，甲方逾期超过20天的，乙方有权解除本合同，已收取的款项不予退还并要求甲方支付合同总金额20%的违约金；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">7.2 因乙方原因未能项目实施进度表实施的，每逾期一日，应按照合同总金额的千分之一向甲方支付违约金，乙方逾期超过20天的，甲方有权解除本合同，要求乙方退还已收取的款项并要求支付合同总金额20%的违约金。</span></p>
+
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第八条	不可抗力</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">因不可抗力(如洪水、地震、海啸、战争、罢工等)而引起本合同无法 履行时，不能履行合同的一方，应在不可抗力发生后四十八小时内，以书面形式告知合同的另一方，以减轻可能给对方造成的损失。在不可抗力发生之后七天内，不能履行合同的一方应将该不可抗力发生的官方证明文件书面递交另一方。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第九条	争议解决方式</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">双方在履行合同过程中，如发生争议，应通过友好协商解决；若协商不成，任何一方均可向乙方所在地有管辖权的人民法院提出诉讼。</span></p>
+
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第十条	合同生效</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">10.1本合同自双方盖章之日起生效，本合同正文内容手工填写无效；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">10.2本合同的附件为合同的同等有效组成部分；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">10.3本合同未尽事宜由双方协商解决；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">10.4本合同一式两份，双方各执一份，本合同和附加协议均具有同等法律效力。</span></p>
+    <p style="line-height:120%"><strong><span style=";font-family:宋体;color:gray">&nbsp;</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">本合同符合上云上平台应用服务目录：<span style="text-decoration:underline;">供应链协同。</span></span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">本合同金额总计<span style="text-decoration:underline;">@ViewBag.AllMoney</span>元；上云上平台费用合计<span style="text-decoration:underline;">@ViewBag.AllMoney</span>元。</span></p>
+    <p style="line-height:120%"><strong><span style=";font-family:宋体;color:gray">&nbsp;</span></strong></p>
+    @if (!isbl && (it == 4 || it == 7))
+    {
+        <p style="line-height:120%"><strong><span style=";font-family:宋体;color:gray">&nbsp;</span></strong></p>
+        <p style="line-height:120%"><strong><span style=";font-family:宋体;color:gray">&nbsp;</span></strong></p>
+        <p style="line-height:120%"><strong><span style=";font-family:宋体;color:gray">&nbsp;</span></strong></p>
+    }
+    else if (isbl && it == 1)
+    {
+        <p style="line-height:120%"><strong><span style=";font-family:宋体;color:gray">&nbsp;</span></strong></p>
+        <p style="line-height:120%"><strong><span style=";font-family:宋体;color:gray">&nbsp;</span></strong></p>
+    }
+
+    <div style="text-align:center">
+        <table cellspacing="0" cellpadding="0" style="border-collapse:collapse; margin:0 auto; width:500pt">
+            <tbody>
+                <tr style="height:37.3pt">
+                    <td style="">
+                        <p style="line-height:120%; margin:0pt; text-align:left;font-size: 19px;">
+                            <span style="color:gray;font-family: 仿宋;">甲方（盖章）： </span>
+                            <span style="color:gray;font-family: 仿宋;text-decoration:underline;" class="CustomerName">
+
+                            </span>
+                        </p>
+                    </td>
+                    <td style="">
+                        <p style="line-height:120%; margin:0pt;text-align:left;font-size: 19px;">
+                            <span style="color:gray;font-family: 仿宋;"> 乙方（盖章）：</span>
+                            <span style="color:gray;font-family: 仿宋;text-decoration:underline;" class="VendorName">
+
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr style="height:37.3pt">
+                    <td style="">
+                        <p style=" line-height:120%; margin:0pt;text-align:left;font-size: 19px;">
+                            <span style="color:gray;font-family: 仿宋;">
+                                日期：@Html.Raw(System.DateTime.UtcNow.AddHours(8).ToString("yyyy 年 MM 月 dd 日"))
+                            </span>
+                        </p>
+                    </td>
+                    <td style="">
+                        <p style=" line-height:120%; margin:0pt;text-align:left;font-size: 19px;">
+                            <span style="color:gray;font-family: 仿宋;">
+                                日期：@Html.Raw(System.DateTime.UtcNow.AddHours(8).ToString("yyyy 年 MM 月 dd 日"))
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

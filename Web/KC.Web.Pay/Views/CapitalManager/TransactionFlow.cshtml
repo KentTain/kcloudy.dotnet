@@ -1,0 +1,143 @@
+﻿@using KC.Web.Pay.Constants
+@using KC.Enums.Pay
+@{
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var includeEnums = new List<CashType>() { CashType.Recharge, CashType.Withdrawals, CashType.Transaction, CashType.AdvanceCharge, CashType.CautionMoney, CashType.TransactionServiceFee, CashType.WithdrawalsServiceCharge, CashType.SystemFee, CashType.Repayment, CashType.RefundCautionMoney, CashType.FinancingOrder, CashType.ValueAddedServiceFee, CashType.VoucherRepayment };
+}
+@section styles{
+    <style>
+        .input-daterange {
+            width: 210px
+        }
+    </style>
+}
+
+<div class="search-filter flow">
+    <table>
+        <tr>
+            <td class="text-left width200" style="padding-left: 20px;">
+                @Html.DropDownList("types", ViewBag.TypeList as SelectList, new { @id = "types", @class = "easyui-combobox", @style = "width: 280px;height:30px;", @DropDownStyle = "DropDownList" })
+            </td>
+            <td class="text-left width200" style="padding-left: 20px;">
+                @Html.DropDownList("accounts", ViewBag.AccountList as SelectList, new { @id = "accounts", @class = "easyui-combobox", @style = "width: 280px;height:30px;", @DropDownStyle = "DropDownList" })
+            </td>
+            <td class="text-left" style="padding-left: 20px;">
+                <div class="input-daterange input-group" id="datepicker">
+                    <input type="text" class="Wdate easyui-textbox" style="width:100px;height:30px !important;padding-left: 4px;" onclick="WdatePicker({maxDate:'#F{$dp.$D(\'endDate\')}', lang: 'zh-cn'})" id="startDate" name="StartDate" readonly="readonly" />
+                    <span class="input-group-addon">到</span>
+                    <input type="text" class="Wdate easyui-textbox" style="width:100px;height:30px !important;padding-left: 4px;" onclick="WdatePicker({minDate:'#F{$dp.$D(\'startDate\')}', lang: 'zh-cn'})" id="endDate" name="EndDate" readonly="readonly" />
+                </div>
+            </td>
+            <td class="text-left" style="padding-left: 20px;">
+                <a href="javascript:search()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'icon-search'">查询</a>
+                <a href="#" onclick="resetSearchFilter();" class="easyui-linkbutton" data-options="iconCls:'icon-reload'">刷新</a>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<table id="flowDatagrid" data-options=" iconCls: 'icon-standard-text-list-bullets',border:false"></table>
+
+@section scripts
+    {
+    <script src="~/Scripts/My97DatePicker/WdatePicker.js"></script>
+    <script>
+        var loadFlowUrl =
+            '@Url.Action(ActionName.CapitalManager.LoadTransactionFlows, ControllerName.CapitalManager, new {area = "Admin"})';
+
+        var $flowDatagrid = null, flowData=[];
+        var $types = $('#types'),$accounts=$('#accounts');
+        $(function() {
+            initDataGrid();
+        });
+        $(".flow").keydown(function () {
+            if (event.keyCode == "13") {//keyCode=13是回车键
+                search();
+            }
+            });
+
+    </script>
+
+    <script>
+        function initDataGrid() {
+            $flowDatagrid = $('#flowDatagrid').datagrid({
+                toolbar: '.flow',
+                url: loadFlowUrl,
+                method: 'get',
+                idField: 'Id',
+                autoRowHeight: false,
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                pageSize: 10,
+                fit: true,
+                pagination: true,
+                showFooter: true,
+                pageList: [10, 20, 50, 100],
+                columns: [
+                    [
+                        { field: 'ConsumptionDate', title: '交易时间', width: '15%', align: 'center', halign: 'center' },
+                        { field: 'AccountName', title: '交易账户', width: '10%', align: 'center', halign: 'center' },
+                        { field: 'PaymentMethod', title: '支付方式', width: '15%', align: 'center', halign: 'center' },
+                        { field: 'CashTypeName', title: '交易类型', width: '15%', align: 'center', halign: 'center' },
+                        {
+                            field: 'Income', title: '收入', width: '11%', align: 'center', halign: 'center',
+                            formatter: function (value, row, index) {
+                                if (value <= 0)
+                                    return '-';
+                                return fmoney(value, 2);
+                            }
+                        },
+                        {
+                            field: 'Expenditure', title: '支出', width: '11%', align: 'center', halign: 'center',
+                            formatter: function (value, row, index) {
+                                if (value <= 0)
+                                    return '-';
+                                return fmoney(value, 2);
+                            }
+                        },
+                        { field: 'Remark', title: '备注', width: '24%', align: 'center', halign: 'center' }
+                    ]
+                ],
+                onBeforeLoad: function (param) {
+                    param.type = $types.val();
+                    param.account = $accounts.val();
+                    param.startDate = $('#startDate').val();
+                    param.endDate = $('#endDate').val();
+                    $('#flowDatasDatagrid').datagrid('unselectAll');
+                },
+                onLoadSuccess: function (data) {
+                    flowData = data.rows;
+                },
+                onLoadError: function (response) {
+                    parseResponse(response);
+                }
+            });
+            var pg = $flowDatagrid.datagrid("getPager");
+            if (pg) {
+                $(pg).pagination({
+                    onBeforeRefresh: function () {
+                        $flowDatagrid.datagrid('unselectAll');
+                    }
+                });
+            }
+        }
+
+        function search() {
+            var pg = $flowDatagrid.datagrid('getPager');
+            $(pg).pagination('select', 1);
+        }
+
+        function resetSearchFilter() {
+            $('#startDate').val('');
+            $('#endDate').val('');
+            $types.combobox('reset');
+            $accounts.combobox('reset');
+            search();
+        }
+
+    </script>
+
+}

@@ -1,0 +1,545 @@
+﻿@using KC.Framework.Tenant
+@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Dict.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "字典管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--字典管理-保存字典类型-->
+    var canEditOrg = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "B88E5DD9-9C29-49FC-8CF6-2C401D86C585")).Succeeded)
+    {
+        canEditOrg = true;
+    }
+    <!--字典管理-删除字典类型-->
+    var canDeleteOrg = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "78F9C5F1-519E-4E74-A34B-341AB8C0BC1E")).Succeeded)
+    {
+        canDeleteOrg = true;
+    }
+
+    <!--字典管理-保存数据字典值-->
+    var canSaveAtt = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "C607C002-D378-4D48-A445-DDDB47379550")).Succeeded)
+    {
+        canSaveAtt = true;
+    }
+    <!--字典管理-删除数据字典值-->
+    var canRemoveAtt = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "2EE04641-EE06-4E8B-AA63-BE05CA11F836")).Succeeded)
+    {
+        canRemoveAtt = true;
+    }
+
+}
+
+<div class="easyui-layout" data-options="fit:true" style="height: auto;">
+    <div class="easyui-layout" data-options="fit:true" style="width: 460px;padding:2px;">
+        <div data-options="region:'west',collapsible:false" title="字典类型：双击进行编辑">
+            <div id="dictTypeToolbar">
+                <div>
+                    @Html.AntiForgeryToken()
+                    <!--字典管理-保存字典类型-->
+                    @if ((await AuthorizationService.AuthorizeAsync(User, "B88E5DD9-9C29-49FC-8CF6-2C401D86C585")).Succeeded)
+                    {
+                        <a id="btnAddType" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDictType()">添加</a>
+                        <a id="btnSaveType" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-floppy-o" onclick="saveDictType()">保存</a>
+                    }
+
+                </div>
+
+                <div>
+                    <input id="txtSearchTypeName" class="easyui-textbox" style="width: 100px;height:26px;" data-options="prompt:'请输入类型名称'" />
+                    <a href="javascript:void(0)" onclick="reloadTypeTreeGrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+
+                </div>
+            </div>
+            <table id="dictTypeGrid"></table>
+        </div>
+        <div data-options="region:'center'" title="数据字典值：双击进行编辑">
+            <div id="dictValueToolbar">
+                <div>
+                    <!--字典管理-保存字典值-->
+                    @if ((await AuthorizationService.AuthorizeAsync(User, "C607C002-D378-4D48-A445-DDDB47379550")).Succeeded)
+                    {
+                        <a id="btnAddValue" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDictValue()">添加</a>
+                        <a id="btnSaveValue" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-floppy-o" onclick="saveDictValue()">保存</a>
+
+                    }
+                </div>
+
+                <div>
+                    <label>分类名称:</label>
+                    <input id="txtSearchValueName" class="easyui-textbox" style="width: 200px;height:26px;" data-options="prompt:'请输入字段值名称'" />
+                    <a href="javascript:void(0)" onclick="reloadValueData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                    <a href="javascript:void(0)" onclick="refreshValueData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+                </div>
+            </div>
+            <table id="dictValueGrid"></table>
+
+        </div>
+    </div>
+</div>
+
+@section scripts
+    {
+    <!--组件初始化-->
+    <script type="text/javascript">
+        let selectDictTypeId = 0;
+        $(function () {
+            $("#dictValueToolbar").keydown(function () {
+                if (event.keyCode == "13") {
+                    reloadValueData();
+                }
+            });
+
+            showAddValueButton();
+
+            InitDictTypeGrid();
+
+            InitDictValueGrid();
+        });
+
+        let showAddValueButton = function(id){
+            if (selectDictTypeId == 0) {
+                $('#btnAddValue').linkbutton('disable');
+            } else {
+                $('#btnAddValue').linkbutton('enable');
+            }
+        }
+    </script>
+    <!--字典类型列表-->
+    <script type="text/javascript">
+
+        const dgTypeId = '#dictTypeGrid';
+        const canEditOrg = '@canEditOrg' === 'True';
+        const canDeleteOrg = '@canDeleteOrg' === 'True';
+
+        const LoadDictTypeUrl = '@Url.Action(ActionName.Dictionary.LoadDictTypeList,ControllerName.Dictionary)';
+        function InitDictTypeGrid() {
+            $(dgTypeId).datagrid({
+                url: LoadDictTypeUrl,
+                toolbar: '#dictTypeToolbar',
+                method: 'get',
+                idField: 'id',
+                striped: true,
+                pagination: false,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: true,
+                fit: false,
+                lines: true,
+                showFooter: false,
+                columns: [[
+                    { field: 'id', title: 'Id', width: 20, hidden: true },
+                    { field: 'code', title: '编码', width: 120, align: 'left' },
+                    { field: 'name', title: '名称', width: 150,
+                        editor: {
+                            type: 'validatebox',
+                            options: {
+                                required: true,
+                                validType: 'length[1,50]'
+                            }
+                        }
+                    },
+                    //{ field: 'description', title: '描述', width: '40%' },
+                    //{ field: 'level', title: '等级', width: '2%', hidden: true }
+                    {
+                        field: 'c', title: ' 操作', width: 40,
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            let name = row.name;
+                            let isSys = row.isSys;
+                            let tdContext = '';
+                            if (canDeleteOrg && id != 0 && !isSys) {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer;margin:0 5px;" onclick="removeDictType(\'' + id + '\',\'' + name + '\')" > </a>';
+                            }
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+
+                },
+                onLoadSuccess: function (data) {
+                    $(".btnEdit").linkbutton({ iconCls: 'fa fa-edit' });
+                    $(".btnDelete").linkbutton({ iconCls: 'fa fa-trash' });
+
+                    $(dgTypeId).datagrid("fixRowHeight");
+                    $(dgTypeId).datagrid("selectRow", 0);
+                },
+                onLoadError: function () {
+                },
+                onSelect: function (index, row) {
+                    //点击左侧字典类型，显示右侧列表信息
+                    let id = row.id;
+                    selectDictTypeId = id;
+                    showAddValueButton();
+
+                    let level = row.level;
+                    //未分配类型的字典
+                    if (id == -1)
+                        id = '';
+
+                    $(dgValueId).datagrid("load", { typeId: id });
+                },
+                onDblClickRow: function (index, row) {
+                    let id = row.id;
+                    if (id !== 0) {
+                        $(this).datagrid('beginEdit', index);
+                        editIndex = index;
+                        CommonUtil.buttonStyle();
+                    }
+                },
+                onBeforeEdit: function (index, row) {
+                    //let tt = $(this).datagrid('getColumnOption', 'specName'); //通过列名获得此列
+                    //tt.editor = {type:'textarea'}; //设置此列的编辑属性 如果禁用编辑 则设置 tt.editor={}
+
+                    row.editing = true;
+                },
+                onAfterEdit: function (index, row, changes) {
+                    row.editing = false;
+                },
+                onCancelEdit: function (index, row) {
+                    row.editing = false;
+                    $(this).datagrid('cancelEdit', index);
+                },
+                onEndEdit: function (index, row) {
+                    //debugger;
+                }
+            });
+        }
+
+        function refreshTypeSearch() {
+            $(dgTypeId).datagrid('unselectAll');
+            $("#txtSearchTypeName").searchbox('setValue', '');
+            reloadTypeTreeGrid();
+        }
+        function reloadTypeTreeGrid() {
+            $(dgTypeId).datagrid('unselectAll');
+            $(dgTypeId).datagrid("load", {
+                name: $("#txtSearchTypeName").searchbox("getValue")
+            });
+        }
+
+        let editIndex = undefined;
+        let isEndEditing = function (dgId) {
+            if (editIndex === undefined) {
+                return true
+            }
+            if ($(dgId).datagrid('validateRow', editIndex)) {
+                $(dgId).datagrid('endEdit', editIndex);
+                editIndex = undefined;
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        //获取行
+        let getRowIndex = function (target) {
+            let tr = $(target).closest('tr.datagrid-row');
+            return parseInt(tr.attr('datagrid-row-index'));
+        };
+        //新增类型
+        let addDictType = function () {
+            //$(dgTypeId).datagrid('insertRow', { index: 0, row: {} })
+            //    .datagrid('selectRow', 0)
+            //    .datagrid('beginEdit', 0);
+
+            if (isEndEditing(dgTypeId)) {
+                 editIndex = $(dgTypeId).datagrid('getRows').length;
+                 $(dgTypeId).datagrid('appendRow', {editIndex: editIndex});
+                 $(dgTypeId).datagrid('selectRow', editIndex);
+                 $(dgTypeId).datagrid('beginEdit', editIndex);
+            }
+
+            CommonUtil.buttonStyle();
+        };
+
+        //删除类型
+        var removeDictTypeUrl = '@Url.Action(ActionName.Dictionary.RemoveDictType, ControllerName.Dictionary)';
+        function removeDictType(id, name) {
+            if (id == 0) return;
+
+            if (id == undefined || id == null || id == '') {
+                $(dgTypeId).datagrid('cancelEdit', editIndex)
+                    .datagrid('deleteRow', editIndex);
+                editIndex = undefined;
+                return;
+            }
+
+            $.messager.confirm("系统提示", "确认要删除该字段类型: " + name + "?", function (r) {
+                if (r) {
+                    $.ajax({
+                        url: removeDictTypeUrl + "?id=" + id,
+                        success: function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $(dgTypeId).datagrid('reload');
+                                    $(dgTypeId).datagrid('clearSelections');
+                                    $.messager.showInfoTopCenter("系统提示", "删除成功", 1000);
+                                }
+                                else{
+
+                                    $.messager.showErrorTopCenter("错误提示","删除失败",1000);
+                                }
+                            }
+                            else {
+                                $.messager.showErrorTopCenter("错误提示", data.message, 1000);
+                            }
+                        }
+                    })
+                }
+            })
+        }
+
+        //保存类型数据
+        var saveDictTypeUrl = '@Url.Action(ActionName.Dictionary.SaveDictType,ControllerName.Dictionary)';
+        function saveDictType() {
+            let dictTypes = [];
+            let rows = $(dgTypeId).datagrid("getRows");
+            for (let i = 0; i < rows.length; i++) {
+                let isEditing = rows[i].editing;
+                let isValid = $(dgTypeId).datagrid('validateRow', i);
+                if (isEditing && isValid) {
+                    $(dgTypeId).datagrid('selectRow', i).datagrid('endEdit', i);//关闭第i行的编辑
+                    dictTypes.push(rows[i]);
+                }
+            }
+
+            //CommonUtil.buttonStyle();
+
+            if (dictTypes.length <= 0)
+                return;
+            let data = AddAntiForgeryToken(dictTypes);
+            let jsonData = JSON.stringify(data);
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                async: true,
+                url: saveDictTypeUrl,
+                headers: { 'RequestVerificationToken': $('[name=__RequestVerificationToken]').val() }, // here have to set the token
+                type: "post",
+                dataType: "json",
+                contentType: "application/json;charset=UTF-8",
+                data: jsonData,
+                //contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                //data: data,
+                success: function (response) {
+                    if (response.success) {
+                        if (response.result) {
+                            $(dgTypeId).datagrid('clearSelections');
+                            $(dgTypeId).datagrid('reload');
+
+                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误字典', '保存数据失败。', 1000);
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('错误字典', response.message, 1000);
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+        }
+    </script>
+    <!--字典值列表-->
+    <script type="text/javascript">
+        const dgValueId = '#dictValueGrid';
+        const canRemoveAtt = '@canRemoveAtt' === 'True';
+        const canSaveAtt = '@canSaveAtt' === 'True';
+        const loadDataUrl = '@Url.Action(ActionName.Dictionary.LoadDictValueList, ControllerName.Dictionary)';
+        function InitDictValueGrid() {
+            var $dataGrid = $(dgValueId).datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#dictValueToolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                columns: [[
+                    { field: 'id', title: 'ID', width: 25, align: 'left', hidden: true },
+                    { field: 'code', title: '字典编码', width: 120, align: 'left' },
+                    //{ field: 'dictTypeName', title: '字典类型', width: 80, align: 'left'},
+                    { field: 'name', title: '字典值', width: 150, align: 'left',
+                        editor: {
+                            type: 'validatebox',
+                            options: {
+                                required: true,
+                                validType: 'length[1,50]'
+                            }
+                        }
+                    },
+                    { field: 'description', title: '描述', width: 120, align: 'left',
+                        editor: {
+                            type: 'validatebox',
+                            options: {
+                                validType: 'length[0,2000]'
+                            }
+                        }
+                    },
+                    {
+                        field: 'operator', title: '操作', width: 100, align: 'center', formatter: function (value, row, index) {
+                            let id = row.id;
+                            let name = row.name;
+                            var tdContext = '';
+                            if (canRemoveAtt)
+                                tdContext += '<a href="##" class="btnDelete" style="cursor:pointer" onclick="removeDictValue(\'' + id + '\',\'' + name + '\')" >删除</a>';
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    //$(".btnAdd").linkbutton({ iconCls: 'fa fa-plus' });
+                    CommonUtil.buttonStyle();
+                    $(dgValueId).datagrid('unselectAll');
+                },
+                onLoadError: function() {
+                },
+                onDblClickRow: function (index, row) {
+                    let id = row.id;
+                    if (id !== 0) {
+                        $(this).datagrid('beginEdit', index);
+                        editIndex = index;
+                        CommonUtil.buttonStyle();
+                    }
+                },
+                onBeforeEdit: function (index, row) {
+                    //let tt = $(this).datagrid('getColumnOption', 'specName'); //通过列名获得此列
+                    //tt.editor = {type:'textarea'}; //设置此列的编辑属性 如果禁用编辑 则设置 tt.editor={}
+                    row.editing = true;
+                },
+                onAfterEdit: function (index, row, changes) {
+                    row.editing = false;
+                },
+                onCancelEdit: function (index, row) {
+                    row.editing = false;
+                    $(this).datagrid('cancelEdit', index);
+                },
+                onEndEdit: function (index, row) {
+                    //debugger;
+                }
+            });
+        }
+
+        function refreshValueData() {
+            $(dgValueId).datagrid('unselectAll');
+            $("#txtSearchValueName").searchbox("setValue", "");
+            reloadValueData();
+        }
+        function reloadValueData() {
+            $(dgValueId).datagrid("load", {
+                name: $("#txtSearchValueName").searchbox("getValue"),
+            });
+        }
+
+        function addDictValue() {
+            //$(dgValueId).datagrid('insertRow', { index: 0, row: {} })
+            //    .datagrid('selectRow', 0)
+            //    .datagrid('beginEdit', 0);
+
+            if (isEndEditing(dgValueId)) {
+                let selectTypeId = 0;
+                let selectTypeCode = "";
+                let selectTypeRow = $(dgTypeId).datagrid("getSelected");
+                if (selectTypeRow) {
+                    selectTypeId = selectTypeRow.id;
+                    selectTypeCode = selectTypeRow.code;
+                }
+                editIndex = $(dgValueId).datagrid('getRows').length;
+                $(dgValueId).datagrid('appendRow', { editIndex: editIndex, dictTypeId: selectTypeId, dictTypeCode: selectTypeCode });
+                $(dgValueId).datagrid('selectRow', editIndex);
+                $(dgValueId).datagrid('beginEdit', editIndex);
+            }
+
+            CommonUtil.buttonStyle();
+        }
+
+        var removeUrl = '@Url.Action(ActionName.Dictionary.RemoveDictValue, ControllerName.Dictionary)';
+        function removeDictValue(id, name) {
+            $.messager.confirm('系统提示', '是否确定删除该字典值: ' + name + '?', function (r) {
+                if (r) {
+                    $.post(removeUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $(dgValueId).datagrid('clearSelections');
+                                $(dgValueId).datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误字典', '删除数据失败。', 1000);
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误字典', data.message, 1000);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+        var saveDictValueUrl = '@Url.Action(ActionName.Dictionary.SaveDictValue, ControllerName.Dictionary)';
+        function saveDictValue() {
+            let dictValues = [];
+            let rows = $(dgValueId).datagrid("getRows");
+            for (let i = 0; i < rows.length; i++) {
+                let isEditing = rows[i].editing;
+                let isValid = $(dgValueId).datagrid('validateRow', i);
+                if (isEditing && isValid) {
+                    $(dgValueId).datagrid('selectRow', i).datagrid('endEdit', i);//关闭第i行的编辑
+                    dictValues.push(rows[i]);
+                }
+            }
+
+            CommonUtil.buttonStyle();
+
+            if (dictValues.length <= 0)
+                return;
+            let data = AddAntiForgeryToken(dictValues);
+            let jsonData = JSON.stringify(data);
+
+            var row = $(dgTypeId).datagrid('getSelected');
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                async: true,
+                url: saveDictValueUrl + "?typeId=" + row.id,
+                headers: { 'RequestVerificationToken': $('[name=__RequestVerificationToken]').val() }, // here have to set the token
+                type: "post",
+                dataType: "json",
+                contentType: "application/json;charset=UTF-8",
+                data: jsonData,
+                //contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                //data: data,
+                success: function (response) {
+                    if (response.success) {
+                        if (response.result) {
+                            $(dgValueId).datagrid('clearSelections');
+                            $(dgValueId).datagrid('reload'); // reload the user data
+                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误字典', '保存数据失败。', 1000);
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('错误字典', response.message, 1000);
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+        }
+
+
+    </script>
+}

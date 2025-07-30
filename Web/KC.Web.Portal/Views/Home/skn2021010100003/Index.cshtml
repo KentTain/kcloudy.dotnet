@@ -1,0 +1,713 @@
+﻿@using KC.Web.Constants;
+@*@inject Tenant tenant*@
+@{
+    ViewBag.Title = "首页-鑫亚科技-Starlu";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+    /*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*/
+}
+@section styles{
+    <link href="~/css/home/V3/home_index.css" rel="stylesheet" />
+    <link href="~/css/home/V3/yy_starshoye.css" rel="stylesheet" />
+    <style>
+
+    </style>
+}
+@section Scripts {
+
+    <script>
+
+        $(function () {
+
+        });
+    </script>
+}
+
+<!-- main部分 -->
+<div class="main home" layout:fragment="content">
+
+    <div class="yy_wrapperout">
+        <div class="yy_wrapper">
+            <ul class="yy_caigoudaohang">
+                <li id="homePage"><a href="/">首页</a></li>
+                <li id="offeringList"><a href="http://sx.starlu.com" target="_blank">赊销商城</a></li>
+                <li id="purchaseHomePage"><a href="/Buy">求购信息 </a></li>
+                <li><a href="http://localjr.starlu.com/" target="_blank">金融服务</a></li>
+
+            </ul>
+        </div>
+    </div>
+    <div class="clear"></div>
+
+    <div class="yy_wrapper">
+        <div class="yy_dl_content">
+            <div class="w200 yy_list_2  yy_tjlist_3 ">
+                <div class="shouye_menu">
+                    <div class="sm_menu"></div>所有分类
+                </div>
+                <div class="nav-sub" id="nav">
+                    <ul>
+
+
+                        <li class="mod_cate cat_138">
+
+                            <h2>
+                                <a href="/Offering?OfferingCategory=138&amp;t=激光设备">
+                                    <span>
+                                        <p>激光设备</p>
+                                    </span>
+                                </a>
+                            </h2>
+                            <div style="display: none;" class="mod_subcate">
+                                <div class="subcate_content">
+                                    <div class="subcate_left">
+                                        <span class="subcate">激光设备</span><dl><dt><a href="/Offering?OfferingCategory=422&t=切割机">切割机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=423&t=焊接机">焊接机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=424&t=修补机">修补机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=425&t=其他激光设备">其他激光设备</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=426&t=打标机">打标机</a></dt><dd></dd></dl>
+                                    </div>
+                                    <div class="subcate_right"></div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="mod_cate cat_139">
+
+                            <h2>
+                                <a href="/Offering?OfferingCategory=139&amp;t=通用机械">
+                                    <span>
+                                        <p>通用机械</p>
+                                    </span>
+                                </a>
+                            </h2>
+                            <div style="display: none;" class="mod_subcate">
+                                <div class="subcate_content">
+                                    <div class="subcate_left">
+                                        <span class="subcate">通用机械</span><dl><dt><a href="/Offering?OfferingCategory=489&t=铸造机热处理设备">铸造机热处理设备</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=490&t=液压机械及部件">液压机械及部件</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=491&t=过滤设备">过滤设备</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=492&t=变速机">变速机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=493&t=内燃机">内燃机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=494&t=换热、制冷空调设备">换热、制冷空调设备</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=495&t=工业锅炉及配件">工业锅炉及配件</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=550&t=娃哈哈">娃哈哈</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=545&t=打印机">打印机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=546&t=打印机">打印机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=547&t=复印机">复印机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=548&t=缩地尺u">缩地尺u</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=553&t=4546y73">4546y73</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=143&t=风机">风机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=144&t=空压机">空压机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=140&t=注塑机">注塑机</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=177&t=阀门">阀门</a></dt><dd></dd></dl><dl><dt><a href="/Offering?OfferingCategory=178&t=压铸机">压铸机</a></dt><dd></dd></dl>
+                                    </div>
+                                    <div class="subcate_right"></div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="mod_cate cat_420">
+
+                            <h2>
+                                <a href="/Offering?OfferingCategory=420&amp;t=医疗设备配件">
+                                    <span class="医疗设备配件">
+                                        <p>医疗设备配件</p>
+                                    </span>
+                                </a>
+                            </h2>
+                            <div style="display: none;" class="mod_subcate">
+                                <div class="subcate_content">
+                                    <div class="subcate_left">
+                                        <span class="subcate">医疗设备配件</span><dl><dt><a href="/Offering?OfferingCategory=536&t=122222222">122222222</a></dt><dd></dd></dl>
+                                    </div>
+                                    <div class="subcate_right"></div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="mod_cate cat_542">
+
+                            <h2>
+                                <a href="/Offering?OfferingCategory=542&amp;t=金属材料">
+                                    <span>
+                                        <p>金属材料</p>
+                                    </span>
+                                </a>
+                            </h2>
+                            <div style="display: none;" class="mod_subcate">
+                                <div class="subcate_content">
+                                    <div class="subcate_left">
+                                        <span class="subcate">金属材料</span><dl><dt><a href="/Offering?OfferingCategory=543&t=他任天堂">他任天堂</a></dt><dd></dd></dl>
+                                    </div>
+                                    <div class="subcate_right"></div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="navMask"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="yy_wrapper" style="padding-left: 200px;margin-top: 8px">
+        <div class="banner">
+            <div style="position: relative;">
+                <div class="fading-slider" style="height: 315px">
+                    <ul>
+                        <li><a href="https://beta.starlu.com/Home/Trial" title="" target="_blank"> <img src="http://betaapi.cfwin.com/Resources/ShowImage/60cc833a-5d51-495b-be22-129678f2532d?uId=ef35812e-a2aa-4e51-9186-624e9d1f9a0b"></a> </li>
+                        <li><a href="https://beta.starlu.com/Discount/115" title="" target="_blank"> <img src="http://betaapi.cfwin.com/Resources/ShowImage/234d6d84-de51-4147-a41a-67b0ef9b62f6?uId=ef35812e-a2aa-4e51-9186-624e9d1f9a0b"></a> </li>
+                        <li><a href="###" title="" target=""> <img src="http://betaapi.cfwin.com/Resources/ShowImage/108df33e-2265-4bb6-99ae-2cc72e735db0?uId=ef35812e-a2aa-4e51-9186-624e9d1f9a0b"></a> </li>
+                        <li><a href="###" title="" target=""> <img src="http://betaapi.cfwin.com/Resources/ShowImage/3c1e68c5-bf70-47d2-be3f-682c1a3436c7?uId=ef35812e-a2aa-4e51-9186-624e9d1f9a0b"></a> </li>
+                    </ul>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="yy_ban_log">
+            <div class="yy_loglog">
+                <div class="imgbox"><img src="/Content/images/v2.0/loglog.png"></div>
+                <div class="smrtbox">
+                    <p class="greeting">Hi 下午好</p>
+                    <i>来大陆之星，轻松做买卖</i>
+                    <p>缺钱也可以买材料买设备</p>
+                </div>
+                <div class="yy_logreg">
+                    <div><a href="/Authorize?returnUrl=http://local.starlu.com/" class="yy_logonred">登录</a></div>
+                    <div><a href="http://localsso.starlu.com//Account/Register?returnUrl=http://local.starlu.com//Authorize?returnUrl=http://local.starlu.com/#http://local.starlu.com/"> 免费注册</a></div>
+                </div>
+
+                <ul class=" tabs">
+                    <li class="active_li" data-target="gonggao" style="width:98%">公告</li>
+
+                </ul>
+
+                <div class="pane active_pane" id="gonggao">
+                    <ul class="">
+                        <li><a href="/Notice/Details/112" target="_blank">[公告]开通电商</a></li>
+                        <li><a href="/Notice/Details/111" target="_blank">[公告]财富共赢俱乐部会员注册须知及服务协议</a></li>
+                        <li><a href="/Notice/Details/61" target="_blank">[公告]ERP免费了！！！</a></li>
+                    </ul>
+
+                    <a href="/Notice">查看更多</a>
+                </div>
+                <div class="pane" id="caigou">
+                    <a href="" class="a_qiugou">发布求购信息</a>
+                    <a href="" class="a_qiugou">找供应商</a>
+                </div>
+                <div class="pane" id="qiugou">
+                    <a href="" class="a_qiugou">发布供应信息</a>
+                    <a href="" class="a_qiugou">查看求购信息</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="list_img_warpper">
+            <div class="toprecomm">
+                <ul>
+                </ul>
+                <a class="prev" href="javascript:void(0)"></a>
+                <a class="next" href="javascript:void(0)"></a>
+            </div>
+        </div>
+
+        <div class="news_list_sm_kuai">
+            <div class="biaoti_1"> <h4>供求信息 </h4> <a href="/Buy/Search" target="_blank">更多</a></div>
+            <ul class="news_news_ul">
+            </ul>
+        </div>
+
+        <div class="clear"></div>
+    </div>
+
+    <div class="yy_wrapper">
+        <div class="ad_banner">
+            <div style="width: 390px;height: 100px;float: left;margin-right:10px;">
+                <div style="overflow:hidden;float:left;width:390px;height:100px;"><p><img src="http://betaapi.cfwin.com/Resources/ShowImage?id=535958be-47e3-418b-8a46-0d239b7341e6&uId=ef35812e-a2aa-4e51-9186-624e9d1f9a0b" title="赊销.jpg" alt="赊销.jpg" /></p></div>
+
+
+            </div>
+        </div>
+
+        <div class="biaoti2_h4">
+            <i>1F</i><h4><a target="_blank" href="/Offering?OfferingCategory=10248&t=机床 模具 仪器 仪表" title="机床 模具 仪器 仪表">机床 模具 仪器 仪表</a></h4>
+        </div>
+        <div class="product_wrap" id="cate10248">
+            <div class="left_info_div">
+                <img class="info_img lazy">
+                <h4><a target="_blank" href="/Offering?OfferingCategory=10248&t=机床 模具 仪器 仪表" title="机床 模具 仪器 仪表">机床 模具 仪器 仪表</a></h4>
+                <p class="offeringName"></p>
+
+            </div>
+            <div class="mid_tb_div">
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10249&t=机床" title="机床">机床</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10319&t=机床附件" title="机床附件" target="_blank">机床附件</a></li>
+                        <li><a href="/Offering?OfferingCategory=10250&t=车床" title="车床" target="_blank">车床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10258&t=铣床" title="铣床" target="_blank">铣床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10266&t=钻床" title="钻床" target="_blank">钻床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10272&t=磨床" title="磨床" target="_blank">磨床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10281&t=镗床" title="镗床" target="_blank">镗床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10297&t=插床" title="插床" target="_blank">插床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10300&t=锯床" title="锯床" target="_blank">锯床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10308&t=刨床" title="刨床" target="_blank">刨床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10312&t=锻压机床" title="锻压机床" target="_blank">锻压机床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10317&t=其他机床" title="其他机床" target="_blank">其他机床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10291&t=螺纹加工床" title="螺纹加工床" target="_blank">螺纹加工床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10287&t=齿轮加工床" title="齿轮加工床" target="_blank">齿轮加工床</a></li>
+                        <li><a href="/Offering?OfferingCategory=10304&t=特种加工机床" title="特种加工机床" target="_blank">特种加工机床</a></li>
+                    </ul>
+                </div>
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10326&t=模具" title="模具">模具</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10327&t=塑料模具" title="塑料模具" target="_blank">塑料模具</a></li>
+                        <li><a href="/Offering?OfferingCategory=10328&t=橡胶模具" title="橡胶模具" target="_blank">橡胶模具</a></li>
+                        <li><a href="/Offering?OfferingCategory=10329&t=冲压模具" title="冲压模具" target="_blank">冲压模具</a></li>
+                        <li><a href="/Offering?OfferingCategory=10330&t=压铸模具" title="压铸模具" target="_blank">压铸模具</a></li>
+                        <li><a href="/Offering?OfferingCategory=10331&t=锻造模具" title="锻造模具" target="_blank">锻造模具</a></li>
+                        <li><a href="/Offering?OfferingCategory=10332&t=汽车模具" title="汽车模具" target="_blank">汽车模具</a></li>
+                        <li><a href="/Offering?OfferingCategory=10333&t=其他模具" title="其他模具" target="_blank">其他模具</a></li>
+                        <li><a href="/Offering?OfferingCategory=10334&t=模具材料" title="模具材料" target="_blank">模具材料</a></li>
+                        <li><a href="/Offering?OfferingCategory=10335&t=模具刀具" title="模具刀具" target="_blank">模具刀具</a></li>
+                    </ul>
+                </div>
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10345&t=试验机" title="试验机">试验机</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10346&t=硬度计" title="硬度计" target="_blank">硬度计</a></li>
+                        <li><a href="/Offering?OfferingCategory=10347&t=冲击试验机" title="冲击试验机" target="_blank">冲击试验机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10348&t=拉力试验机" title="拉力试验机" target="_blank">拉力试验机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10349&t=万能试验机" title="万能试验机" target="_blank">万能试验机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10350&t=跌落试验机" title="跌落试验机" target="_blank">跌落试验机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10351&t=扭转试验机" title="扭转试验机" target="_blank">扭转试验机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10352&t=疲劳试验机" title="疲劳试验机" target="_blank">疲劳试验机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10353&t=其他试验机" title="其他试验机" target="_blank">其他试验机</a></li>
+                    </ul>
+                </div>
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10354&t=分析仪器" title="分析仪器">分析仪器</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10355&t=高斯计" title="高斯计" target="_blank">高斯计</a></li>
+                        <li><a href="/Offering?OfferingCategory=10364&t=环境测量" title="环境测量" target="_blank">环境测量</a></li>
+                        <li><a href="/Offering?OfferingCategory=10366&t=安规测量" title="安规测量" target="_blank">安规测量</a></li>
+                        <li><a href="/Offering?OfferingCategory=10356&t=色谱分析仪" title="色谱分析仪" target="_blank">色谱分析仪</a></li>
+                        <li><a href="/Offering?OfferingCategory=10357&t=光谱分析仪" title="光谱分析仪" target="_blank">光谱分析仪</a></li>
+                        <li><a href="/Offering?OfferingCategory=10359&t=元素分析仪" title="元素分析仪" target="_blank">元素分析仪</a></li>
+                        <li><a href="/Offering?OfferingCategory=10360&t=合金分析仪" title="合金分析仪" target="_blank">合金分析仪</a></li>
+                        <li><a href="/Offering?OfferingCategory=10361&t=水分测定仪" title="水分测定仪" target="_blank">水分测定仪</a></li>
+                        <li><a href="/Offering?OfferingCategory=10362&t=专用分析仪器" title="专用分析仪器" target="_blank">专用分析仪器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10363&t=元器件测试仪" title="元器件测试仪" target="_blank">元器件测试仪</a></li>
+                        <li><a href="/Offering?OfferingCategory=10358&t=电化学分析仪" title="电化学分析仪" target="_blank">电化学分析仪</a></li>
+                        <li><a href="/Offering?OfferingCategory=10365&t=通讯网络测试仪" title="通讯网络测试仪" target="_blank">通讯网络测试仪</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <table class="tb_img_wrap">
+                <tbody>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="brand_list">
+                <tbody>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        <div class="biaoti2_h4">
+            <i>2F</i><h4><a target="_blank" href="/Offering?OfferingCategory=10000&t=机械 工业设备" title="机械 工业设备">机械 工业设备</a></h4>
+        </div>
+        <div class="product_wrap" id="cate10000">
+            <div class="left_info_div">
+                <img class="info_img lazy">
+                <h4><a target="_blank" href="/Offering?OfferingCategory=10000&t=机械 工业设备" title="机械 工业设备">机械 工业设备</a></h4>
+                <p class="offeringName"></p>
+
+            </div>
+            <div class="mid_tb_div">
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10139&t=生产线" title="生产线">生产线</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10145&t=膨化机" title="膨化机" target="_blank">膨化机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10146&t=炒冰机" title="炒冰机" target="_blank">炒冰机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10151&t=豆腐皮机" title="豆腐皮机" target="_blank">豆腐皮机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10157&t=涂装生产线" title="涂装生产线" target="_blank">涂装生产线</a></li>
+                        <li><a href="/Offering?OfferingCategory=10150&t=乳品生产线" title="乳品生产线" target="_blank">乳品生产线</a></li>
+                        <li><a href="/Offering?OfferingCategory=10153&t=包装生产线" title="包装生产线" target="_blank">包装生产线</a></li>
+                        <li><a href="/Offering?OfferingCategory=10142&t=片材挤出机" title="片材挤出机" target="_blank">片材挤出机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10143&t=板材挤出机" title="板材挤出机" target="_blank">板材挤出机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10140&t=管材挤出机" title="管材挤出机" target="_blank">管材挤出机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10141&t=导型材挤出机" title="导型材挤出机" target="_blank">导型材挤出机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10144&t=砂石料生产线" title="砂石料生产线" target="_blank">砂石料生产线</a></li>
+                        <li><a href="/Offering?OfferingCategory=10152&t=肉制品生产线" title="肉制品生产线" target="_blank">肉制品生产线</a></li>
+                        <li><a href="/Offering?OfferingCategory=10148&t=矿泉水生产线" title="矿泉水生产线" target="_blank">矿泉水生产线</a></li>
+                        <li><a href="/Offering?OfferingCategory=10149&t=果汁饮料设备" title="果汁饮料设备" target="_blank">果汁饮料设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10155&t=中空玻璃生产线" title="中空玻璃生产线" target="_blank">中空玻璃生产线</a></li>
+                        <li><a href="/Offering?OfferingCategory=10156&t=电子电器生产线" title="电子电器生产线" target="_blank">电子电器生产线</a></li>
+                        <li><a href="/Offering?OfferingCategory=10147&t=休闲食品加工设备" title="休闲食品加工设备" target="_blank">休闲食品加工设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10154&t=有机化肥/饲料生产线" title="有机化肥/饲料生产线" target="_blank">有机化肥/饲料生产线</a></li>
+                    </ul>
+                </div>
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10019&t=橡塑机械" title="橡塑机械">橡塑机械</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10028&t=吹塑机" title="吹塑机" target="_blank">吹塑机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10020&t=造粒机" title="造粒机" target="_blank">造粒机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10021&t=挤出机" title="挤出机" target="_blank">挤出机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10022&t=注塑机" title="注塑机" target="_blank">注塑机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10024&t=吸塑机" title="吸塑机" target="_blank">吸塑机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10025&t=压延机" title="压延机" target="_blank">压延机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10023&t=发泡设备" title="发泡设备" target="_blank">发泡设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10029&t=塑机配件" title="塑机配件" target="_blank">塑机配件</a></li>
+                        <li><a href="/Offering?OfferingCategory=10027&t=塑机辅机" title="塑机辅机" target="_blank">塑机辅机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10026&t=塑料成型机" title="塑料成型机" target="_blank">塑料成型机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10030&t=其他橡塑机械" title="其他橡塑机械" target="_blank">其他橡塑机械</a></li>
+                    </ul>
+                </div>
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10031&t=通用机械" title="通用机械">通用机械</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10032&t=泵" title="泵" target="_blank">泵</a></li>
+                        <li><a href="/Offering?OfferingCategory=10033&t=风机" title="风机" target="_blank">风机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10035&t=阀门" title="阀门" target="_blank">阀门</a></li>
+                        <li><a href="/Offering?OfferingCategory=10037&t=变速机" title="变速机" target="_blank">变速机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10041&t=破碎机" title="破碎机" target="_blank">破碎机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10042&t=粉碎机" title="粉碎机" target="_blank">粉碎机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10043&t=离心机" title="离心机" target="_blank">离心机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10034&t=压缩机" title="压缩机" target="_blank">压缩机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10036&t=过滤设备" title="过滤设备" target="_blank">过滤设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10039&t=研磨设备" title="研磨设备" target="_blank">研磨设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10040&t=金属拉丝机" title="金属拉丝机" target="_blank">金属拉丝机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10038&t=机械零配件" title="机械零配件" target="_blank">机械零配件</a></li>
+                        <li><a href="/Offering?OfferingCategory=10045&t=气体分离设备" title="气体分离设备" target="_blank">气体分离设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10044&t=分选、筛选机械" title="分选、筛选机械" target="_blank">分选、筛选机械</a></li>
+                    </ul>
+                </div>
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10001&t=食品机械" title="食品机械">食品机械</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10004&t=米面机械" title="米面机械" target="_blank">米面机械</a></li>
+                        <li><a href="/Offering?OfferingCategory=10006&t=豆类机械" title="豆类机械" target="_blank">豆类机械</a></li>
+                        <li><a href="/Offering?OfferingCategory=10007&t=食品烘焙设备" title="食品烘焙设备" target="_blank">食品烘焙设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10008&t=清洗杀菌设备" title="清洗杀菌设备" target="_blank">清洗杀菌设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10005&t=肉类加工机械" title="肉类加工机械" target="_blank">肉类加工机械</a></li>
+                        <li><a href="/Offering?OfferingCategory=10002&t=保鲜冷藏设备" title="保鲜冷藏设备" target="_blank">保鲜冷藏设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10003&t=饮料加工机械" title="饮料加工机械" target="_blank">饮料加工机械</a></li>
+                        <li><a href="/Offering?OfferingCategory=10009&t=休闲食品加工机械" title="休闲食品加工机械" target="_blank">休闲食品加工机械</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <table class="tb_img_wrap">
+                <tbody>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="brand_list">
+                <tbody>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        <div class="biaoti2_h4">
+            <i>3F</i><h4><a target="_blank" href="/Offering?OfferingCategory=10870&t=激光设备 元器件" title="激光设备 元器件">激光设备 元器件</a></h4>
+        </div>
+        <div class="product_wrap" id="cate10870">
+            <div class="left_info_div">
+                <img class="info_img lazy">
+                <h4><a target="_blank" href="/Offering?OfferingCategory=10870&t=激光设备 元器件" title="激光设备 元器件">激光设备 元器件</a></h4>
+                <p class="offeringName"></p>
+
+            </div>
+            <div class="mid_tb_div">
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10871&t=激光设备" title="激光设备">激光设备</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10872&t=激光切割机" title="激光切割机" target="_blank">激光切割机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10873&t=激光焊接机" title="激光焊接机" target="_blank">激光焊接机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10874&t=激光修复机" title="激光修复机" target="_blank">激光修复机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10875&t=激光打标机" title="激光打标机" target="_blank">激光打标机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10876&t=激光雕刻机" title="激光雕刻机" target="_blank">激光雕刻机</a></li>
+                        <li><a href="/Offering?OfferingCategory=10877&t=光激光设备" title="光激光设备" target="_blank">光激光设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10881&t=电子激光设备" title="电子激光设备" target="_blank">电子激光设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10882&t=脉冲激光设备" title="脉冲激光设备" target="_blank">脉冲激光设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10878&t=光纤激光设备" title="光纤激光设备" target="_blank">光纤激光设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10879&t=皮革激光设备" title="皮革激光设备" target="_blank">皮革激光设备</a></li>
+                        <li><a href="/Offering?OfferingCategory=10880&t=半导体激光设备" title="半导体激光设备" target="_blank">半导体激光设备</a></li>
+                    </ul>
+                </div>
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10883&t=激光元器件" title="激光元器件">激光元器件</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10887&t=皮带" title="皮带" target="_blank">皮带</a></li>
+                        <li><a href="/Offering?OfferingCategory=10888&t=机壳" title="机壳" target="_blank">机壳</a></li>
+                        <li><a href="/Offering?OfferingCategory=10884&t=激光头" title="激光头" target="_blank">激光头</a></li>
+                        <li><a href="/Offering?OfferingCategory=10886&t=激光管" title="激光管" target="_blank">激光管</a></li>
+                        <li><a href="/Offering?OfferingCategory=10889&t=激光二极管" title="激光二极管" target="_blank">激光二极管</a></li>
+                        <li><a href="/Offering?OfferingCategory=10885&t=激光器镜片/振镜" title="激光器镜片/振镜" target="_blank">激光器镜片/振镜</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <table class="tb_img_wrap">
+                <tbody>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="brand_list">
+                <tbody>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        <div class="biaoti2_h4">
+            <i>4F</i><h4><a target="_blank" href="/Offering?OfferingCategory=10158&t=电气元件 电子器件" title="电气元件 电子器件">电气元件 电子器件</a></h4>
+        </div>
+        <div class="product_wrap" id="cate10158">
+            <div class="left_info_div">
+                <img class="info_img lazy">
+                <h4><a target="_blank" href="/Offering?OfferingCategory=10158&t=电气元件 电子器件" title="电气元件 电子器件">电气元件 电子器件</a></h4>
+                <p class="offeringName"></p>
+
+            </div>
+            <div class="mid_tb_div">
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10237&t=电池" title="电池">电池</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10241&t=干电池" title="干电池" target="_blank">干电池</a></li>
+                        <li><a href="/Offering?OfferingCategory=10238&t=蓄电池" title="蓄电池" target="_blank">蓄电池</a></li>
+                        <li><a href="/Offering?OfferingCategory=10239&t=锂电池" title="锂电池" target="_blank">锂电池</a></li>
+                        <li><a href="/Offering?OfferingCategory=10240&t=纽扣电池" title="纽扣电池" target="_blank">纽扣电池</a></li>
+                        <li><a href="/Offering?OfferingCategory=10242&t=镍氢电池" title="镍氢电池" target="_blank">镍氢电池</a></li>
+                        <li><a href="/Offering?OfferingCategory=10243&t=生物电池" title="生物电池" target="_blank">生物电池</a></li>
+                        <li><a href="/Offering?OfferingCategory=10245&t=铅酸电池" title="铅酸电池" target="_blank">铅酸电池</a></li>
+                        <li><a href="/Offering?OfferingCategory=10246&t=其他电池" title="其他电池" target="_blank">其他电池</a></li>
+                        <li><a href="/Offering?OfferingCategory=10247&t=电池检测仪" title="电池检测仪" target="_blank">电池检测仪</a></li>
+                        <li><a href="/Offering?OfferingCategory=10244&t=太阳能电池" title="太阳能电池" target="_blank">太阳能电池</a></li>
+                    </ul>
+                </div>
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10229&t=电源" title="电源">电源</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10231&t=开关电源" title="开关电源" target="_blank">开关电源</a></li>
+                        <li><a href="/Offering?OfferingCategory=10232&t=稳压电源" title="稳压电源" target="_blank">稳压电源</a></li>
+                        <li><a href="/Offering?OfferingCategory=10233&t=变频电源" title="变频电源" target="_blank">变频电源</a></li>
+                        <li><a href="/Offering?OfferingCategory=10234&t=应急电源" title="应急电源" target="_blank">应急电源</a></li>
+                        <li><a href="/Offering?OfferingCategory=10235&t=逆变电源" title="逆变电源" target="_blank">逆变电源</a></li>
+                        <li><a href="/Offering?OfferingCategory=10236&t=特种电源" title="特种电源" target="_blank">特种电源</a></li>
+                        <li><a href="/Offering?OfferingCategory=10230&t=USP电源" title="USP电源" target="_blank">USP电源</a></li>
+                    </ul>
+                </div>
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10198&t=传感器" title="传感器">传感器</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10205&t=编码器" title="编码器" target="_blank">编码器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10199&t=位移传感器" title="位移传感器" target="_blank">位移传感器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10200&t=称重传感器" title="称重传感器" target="_blank">称重传感器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10201&t=压力传感器" title="压力传感器" target="_blank">压力传感器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10202&t=温度传感器" title="温度传感器" target="_blank">温度传感器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10203&t=气体传感器" title="气体传感器" target="_blank">气体传感器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10204&t=其他传感器" title="其他传感器" target="_blank">其他传感器</a></li>
+                    </ul>
+                </div>
+                <div class="tb_kuai">
+                    <div class="list_a_fenlei">
+                        <p>
+                            <a target="_blank" href="/Offering?OfferingCategory=10206&t=连接器" title="连接器">连接器</a>
+                        </p>
+                    </div>
+                    <ul>
+                        <li><a href="/Offering?OfferingCategory=10208&t=卡座" title="卡座" target="_blank">卡座</a></li>
+                        <li><a href="/Offering?OfferingCategory=10209&t=线束" title="线束" target="_blank">线束</a></li>
+                        <li><a href="/Offering?OfferingCategory=10212&t=工业连接器" title="工业连接器" target="_blank">工业连接器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10213&t=汽车连接器" title="汽车连接器" target="_blank">汽车连接器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10214&t=其他连接器" title="其他连接器" target="_blank">其他连接器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10210&t=电缆连接器" title="电缆连接器" target="_blank">电缆连接器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10211&t=USB连接器" title="USB连接器" target="_blank">USB连接器</a></li>
+                        <li><a href="/Offering?OfferingCategory=10207&t=端子台、接连柱" title="端子台、接连柱" target="_blank">端子台、接连柱</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <table class="tb_img_wrap">
+                <tbody>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="brand_list">
+                <tbody>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="clear"></div>
+
+        <div class="wrapwrap">
+            <div class="news_divdiv">
+                <div class="news_img_index">
+                </div>
+                <ul class="yy_news_list_2">
+                    <li><a title="starlu" href="/news/details/205" target="_blank">starlu</a></li>
+                    <li><a title="唯品会" href="/news/details/201" target="_blank">唯品会</a></li>
+                    <li><a title="分分" href="/news/details/196" target="_blank">分分</a></li>
+                    <li><a title="标题" href="/news/details/187" target="_blank">标题</a></li>
+                    <li><a title="tesst" href="/news/details/179" target="_blank">tesst</a></li>
+                    <li><a title="20180111新闻" href="/news/details/176" target="_blank">20180111新闻</a></li>
+                    <li><a title="最后一轮3" href="/news/details/173" target="_blank">最后一轮3</a></li>
+                    <li><a title="香港金融行业的冲击" href="/news/details/166" target="_blank">香港金融行业的冲击</a></li>
+                    <li><a title="（行业新闻、热门推荐、网站公告也是如此）" href="/news/details/163" target="_blank">（行业新闻、热门推荐、网站公告也是如此）</a></li>
+                    <li><a title="春节活动来袭" href="/news/details/162" target="_blank">春节活动来袭</a></li>
+                    <li><a title="元旦活动来袭" href="/news/details/161" target="_blank">元旦活动来袭</a></li>
+                    <li><a title="愚人节活动来袭" href="/news/details/156" target="_blank">愚人节活动来袭</a></li>
+                    <li><a title="中秋节活动来袭" href="/news/details/155" target="_blank">中秋节活动来袭</a></li>
+                    <li><a title="劳动节活动来袭" href="/news/details/154" target="_blank">劳动节活动来袭</a></li>
+                    <li><a title="国庆节活动来袭" href="/news/details/152" target="_blank">国庆节活动来袭</a></li>
+                    <li><a title="万圣节活动来袭" href="/news/details/151" target="_blank">万圣节活动来袭</a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>

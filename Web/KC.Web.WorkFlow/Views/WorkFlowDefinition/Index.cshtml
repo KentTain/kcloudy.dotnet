@@ -1,0 +1,557 @@
+﻿@using KC.Web.Constants
+@using KC.Framework.Tenant
+@using KC.Web.Workflow.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "流程定义管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--流程定义-保存流程分类-->
+    var canEditCategory = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "09C4B0CF-2A5A-4C97-8248-0756C9243BD3")).Succeeded)
+    {
+        canEditCategory = true;
+    }
+    <!--流程定义-删除流程分类-->
+    var canDeleteCategory = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "363D6D5D-69AC-45E4-83D3-0197C5DB8C99")).Succeeded)
+    {
+        canDeleteCategory = true;
+    }
+
+    <!--流程定义-保存流程基本信息-->
+    var canSaveWfDefBasicInfo = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "4A5ADE5F-19F8-4DC7-8731-850605BFCD39")).Succeeded)
+    {
+        canSaveWfDefBasicInfo = true;
+    }
+    <!--流程定义-流程定义详情-->
+    var canWfDefinitionDetail = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "C82DCB19-73AE-4011-A7BB-1EBAF7E2A219")).Succeeded)
+    {
+        canWfDefinitionDetail = true;
+    }
+    <!--流程定义-流程设计器-->
+    var canWorkflowDesigner = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "C3E245E2-50A4-48AB-A88B-F64BFCF03FC9")).Succeeded)
+    {
+        canWorkflowDesigner = true;
+    }
+    <!--流程定义-流程验证-->
+    var canWorkflowValidator = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "35963A10-DD4D-4C04-974D-FC7E6E1438A4")).Succeeded)
+    {
+        canWorkflowValidator = true;
+    }
+    <!--流程定义-删除流程定义-->
+    var canDeleteWfDefinition = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "2BC23260-AA28-4EC4-BD3A-F927601E7860")).Succeeded)
+    {
+        canDeleteWfDefinition = true;
+    }
+}
+
+<div class="easyui-layout" style="width:100%;height:100%;">
+    <div data-options="region:'west',collapsible:false" style="width:380px;padding:2px" id="roles">
+        <div id="toolbar">
+            <div>
+            </div>
+            <div>
+                <input id="txtSearchbox" class="easyui-textbox" data-options="prompt:'请输入流程分类名称'" style="width: 150px; height: 26px;" />
+                <a href="javascript:void(0)" onclick="reloadDgCategory()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshCategory()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+                <!--流程管理-保存流程分类-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "09C4B0CF-2A5A-4C97-8248-0756C9243BD3")).Succeeded)
+                {
+                    <a id="btnAddCategory" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addCategory()">新增</a>
+                }
+            </div>
+        </div>
+        <table id="dgCategory"></table>
+    </div>
+    <div data-options="region:'center'" style="padding: 2px;">
+        <div id="toolbarWfDefinition">
+            <div>
+                <!--流程管理-保存流程定义-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "4A5ADE5F-19F8-4DC7-8731-850605BFCD39")).Succeeded)
+                {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="openWfDefinitionPage('', 'wfDefForm')">新增</a>
+                }
+            </div>
+            <div>
+                <select id="status" class="easyui-combobox" name="dept" style="width:160px;" data-options="editable: false,panelHeight:'auto'">
+                    <option value="">请选择状态</option>
+                    <option value="0">草稿</option>
+                    <option value="1">审批中</option>
+                    <option value="2">审批通过</option>
+                    <option value="3">审批不通过</option>
+                </select>
+
+                <input id="searchboxName" class="easyui-textbox" data-options="prompt:'请输入流程名称'" style="width:200px">
+                <a href="javascript:void(0)" onclick="reloadDgWfDefinition()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshDgWfDefinition()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="dgWfDefinition"></table>
+    </div>
+</div>
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <!--流程分类-->
+    <script type="text/javascript">
+        $.extend($.fn.validatebox.defaults.rules, {
+            repeatTreeCode: {
+                validator: function (value) {
+                    var reg = /^[0-9a-zA-Z]+$/;
+
+                    return reg.test(value);
+                },
+                message: '请输入有效的部门代码'
+            }
+        });
+
+        let selectCategoryId = 0;
+        let selectCategoryName;
+        $(function() {
+            InitTreeCategory();
+
+            InitDgWfDefinition();
+        });
+
+        const dgCategoryId = '#dgCategory';
+        const canEditCategory = '@canEditCategory' === 'True';
+        const canDeleteCategory = '@canDeleteCategory' === 'True';
+        const loadDataUrl = '@Url.Action(ActionName.WorkflowDefinition.LoadCategoryList, ControllerName.WorkflowDefinition)';
+        var IsCheckFlag = false; //是否选中的标志
+        var rowIndexTo; //保存当前保存的是那条数据
+        function InitTreeCategory() {
+            $(dgCategoryId).treegrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                toolbar: "#toolbar",
+                fit: true,
+                fitColumns: true,
+                striped: true,
+                nowrap: false,
+                lines: true,
+                rowNumbers: true,
+                singleSelect: true,
+                checkOnSelect: true,
+                showFooter: false,
+                columns: [
+                    [
+                        { field: 'id', title: '编号', width: 120, align: 'left', hidden: true },
+                        { field: 'text', title: '名称', width: 140, align: 'left' },
+                        //{ field: 'level', title: '层级', width: 100, align: 'left' },
+                        //{ field: 'index', title: '排序', width: 100, align: 'left' },
+                        {
+                            field: 'c', title: ' 操作', width: 55,
+                            formatter: function (value, row, index) {
+                                let id = row.id;
+                                let name = row.text;
+                                let parentId = row.parentId;
+                                let parentName = row.parentName;
+                                let hasChild = row.children && row.children.length > 0;
+                                let tdContext = '';
+                                if (canEditCategory && (id != 0 && id != -1)) {
+                                    tdContext += '<a class="btnEdit" style="cursor:pointer;margin:0 5px;" onclick="editCategory(\'' + id + '\',\'' + parentId + '\',\'' + parentName + '\')" > </a>';
+                                }
+                                if (canDeleteCategory && (id != 0 && id != -1) && !hasChild) {
+                                    tdContext += '<a class="btnDelete" style="cursor:pointer;margin:0 5px;" onclick="removeCategory(\'' + id + '\',\'' + name + '\', ' + hasChild+')" > </a>';
+                                }
+                                return tdContext;
+                            }
+                        }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function (node, data) {
+                    CommonUtil.buttonStyle();
+                    $(dgCategoryId).treegrid('unselectAll');
+                    $(dgCategoryId).treegrid('expandAll');
+                    $(dgCategoryId).treegrid("fixRowHeight");
+
+                    //默认选中第一个节点
+                    if (data.length > 0) {
+                        selectCategoryId = data[0].id;
+                        $(dgCategoryId).treegrid("selectRow", 0);
+                    }
+                },
+                onLoadError: function() {
+                },
+                onSelect: function (row) {
+                    if (selectCategoryId == row.id) return;
+
+                    let id = row.id;
+                    selectCategoryId = row.id;
+                    selectCategoryName = row.text;
+                    if (id == -1) {
+                        $('#btnAddCategory').linkbutton('disable');
+                    } else {
+                        $('#btnAddCategory').linkbutton('enable');
+                    }
+
+                    //只能创建两级流程分类
+                    let level = row.level;
+                    if (level > 2) {
+                        $('#btnAddCategory').linkbutton('disable');
+                    } else {
+                        $('#btnAddCategory').linkbutton('enable');
+                    }
+                    //未分配类型的消息
+                    if (id == -1)
+                        id = '';
+
+                    loadWfDefinitionData();
+                }
+            });
+        }
+
+        function refreshCategory() {
+            $(dgCategoryId).datagrid('unselectAll');
+            $("#txtSearchbox").searchbox('setValue', '');
+            reloadDgCategory();
+        }
+
+        function reloadDgCategory() {
+            $(dgCategoryId).datagrid('unselectAll');
+            $(dgCategoryId).treegrid("load", {
+                name: $("#txtSearchbox").searchbox("getValue")
+            });
+        }
+
+        function addCategory() {
+            var row = $(dgCategoryId).treegrid('getSelected');
+            if (row) {
+                opentForm(0, row.id);
+            } else {
+                opentForm(0, 0);
+            }
+        }
+
+        function editCategory(id, parentId, parentName) {
+            opentForm(id, parentId, parentName);
+        }
+
+        const getFormUrl = '@Url.Action(ActionName.WorkflowDefinition.GetCategoryForm, ControllerName.WorkflowDefinition)';
+        const saveFormUrl = '@Url.Action(ActionName.WorkflowDefinition.SaveCategoryForm, ControllerName.WorkflowDefinition)';
+        function opentForm(id, parentId, parentName) {
+            $.easyui.showDialog({
+                title: id > 0 ? '编辑流程定义' : '新增流程定义',
+                width: 400,
+                height: 300,
+                href: getFormUrl + "?id=" + id + "&parentId=" + parentId + "&parentName=" + parentName,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (!validate) {
+                        let errorMsg = '';
+                        let invalidComps = d.find(".validatebox-invalid");
+                        $.each(invalidComps, function (i, invalidComp) {
+                            errorMsg += 'id=' + invalidComp.id + ', ';
+                        });
+                        console.error("---验证失败的组件Id：" + errorMsg);
+                        return;
+                    }
+                    if ($("#level").val() == "4") {
+                        $.messager.showErrorTopCenter("系统提示", "此父级" + ' ' + $("#ParentId").val() + ' ' + "不能作为父级");
+                        $("#level").val(' ');
+                        return false;
+                    }
+
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: saveFormUrl,
+                        data: AddAntiForgeryToken(d.form("getData")),
+                        success: function (data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    d.window('close');
+                                    $(dgCategoryId).treegrid('clearSelections');
+                                    $(dgCategoryId).treegrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                },
+                onLoad: function() {
+                    $('.textbox').bind('blur', function() {
+                        $(this).validatebox('enableValidation').validatebox('validate');
+                    });
+                }
+            });
+        }
+
+        const removeUrl = '@Url.Action(ActionName.WorkflowDefinition.RemoveCategory, ControllerName.WorkflowDefinition)';
+        function removeCategory(id, name, hasChild) {
+            if (id <= 0) {
+                $.messager.showErrorTopCenter('系统提示', '此消息类型无法删除', 1000);
+                return;
+            }
+            if (hasChild) {
+                $.messager.showErrorTopCenter('错误消息', '无法删除有子部门的部门，请先删除子部门后再重试。', 1000);
+                return;
+            }
+
+            $.messager.confirm('系统提示', '确认要删除流程分类：'  + name + '?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $(dgCategoryId).treegrid('clearSelections');
+                                $(dgCategoryId).treegrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                        $.easyui.loaded();
+                    });
+                }
+            });
+        }
+    </script>
+
+    <!--流程定义-->
+    <script type="text/javascript">
+        $.extend($.fn.validatebox.defaults.rules, {
+            repeatdisplayName: {
+                validator: function (value) {
+                    var reg = /\d$/;
+
+                    return !reg.test(value);
+                },
+                message: '请输入有效的姓名'
+            }
+        });
+        $.extend($.fn.validatebox.defaults.rules, {
+            repeatWfDefinitionCode:{
+                validator: function (value) {
+                    var reg = /^[0-9a-zA-Z]+$/;
+
+                    return reg.test(value);
+                },
+                message: '请输入有效的用户编号'
+            }
+        });
+
+        const canWfDefinitionDetail = '@canWfDefinitionDetail' === 'True';
+        const canSaveWfDefBasicInfo = '@canSaveWfDefBasicInfo' === 'True';
+        const canWorkflowDesigner = '@canWorkflowDesigner' === 'True';
+        const canWorkflowValidator = '@canWorkflowValidator' === 'True';
+        const canDeleteWfDefinition = '@canDeleteWfDefinition' === 'True';
+        const dgWfDefinition = '#dgWfDefinition';
+        const loadWfDefinitionDataUrl = '@Url.Action(ActionName.WorkflowDefinition.LoadWorkflowDefinitionList, ControllerName.WorkflowDefinition)';
+        const loadWfFieldsDataUrl = '@Url.Action(ActionName.WorkflowDefinition.LoadWorkflowFieldList, ControllerName.WorkflowDefinition)';
+        function InitDgWfDefinition() {
+            var $dataGrid = $(dgWfDefinition).datagrid({
+                view: detailview,
+                url: loadWfDefinitionDataUrl,
+                method: 'POST',
+                idField: 'id',
+                toolbar: "#toolbarWfDefinition",
+                fit: true,
+                fitColumns: true,
+                striped: true,
+                nowrap: false,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [[
+                    { field: 'code', title: '流程编码', width: 120, align: 'left' },
+                    { field: 'version', title: '当前版本号', width: 120, align: 'left' },
+                    { field: 'name', title: '流程名称', width: 160, align: 'left' },
+                    //{ field: 'statusString', title: '状态', width: 50, align: 'left' },
+                    { field: 'operator', title: '操作', width: 240, align: 'left',
+                        formatter: function (value, row, index) {
+                            var WfDefinitionId = row.id;
+                            var WfDefinitionName = row.name;
+
+                            var tdContext = '';
+                            if (canSaveWfDefBasicInfo) {
+                                tdContext += '<a class="btnEdit" style="cursor:pointer" onclick=openWfDefinitionPage(\'' + WfDefinitionId + '\',"wfDefForm")>基本信息</a>';
+                            }
+                            if (canWorkflowDesigner) {
+                                tdContext += '<a class="btnCard" style="cursor:pointer" onclick=openWfDefinitionPage(\'' + WfDefinitionId + '\',"WfDesigner")>设计流程</a>';
+                            }
+                            if (canWorkflowValidator) {
+                                tdContext += '<a class="btnFilter" style="cursor:pointer" onclick=openWfDefinitionPage(\'' + WfDefinitionId + '\',"WfValidator")>验证</a>';
+                            }
+                            if (canDeleteWfDefinition) {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer" onclick="removeWfDefinition(\'' + WfDefinitionId + '\')" >删除</a>';
+                            }
+
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function(param) {
+                    /*var bId = $("#txtBId").val();
+                    var AllSearchKey = $("#txtAllSearchKey").val();
+                    param.bId = bId;
+                    param.AllSearchKey = AllSearchKey;*/
+                },
+                onLoadSuccess: function (data) {
+                    CommonUtil.buttonStyle();
+
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function (index, row) {
+                    return '<div style="padding:2px"><table class="ddv"></table></div>';
+                },
+                onExpandRow: function (index, row) {
+                    var ddv = $(this).datagrid('getRowDetail', index).find('table.ddv');
+                    ddv.datagrid({
+                        url: loadWfFieldsDataUrl + '?id=' + row.id,
+                        fitColumns: true,
+                        singleSelect: true,
+                        rowNumbers: true,
+                        loadMsg: '',
+                        height: 'auto',
+                        columns: [[
+                            { field: 'id', title: '编号', width: 100, align: 'left', hidden: true },
+                            { field: 'text', title: '字段', width: 120, align: 'left' },
+                            { field: 'displayName', title: '字段名称', width: 120, align: 'left' },
+                            { field: 'dataTypeString', title: '字段类型', width: 80, align: 'left' },
+                            { field: 'isPrimaryKey', title: '是否为主键字段', width: 50, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                            { field: 'isExecutor', title: '是否为执行人字段', width: 50, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                            { field: 'isCondition', title: '是否为条件判断字段', width: 50, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                        ]],
+                        onResize: function () {
+                            $dataGrid.datagrid('fixDetailRowHeight', index);
+                        },
+                        onLoadSuccess: function () {
+                            setTimeout(function () {
+                                $dataGrid.datagrid('fixDetailRowHeight', index);
+                            }, 0);
+                        }
+                    });
+                }
+            });
+        }
+
+        let loadWfDefinitionData = function () {
+            $.easyui.loading({ msg: '正在加载数据，请稍等...' });
+            $.ajax({
+                url: loadWfDefinitionDataUrl,//所有菜单
+                data: {
+                    "page": 1,
+                    "rows": 20,
+                    "categoryId": selectCategoryId,
+                    "name": $("#searchboxName").searchbox("getValue"),
+                    "status": $('#status').combobox("getValue")
+                },
+                async: true,
+                type: "get",
+                success: function (result) {
+                    $(dgWfDefinition).datagrid('loadData', result);
+                },
+                error: function () {
+                },
+                complete: function (XMLHttpRequest, textStatus) {
+                    $.easyui.loaded();
+                }
+            });
+        };
+
+        function refreshDgWfDefinition() {
+            $("#searchboxName").searchbox('setValue', '');
+            $('#status').combobox("setValue", '');
+            reloadDgWfDefinition();
+        }
+        function reloadDgWfDefinition() {
+            $(dgWfDefinition).datagrid("load", {
+                categoryId: selectCategoryId,
+                name: $("#searchboxName").searchbox("getValue"),
+                status: $('#status').combobox("getValue"),
+                positionLevel: null
+            });
+        }
+
+        var WfDefinitionDetailUrl = '@Url.Action(ActionName.WorkflowDefinition.WorkflowDefinitionDetail, ControllerName.WorkflowDefinition)';
+        var getWfDefinitionFormUrl = '@Url.Action(ActionName.WorkflowDefinition.GetWorkflowDefinitionForm, ControllerName.WorkflowDefinition)';
+        var workflowDesignerUrl = '@Url.Action(ActionName.WorkflowDefinition.WorkflowDesigner, ControllerName.WorkflowDefinition)';
+        var workflowValidatorUrl = '@Url.Action(ActionName.WorkflowDefinition.WorkflowValidator, ControllerName.WorkflowDefinition)';
+        function openWfDefinitionPage(WfDefinitionId, type) {
+            var url = "";
+            var queryString = "id=" + WfDefinitionId + "&categoryId=" + selectCategoryId;
+            if (type == "wfDefForm") {
+                url = getWfDefinitionFormUrl;
+            } else if (type == "WfDefDetail") {
+                url = WfDefinitionDetailUrl;
+            } else if (type == "WfDesigner") {
+                url = workflowDesignerUrl;
+            } else if (type == "WfValidator") {
+                url = workflowValidatorUrl;
+            }
+            MainPage_PostMessage("openSubPage", url, queryString);
+        }
+
+        var removeWfDefinitionUrl = '@Url.Action(ActionName.WorkflowDefinition.RemoveWorkflowDefinition, ControllerName.WorkflowDefinition)';
+        function removeWfDefinition(WfDefinitionId) {
+            var row = $(dgWfDefinition).datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('系统提示', '删除之后将去除该用户所有角色(所有系统)且不可恢复,是否确定删除选中数据?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeWfDefinitionUrl, { id: WfDefinitionId }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $(dgWfDefinition).datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                                }
+                            } else {
+                                $.messager.showInfoTopCenter('系统提示', data.message);
+                            }
+                            $.easyui.loaded();
+                        }, 'json');
+                    }
+                });
+            }
+        }
+
+        var existWfDefinitionNameUrl = '@Url.Action(ActionName.WorkflowDefinition.ExistWorkflowDefinitionName, ControllerName.WorkflowDefinition)';
+        function existWfDefinitionName(id) {
+            $.post(existWfDefinitionNameUrl, { id: id, name: $("#WfDefinitionName").val() }, function(data) {
+                    if (data == "result") {
+                        $.messager.showInfoTopCenter('系统提示', '用户名【' + $("#WfDefinitionName").val() + '】已存在,请重新输入。');
+                        $("#WfDefinitionName").val("");
+                    }
+                    if (data == "result1") {
+                        $.messager.showInfoTopCenter('系统提示', '用户名【' + $("#WfDefinitionName").val() + '】正在审批中,请重新输入。');
+                        $("#WfDefinitionName").val("");
+                    }
+                },
+                'json');
+        }
+    </script>
+}
+

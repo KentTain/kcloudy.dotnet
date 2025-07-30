@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="renderer" content="webkit">
+    <title>企业收银台</title>
+    <meta name="description" content="kcloudy">
+    <meta name="keywords" content="企业应用">
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/payment.css" rel="stylesheet" />
+
+    @RenderSection("styles", required: false)
+</head>
+<body class="child-body">
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/jquery.extension.core.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/com.global.js"></script>
+    <script src="~/js/layer/layer.js"></script>
+
+    <div id="header">
+        <div class="header-container fn-clear">
+            <div class="header-title">
+                <div class="alipay-logo">
+                    <img src="~/images/logo-icon.png" alt="">
+                </div>
+                <span class="logo-title">收银台</span>
+            </div>
+        </div>
+    </div>
+
+    @RenderBody()
+
+    @RenderSection("scripts", required: false)
+
+</body>
+</html>

@@ -1,0 +1,415 @@
+﻿@using KC.Enums.CRM
+@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@model KC.Web.Customer.Models.CustomerContactInfoViewModel
+
+@{
+    Layout = null;
+}
+
+
+<div id="emailTab" data-options="fit:true,plain:true">
+    <div title="邮件" data-options="refreshable:false" style="height: auto">
+        <div id="toolbarEmailList" style="padding: 1px;">
+            <div id="emailLayout" class="easyui-layout" style="height: 680px; width: 1024px;">
+                <div data-options="region:'north',title:'发送邮件',collapsible:false,refreshable:false" style="height: 60px;">
+                    <!--配置管理-选择收件人-->
+                    @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+                    {
+                    <a id="linkAddContact" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-users" onclick="getSelectContactForm('Email')">选择收件人</a>
+                    }
+                </div>
+                <div data-options="region:'west',title:'收件人列表',collapsible:false,refreshable:false" style="width: 180px;">
+                    <div id="ContactNameList" style="height: 590px;">
+
+                    </div>
+                </div>
+                <div data-options="region:'center',title:'发送邮件'" style="padding: 8px; width: 800px">
+                    <form class="easyui-form" method="post" data-options="novalidate:true" id="saveform">
+                        @Html.AntiForgeryToken()
+                        <table>
+                            <tbody>
+                                <tr id="tr_Subject">
+                                    <td style="text-align: left;">
+                                        <label class="required">*</label><label for="Subject">邮件标题：</label>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" id="td_cc"><input id="Subject" name="Subject" data-options="required:true,width:600,validType:'length[2,50]'" style="height: 25px;"><a href="#" id="emailCC" style="height: 25px; width: 60px;" onclick="getSelectContactForm('Email', true)">抄送</a></td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left">
+                                        <label class="required">*</label>
+                                        <label id="lb_EmailContent" for="Contents">邮件内容：</label>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <a id="addOtherContact" href="#" style="height: 25px; width: 115px;">插入变量联系人</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <textarea id="Contents" name="Contents" style="height: 400px; width: 660px"></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2"><a id="sendEmail" href="#" style="height: 25px; width: 60px; margin-right: 300px" onclick="sendEmail();">发送</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+                <div data-options="region:'east',title:'使用说明',collapsible:false" style="width: 160px;">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div title="发件箱" data-options="refreshable:false" style="height: auto">
+        <div style="padding: 5px;">
+            <div id="toolbarEmailBox" style="padding: 8px 8px 8px 15px;">
+                <span style="margin-top: 12px;">
+                    @if (Convert.ToInt32(Model.CustomerContactId) == 0)
+                    {
+                        <span style="margin-right: 10px">
+                            客户类型：
+                            @Html.DropDownList("CustomerType", (IEnumerable<SelectListItem>)Model.CustomerTypeList, new { @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+                        </span>
+                    }
+                    <span style="margin-right: 10px">
+                        发送状态：
+                        @Html.DropDownList("ProcessLogType", (IEnumerable<SelectListItem>)Model.ProcessLogTypeList, new { @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+                    </span>
+                    <span style="margin-right: 10px">
+                        发送日期：
+                        <input class="easyui-datebox" id="startTime" name="startTime" style="cursor: pointer; width: 150px; height: 26px;">
+                        至
+                        <input class="easyui-datebox" id="endTime" name="endTime" style="cursor: pointer; width: 150px; height: 26px;">
+                    </span>
+                </span>
+                <div style="margin-top: 10px; display: inline">
+                    <div id="divSearchMenu" style="width: 120px">
+                        <div data-options="name:'customerName',selected:true">所属单位</div>
+                        <div data-options="name:'contactName'">联系人姓名</div>
+                        <div data-options="name:'title'">邮件主题</div>
+                        <div data-options="name:'content'">邮件内容</div>
+                    </div>
+                    <input id="txtSearchbox" class="easyui-searchbox" style="width: 200px" />
+                </div>
+            </div>
+        </div>
+        <table id="datagridEmailBox" data-options="iconCls: 'icon-standard-text-list-bullets'"></table>
+    </div>
+</div>
+
+    <!--发送邮件-->
+    <script>
+    var contactId = '@Model.CurrentContact';
+    var ueditorContent = null;
+    $(function() {
+        $('#emailTab').tabs();
+        $('#emailLayout').layout();
+        $('#linkAddContact').linkbutton();
+        $('#addOtherContact').linkbutton();
+        $('#sendEmail').linkbutton();
+        $('#emailCC').linkbutton();
+        $('#Subject').textbox();
+        $('#divSearchMenu').menu();
+
+        //插入变量联系人
+        $('#addOtherContact').click(function() {
+            ueditorContent.execCommand('insertHtml', '<span>[name]</span>');
+        });
+
+        $('#emailTab').tabs({
+            onSelect: function(title, index) {
+                if (index === 1) {
+                    InitEmailBoxGrid();
+                }
+            }
+        });
+        if (parseInt(contactId) !== 0) {
+            $('#linkAddContact').linkbutton('disable');
+        }
+
+
+        $('#ContactNameList').datalist({
+            onDblClickRow: function(index) {
+                customerContacts.splice(index, 1);
+                initContactNameDataList();
+            }
+        });
+    });
+
+    //发送邮件
+    function sendEmail() {
+        var validate = $('#saveform').form("enableValidation").form("validate");
+        if (validate) {
+            if (contactNameDataList == null || contactNameDataList.datalist('getData').rows.length === 0) {
+                $.messager.showErrorTopCenter('系统提示', "请选择收件人", 1000);
+                return false;
+            }
+            if (ueditorContent.getContent().length === 0) {
+                $.messager.showErrorTopCenter('系统提示', "邮件内容不能为空", 1000);
+                return false;
+            } else {
+                $.easyui.loading({ msg: '正在发送邮件，请稍等...' });
+                var data = $('#saveform').form("getData");
+                data.model = customerContacts;
+                data.ccList = ccList;
+                data.viewName = "Email";
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    url: "/Notification/SendNotifications",
+                    data: AddAntiForgeryToken(data),
+                    success: function(data) {
+                        if (data.success) {
+                            if (data.result) {
+                                clearData();
+                                $.messager.showInfoTopCenter('系统提示', '邮件发送成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '邮件发送失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }
+                });
+            }
+        }
+    }
+
+    //弹出添加联系人Form
+    var contactFormUrl = '/Notification/GetSelectContactForm';
+    function getSelectContactForm(viewName, isCc) {
+        var result = false;
+        var dialog = $.easyui.showDialog({
+            title: "添加联系人",
+            width: 770,
+            height: 530,
+            modal: true,
+            topMost: false,
+            href: contactFormUrl + "?viewName=" + viewName,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onLoad: function() {
+                InitCustomerContactGrid(); //初始化联系人列表
+            },
+            onBeforeClose: function() {
+                if (!result) {
+                    $.messager.confirm("系统提示", "你确定要关闭窗口吗?",
+                        function(r) {
+                            if (r) {
+                                result = true;
+                                dialog.dialog("close", true);
+                            }
+                        });
+                }
+                return result;
+            },
+            onSave: function(d) {
+                if (isCc) {
+                    loadCustomerCC();
+                    $.messager.showInfoTopCenter('系统提示', '保存抄送人成功。', 1000);
+                } else {
+                    var isSucceed = loadCustomerContact();
+                    if (isSucceed) {
+                        initContactNameDataList();
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', '收件人列表已存在选择的联系人。', 2000);
+                        return false;
+                    }
+                }
+                result = true;
+                d.window('close');
+            }
+        });
+    }
+
+    //首次加载时加载联系人
+    var customerContacts = [];
+
+    function initCustomerContact() {
+        var customerContact = {};
+        customerContact.customerId = '@Model.CustomerId';
+        customerContact.customerName = '@Model.CustomerName';
+        customerContact.customerContactId = '@Model.CustomerContactId';
+        customerContact.contactName = '@Model.ContactName';
+        customerContact.sendTo = '@Model.ContactEmail';
+        if (parseInt(customerContact.customerId) !== 0) {
+            customerContacts.push(customerContact);
+            initContactNameDataList();
+        }
+    }
+
+    //选择添加联系人按钮加载联系人
+    function loadCustomerContact() {
+        var dataListRows = $('#ContactNameList').datalist('getRows');
+        var rows = $('#datagridCustomerContact').datagrid('getChecked');
+        var addCustomerContacts = [];
+        for (var i = 0; i < rows.length; i++) {
+            var customerContact = {};
+            customerContact.customerId = rows[i].customerId;
+            customerContact.customerName = rows[i].customerName;
+            customerContact.customerContactId = rows[i].customerContactId;
+            customerContact.contactName = rows[i].contactName;
+            customerContact.sendTo = rows[i].contactEmail;
+            if (dataListRows.length === 0) {
+                customerContacts.push(customerContact);
+                addCustomerContacts.push(customerContact);
+            } else {
+                var customerContactIds = [];
+                for (var j = 0; j < dataListRows.length; j++) {
+                    customerContactIds.push(dataListRows[j].customerContactId);
+                }
+                if (!customerContactIds.contains(customerContact.customerContactId)) {
+                    customerContacts.push(customerContact);
+                    addCustomerContacts.push(customerContact);
+                }
+            }
+        }
+        if (addCustomerContacts.length > 0) {
+            return true;
+        } else return false;
+    }
+
+    var contactNameDataList = null;
+
+    function initContactNameDataList() {
+        contactNameDataList = $('#ContactNameList').datalist({
+            data: customerContacts,
+            textField: 'contactName',
+            valueField: 'customerContactId',
+            textFormatter: function(value, row, index) {
+                return "<div title='双击可删除项'>" + value + "</div>";
+            }
+        });
+    }
+
+    //加载抄送人
+    var ccList = [];
+
+    function loadCustomerCC() {
+        ccList = [];
+        var rows = $('#datagridCustomerContact').datagrid('getChecked');
+        for (var i = 0; i < rows.length; i++) {
+            ccList.push(rows[i].contactEmail);
+        }
+    }
+
+    //邮件发送成功清空数据
+    function clearData() {
+        customerContacts = [];
+        ccList = [];
+        $('#ContactNameList').datalist('loadData', { total: 0, rows: [] });
+        $("#Subject").textbox('textbox').val('');
+        ueditorContent.execCommand('cleardoc');
+    }
+    </script>
+
+    <!--邮箱收件箱-->
+    <script>
+    $(function() {
+        //客户类型
+        if ($('#CustomerType').length > 0) {
+            $('#CustomerType').combobox(
+            {
+                editable: false,
+                onSelect: function() {
+                },
+                //默认选择第一项
+                onLoadSuccess: function() {
+                    var data = $(this).combobox('getData');
+                    $(this).combobox('select', data[0].value);
+                }
+            });
+        }
+
+        //发送状态
+        $('#ProcessLogType').combobox(
+        {
+            editable: false,
+            onSelect: function() {
+                //searchData();
+            }
+        });
+    });
+
+    var type = '@((int) TracingType.EmailNotify)';
+    var loadEmailDataUrl = '/Notification/GetCustomerTracingLogList';
+    function InitEmailBoxGrid() {
+        var emailBoxGrid = $('#datagridEmailBox').datagrid({
+            url: loadEmailDataUrl + "?type=" + type + "&currentContactId=" + contactId,
+            method: 'get',
+            idField: 'processLogId',
+            toolbar: '#toolbarEmailBox',
+            striped: true,
+            fitColumns: true,
+            singleSelect: true,
+            rowNumbers: true,
+            pagination: true,
+            nowrap: false,
+            fit: true,
+            pageSize: 10,
+            pageList: [10, 20, 30, 50, 100],
+            showFooter: false,
+            checkOnSelect: true,
+            selectOnCheck: true,
+            columns: [
+                [
+                    { field: 'processLogId', title: 'Id', hidden: true },
+                    { field: 'customerTypeName', title: '客户类型', width: 40, align: 'left' },
+                    { field: 'contactName', title: '联系人姓名', width: 70, align: 'left' },
+                    { field: 'sendTo', title: '联系人邮箱', width: 120, align: 'left' },
+                    { field: 'customerName', title: '所属单位', width: 120, align: 'left' },
+                    { field: 'operateDate', title: '发送日期', width: 70, align: 'left', formatter: FormatterUtil.DateTimeSecondFormatter },
+                    { field: 'type', title: '发送状态', width: 40, align: 'left', formatter: processLogTypeFormatter },
+                    { field: 'title', title: '邮件主题', width: 120, align: 'left' },
+                    {
+                        field: 'remark',
+                        title: '邮件内容',
+                        width: 200,
+                        align: 'left',
+                        formatter: function(value) {
+                            return "<span title='" + value + "'>" + value + "</span>";
+                        }
+                    }
+                ]
+            ]
+        });
+
+        $('#txtSearchbox').searchbox({
+            menu: '#divSearchMenu',
+            prompt: '请输入查询值',
+            searcher: searchData
+        });
+    }
+
+    function searchData(value, name) {
+        var processLogType = $("#ProcessLogType").combobox("getValue");
+        var customerType = null;
+        if ($("#CustomerType").length > 0) {
+                customerType = $("#CustomerType").combobox("getValue");
+        }
+        var start = $("#startTime").val();
+        var end = $("#endTime").val();
+        $('#datagridEmailBox').datagrid('load', {
+            "searchKey": name,
+            "searchValue": value,
+            "startTime": start,
+            "endTime": end,
+            "currentContactId": contactId,
+            "processLogType": processLogType,
+            "customerType": customerType
+        });
+    }
+
+    function processLogTypeFormatter(value) {
+        if (value === 0)
+            return "成功";
+        if (value === 1)
+            return "失败";
+    }
+    </script>

@@ -1,0 +1,434 @@
+﻿
+@{
+    ViewData["Title"] = "会员条款";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>会员条款</title>
+    <style type="text/css">
+        .bs-example { margin:0 auto; }
+        #closebutton { width:100%; text-align:center; clear: both; }
+        .spaceheight { width:100%; height:30px; clear:both; }
+        .container { width:100%; border: none;}
+        .bs-example dl.dl-horizontal{*float:left;}
+        .bs-example dl.dl-horizontal dt { float:left; width:160px; text-align:right !important; }
+        .bs-example dl.dl-horizontal dd { width: 70%;margin-left: 180px !important;}
+        .bs-example dl.dl-horizontal.pline { margin-left:50px; }
+        .agreement{margin: 0 30px}
+    </style>
+    <script th:src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.parse.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="mid row agreement">
+            <p style="text-align:center;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:24px;font-family:宋体;color:#333333">会员注册须知</span>
+                </strong>
+            </p>
+            <p style="text-align:right;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#428BCA">版本生效日期：2021年1月1日</span>
+                </strong>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">根据国家有关规定，网上注册认证应当以实名形式，并须遵守国家的相关法律法规。鑫亚科技俱乐部运营商为鑫亚（深圳）企业管理咨询有限公司，其成员企业有：</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">鑫亚（深圳）企业管理咨询有限公司</span>
+                </strong>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">鑫亚（深圳）企业管理咨询有限公司及成员企业以下统称为“鑫亚科技”。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">一、注册认证：</span></strong>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">申请成为鑫亚科技俱乐部会员【下称“会员”、“鑫亚科技会员”】分为以下两个阶段：</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">1</span>
+                </strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">、</span>
+                </strong><span style="font-size:14px;color:#333333">注册：凡是有意向成为鑫亚科技会员的企业、机构、或个人，均可以直接在鑫亚科技官方网站按提示要求完成信息填写，即可完成注册。</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">2</span>
+                </strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">、</span>
+                </strong><span style="font-size:14px;color:#333333">认证：在完成注册后，申请人务必将以下材料上传或提交至鑫亚科技会员中心【下称“会员中心”】办理会员认证：</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">（1）</span>
+                </strong><span style="font-size:14px;color:#333333">个人会员认证，须按系统提示如实填写姓名及公民身份证号码进行实名认证；</span>
+            </p>
+            <p style="text-indent:28px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">（2）</span>
+                </strong><span style="font-size:14px;color:#333333">企业会员和机构会员认证，须按系统提示在以下认证方式中选择一种方式进行认证：1)对公账户认证，须按系统提示如实填写相关企业信息及银行账户信息；2)企业身份认证，须按系统提示如是填写相关企业信息并按要求上传营业执照。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">二、服务内容</span></strong>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">经会员中心审核通过后，申请人即完成认证，正式成为鑫亚科技会员，即可享有如下服务：</span>
+            </p>
+            <p style="margin-left:56px;line-height:24px;background:white">
+                <span style="font-size:14px;color:black">
+                    2.<span style="font:9px 'Times New Roman'">&nbsp; </span>申请开通“鑫亚科技云平台”系统服务；
+                </span>
+            </p>
+            <p style="margin-left:56px;line-height:24px;background:white">
+                <span style="font-size:14px;color:black">
+                    3.<span style="font:9px 'Times New Roman'">&nbsp; </span>申请提供互联网信息技术服务，开通“云ERP”、“云CRM”等系统服务；
+                </span>
+            </p>
+            <p style="margin-left:56px;line-height:24px;background:white">
+                <span style="font-size:14px;color:black">
+                    4.<span style="font:9px 'Times New Roman'">&nbsp; </span>申请开通电子签章服务；
+                </span>
+            </p>
+            <p style="margin-left:56px;line-height:24px;background:white">
+                <span style="font-size:14px;color:black">
+                    5.<span style="font:9px 'Times New Roman'">&nbsp; </span>申请信用评级服务；
+                </span>
+            </p>
+            <p style="margin-left:56px;line-height:24px;background:white">
+                <span style="font-size:14px;color:black">
+                    6.<span style="font:9px 'Times New Roman'">&nbsp; </span>其他增值型服务项目。
+                </span>
+            </p>
+            <p style="line-height:24px">
+                <strong>
+                    <span style="font-size:14px;font-family: 宋体;color:#333333">三、重要提示</span>
+                </strong>
+            </p>
+            <p style="text-indent:32px;line-height:24px">
+                <span style="font-size:14px;color:#333333">申请人应对所提供材料的真实性、合法性、有效性承担责任，否则应承担由此产生的法律责任，本公司对此不承担任何责任。&nbsp;</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px">
+                <span style="font-size:14px;color:#333333">本公司有权将申请人所提供认证的相关材料进行信息备案并予以保存。</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333;background:white">感谢您的大力支持！</span>
+                </strong>
+            </p>
+            <p><br></p>
+            <p><br></p>
+            <p style="margin-left:25px;text-align:center;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:24px;font-family:宋体;color:#333333"></span>
+                </strong>
+            </p>
+            <p style="margin-left:25px;text-align:center;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:24px;font-family:宋体;color:#333333">服务协议</span>
+                </strong>
+            </p>
+            <p style="text-align:right;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#428BCA">版本生效日期：2018年5月25日</span>
+                </strong>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">在以下条款中，"用户"是指向鑫亚（深圳）企业管理咨询有限公司（其主要经营地址： 湖北省&nbsp;武汉市&nbsp;东湖新技术开发区&nbsp;关山二路特一号&nbsp;武汉国际企业中心&nbsp;5幢502号-A258）申请注册并已成为鑫亚科技会员的个人、企业或者机构。</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">申请注册时，在点击“确认”之前，请认真、详细阅读全部内容；当用户点击“确认”后即视为已经阅读、理解并接受全部内容，且同意</span>
+                </strong><span style="font-size:14px;color:#333333">：通过在线注册、确认此电子条款的效力视同于用户亲自签字、盖章的书面条款、具有法律约束力，用户不应以未阅读本协议的内容等理由，主张本协议无效，或要求撤销；若用户不同意注册条款的任意内容，或者无法准确理解条款内容，请不要点击“确认”键进行后续操作。</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">用户进入鑫亚科技会员注册页面并完成全部注册认证程序即意味着用户同意本注册条款约定的全部内容，并成为鑫亚科技的正式用户（鑫亚科技会员）。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第一条</span></strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">&nbsp;&nbsp;</span>
+                </strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">鑫亚科技会员服务简介</span>
+                </strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">&nbsp;&nbsp;用户可向鑫亚科技申请开通“鑫亚科技云平台”、申请提供互联网信息技术、电子签章等服务。</span>
+            </p>
+            <p style="line-height:24px;background:white"><span style="font-size:18px;color:black">&nbsp;</span></p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第二条</span></strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">&nbsp;</span>
+                </strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">用户身份保证</span>
+                </strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">2-1</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户承诺并保证自己是具有完全民事行为能力和完全民事权利能力的自然人、法人、实体和组织。用户在此保证所填写（或上传）的用户信息是真实、准确、完整、有效的，并对做出前述行为已取得相应授权，无任何引人误解或者虚假的陈述。保证鑫亚科技可以通过用户所填写的联系方式与用户取得联系。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">2-2</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户应根据鑫亚科技对于相关服务的要求及时提供相应的如，身份证明、营业执照等资料，否则鑫亚科技有权拒绝向该会员或用户提供相关服务。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">2-3</span></strong><strong>
+                    <span style="font-size: 14px;font-family:宋体;color:#333333">&nbsp;</span>
+                </strong><span style="font-size:14px;color:#333333">用户承诺将及时更新其用户信息以维持该等信息的有效性。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">2-4</span></strong><span style="font-size:14px;color:#333333">&nbsp;如果用户提供的资料或信息包含有不正确、不真实的信息，鑫亚科技保留取消用户会员资格并随时结束为该用户提供服务的权利。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">2-5</span></strong><span style="font-size:14px;color:#333333">&nbsp;以代理人身份代理其他自然人或者企业进行注册用户必须向鑫亚科技提供代理人和被代理人的详细资料和信息及授权书面文件。</span>
+            </p>
+            <p style="line-height:24px;background:white"><span style="font-size:18px;color:black">&nbsp;</span></p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第三条</span></strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">&nbsp;</span>
+                </strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">信息通知</span>
+                </strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">&nbsp;&nbsp;&nbsp;&nbsp;用户充分理解鑫亚科技将通过电子邮件和手机短信的方式与注册会员保持联络及沟通，用户在此同意鑫亚科技通过电子邮件和手机短信方式向其发送包括会员信息、鑫亚科技产品及服务信息在内的相关商业及非商业联络信息。</span>
+            </p>
+            <p style="line-height:24px;background:white"><span style="font-size:18px;color:black">&nbsp;</span></p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第四条</span></strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">&nbsp;</span>
+                </strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">会员身份确认</span>
+                </strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">4-1</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户注册成功后将得到一个用户名和密码，用户凭用户名和密码享受鑫亚科技向其会员用户提供的产品、服务。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">4-2</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户将对用户名和密码安全负全部责任，未经书面告知并经鑫亚科技同意，不得将用户名和密码擅自转让或者授权他人使用，否则用户应承担由此造成的一切后果。用户对以其用户名进行的所有活动和行为负责，用户有权根据鑫亚科技规定的程序修改密码。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">4-3</span></strong><strong>
+                    <span style="font-size: 14px;font-family:宋体;color:#333333">&nbsp;</span>
+                </strong><span style="font-size:14px;color:#333333">用户若发现任何非法使用用户帐号或存在安全漏洞的情况，请立即通知鑫亚科技。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">4-4</span></strong><strong>
+                    <span style="font-size: 14px;font-family:宋体;color:#333333">&nbsp;</span>
+                </strong><span style="font-size:14px;color:#333333">凡属于鑫亚科技下属成员企业的客户，在成功注册成为成员企业会员的同时，自动取得鑫亚科技会员身份，并有权向鑫亚科技任一家或多家成员企业申请相关服务，同时取得在鑫亚科技云平台系统与其他会员间进行交易的资格。</span>
+            </p>
+            <p style="line-height:24px;background:white"><span style="font-size:18px;color:black">&nbsp;</span></p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第五条</span></strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">&nbsp;</span>
+                </strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">服务条款的修改和服务体系修订</span>
+                </strong>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">鑫亚科技有权在必要时修改服务条款，鑫亚科技服务条款一旦发生变动，将会在重要页面上提示修改内容。如果不同意所改动的内容，用户可以主动取消获得的网络服务。如果用户继续享用鑫亚科技网络服务，则视为接受服务条款的变动。鑫亚科技保留随时修改其服务体系和价格而不需通知用户的权利，鑫亚科技修改其服务和价格体系之前用户就具体服务与鑫亚科技达成协议并已按照约定交纳费用的，鑫亚科技将按照已达成的协议执行至已交纳费用的服务期期满。</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <span style="font-size:18px;color:black">&nbsp;</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第六条</span></strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">&nbsp;</span>
+                </strong><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">用户的权利和义务</span>
+                </strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">6-1</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户有权获得鑫亚科技会员俱乐部的会员资格并取得用户名和密码，并有权利使用该用户名和密码随时登录鑫亚科技网站的会员专区获得会员服务。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">6-2</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户有权向鑫亚科技申请提供开通“鑫亚科技云平台”、电子签章、互联网技术和信息服务等项目服务，并有权利在接受鑫亚科技提供的服务时获得鑫亚科技的技术支持、咨询等服务（服务内容详见鑫亚科技相关产品介绍）。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">6-3</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户保证不会利用技术或其他手段破坏及扰乱鑫亚科技网站以及鑫亚科技其他客户的网站。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">6-4</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户应尊重鑫亚科技及其他第三方的知识产权和其他合法权利，并保证在发生上述事件时尽力保护鑫亚科技及其雇员、合作伙伴等免于因该等事件受到影响或损失；鑫亚科技保留用户侵犯鑫亚科技知识产权时终止向该用户提供服务、不退还任何款项的权利，并追究相应法律责任。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">6-5</span></strong><span style="font-size:14px;color:#333333">&nbsp;对由于用户向鑫亚科技提供的联络方式有误以及用户用于接受鑫亚科技邮件的电子邮箱安全性、稳定性不佳而导致的一切后果，用户应自行承担责任，包括但不限于因用户未能及时收到鑫亚科技的相关通知而导致的后果和损失。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">6-6</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户保证其使用鑫亚科技服务时将遵从国家、地方法律法规、行业惯例和社会公共道德，不会利用鑫亚科技所提供的服务进行存储、发布、传播如下信息和内容：违反国家法律法规政策的任何内容（信息）；违反国家规定的政治宣传和/或新闻信息；涉及国家秘密和/或安全的信息；封建迷信和/或淫秽、色情、下流的信息或教唆犯罪的信息；博彩有奖、赌博游戏；违反国家民族和宗教政策的信息；防碍互联网运行安全的信息；侵害他人合法权益的信息和/或其他有损于社会秩序、社会治安、公共道德的信息或内容。用户同时承诺不得为他人发布上述不符合国家规定和/或本服务条款约定的信息内容提供任何便利，包括但不限于设置URL、BANNER链接等。用户承认鑫亚科技有权在用户违反上述时有权终止向用户提供服务并不予退还任何款项，因用户上述行为给鑫亚科技造成损失的，用户应予赔偿。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">6-7</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户不得在平台得违规出售国家法律法规禁止出售、限制出售，或根据鑫亚科技云平台管理要求禁止出售或限制出售的商品。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">6-8</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户不得在鑫亚科技云平台商品页面（包括但不限于商品标题、商品描述、商品图片），店铺页面（包括但不限于店铺命名，店铺分类，店铺介绍，店铺公告，店铺留言），以及社区和论坛等信息发布区块发布禁售、限售商品相关信息。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">6-9</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户不得通过任何方式规避本规范及其他鑫亚科技云平台禁售、限售商品管理措施。商家发布前述禁售、限售商品及信息时，鑫亚科技云平台有权对其发布的涉嫌违规信息进行提示、替换、拦截等操作。&nbsp;</span>
+            </p>
+            <p style="line-height:24px;background:white"><span style="font-size:14px;color:red">&nbsp;</span></p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第七条&nbsp; 鑫亚科技的权利和义务</span></strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">7-1</span></strong><span style="font-size:14px;color:#333333">
+                    &nbsp;鑫亚科技应根据用户选择的服务项目以及费用支付的情况向用户提供产品服务。
+                </span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">7-2&nbsp;</span></strong><span style="font-size:14px;color:#333333">鑫亚科技承诺对用户资料采取对外保密措施，不向第三方披露用户资料，不授权第三方使用用户资料，除非：</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">7-2-1&nbsp;</span>
+                </strong><span style="font-size:14px;color:#333333">依据本协议条款或者用户与鑫亚科技之间其他服务协议、合同、在线条款等规定可以提供；</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">7-2-2&nbsp;</span>
+                </strong><span style="font-size:14px;color:#333333">依据法律法规的规定应当提供；</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">7-2-3&nbsp;</span>
+                </strong><span style="font-size:14px;color:#333333">行政、司法等有权部门要求鑫亚科技提供；</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">7-2-4</span>
+                </strong><span style="font-size:14px;color:#333333">&nbsp;用户同意鑫亚科技向第三方提供；</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">7-2-5</span>
+                </strong><span style="font-size:14px;color:#333333">&nbsp;鑫亚科技解决举报事件、提起诉讼而提交的；</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">7-2-6</span>
+                </strong><span style="font-size:14px;color:#333333">&nbsp;鑫亚科技为防止严重违法行为或涉嫌犯罪行为发生而采取必要合理行动所必须提交的；</span>
+            </p>
+            <p style="text-indent:32px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">7-2-7&nbsp;</span>
+                </strong><span style="font-size:14px;color:#333333">鑫亚科技为向用户提供产品、服务、信息而向第三方提供的，包括鑫亚科技通过第三方的技术及服务向用户提供产品、服务、信息的情况。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">7-3</span></strong><span style="font-size:14px;color:#333333">&nbsp;鑫亚科技有权使用用户资料，该等使用仅为旨在提升鑫亚科技俱乐部会员服务质量，评定会员信用等级、增强会员间交易互信以创建以诚信为基础的安全交易环境为目的之用。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">7-4</span></strong><span style="font-size:14px;color:#333333">&nbsp;鑫亚科技有权对用户进行审查并决定是否接受用户成为鑫亚科技会员或是否与用户进行交易。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">7-5</span></strong><span style="font-size:14px;color:#333333">&nbsp;鑫亚科技保留在用户违反国家、地方法律法规规定或违反本在线注册条款的情况下终止为用户提供服务并终止用户帐号的权利，并且在任何情况下，鑫亚科技对任何间接、偶然、特殊及继起的损害不负责任。</span>
+            </p>
+            <p style="line-height:24px;background:white"><span style="font-size:18px;color:black">&nbsp;</span></p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第八条&nbsp;服务的终止</span></strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">8-1</span></strong><span style="font-size:14px;color:#333333">&nbsp;用户有权随时申请终止其会员资格或其在鑫亚科技申请的一项或多项服务，但已交纳款项不得要求退还。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">8-2</span></strong><span style="font-size:14px;color:#333333">&nbsp;鑫亚科技有权根据实际情况决定取消为用户提供的一项或多项服务，但应退还用户为该服务所交纳款项的剩余部分，除此之外鑫亚科技不承担任何责任。</span>
+            </p>
+            <p style="line-height:24px;background:white"><span style="font-size:18px;color:black">&nbsp;</span></p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第九条&nbsp;关于授权的特别约定</span></strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">9-1&nbsp;&nbsp;</span></strong><span style="font-size:14px;color:#333333">投资用户在认真阅读本注册条款并自愿完成注册的同时特向鑫亚科技授权如下：</span>
+            </p>
+            <p style="text-indent:28px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">9-1-1</span>
+                </strong><span style="font-size:14px;color:#333333">授权鑫亚科技成员企业：鑫亚科技互联网金融（深圳）有限公司代为签署与投资相关的各类文件，包括线下需要投资用户书面签署的投（融）资协议（合同）等文件。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">9-2&nbsp;</span></strong><span style="font-size:14px;color:#333333">&nbsp;企业用户在认真阅读本注册条款并自愿完成注册的同时同意并授权鑫亚科技：</span>
+            </p>
+            <p style="text-indent:28px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">9-2-1</span>
+                </strong><span style="font-size:14px;color:#333333">同意接受鑫亚科技为创建并保障安全、诚信交易环境，基于前述7-3对企业用户（会员）的信用状况予以评级（注：该信用评级也可由企业用户主动申请）。</span>
+            </p>
+            <p style="text-indent:28px;line-height:24px;background:white">
+                <strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">9-2-2</span>
+                </strong><strong>
+                    <span style="font-size: 14px;font-family:宋体;color:#333333">&nbsp;</span>
+                </strong><span style="font-size:14px;color:#333333">授权鑫亚科技为完成信用评级使用该企业用户所提交的相关资料。</span>
+            </p>
+            <p style="text-indent:28px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">授权鑫亚科技为完成信用评级通过公开渠道或其他合法方式从第三方处取得并使用关于该企业用户的相关资料。</span>
+            </p>
+            <p style="margin-left:48px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">&nbsp;</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第十条</span></strong><span style="font-size:14px;color:#333333">&nbsp;</span><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">争议解决及法律适用</span>
+                </strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">10-1</span></strong><span style="font-size:14px;color:#333333">&nbsp;因本服务条款有关的一切争议，各方当事人应通过友好协商方式解决。如果协商未成，同意向鑫亚科技经营地的人民法院起诉。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">10-2</span></strong><span style="font-size:14px;color:#333333">&nbsp;本注册条款的效力、解释、履行和争议的解决均适用中华人民共和国法律法规和计算机、互联网行业的规范。</span>
+            </p>
+            <p style="line-height:24px;background:white"><span style="font-size:18px;color:black">&nbsp;</span></p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第十一条</span></strong><span style="font-size:14px;color:#333333">&nbsp;</span><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">不可抗力</span>
+                </strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">11-1&nbsp;</span></strong><span style="font-size:14px;color:#333333">因不可抗力或者其他意外事件，使得本协议履行不可能、不必要或者无意义的，遭受不可抗力、意外事件的一方不承担责任。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">11-2</span></strong><span style="font-size:14px;color:#333333">&nbsp;不可抗力、意外事件是指不能预见、不能克服并不能避免且对一方或双方当事人造成重大影响的客观事件，包括但不限于自然灾害如洪水、地震、瘟疫流行和风暴等以及社会事件如战争、动乱、政府行为等。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">11-3&nbsp;</span></strong><span style="font-size:14px;color:#333333">用户同意鉴于互联网的特殊性，黑客攻击、互联网连通中断或者系统故障等属于不可抗力，由此给用户或者第三方造成的损失无需承担责任。</span>
+            </p>
+            <p style="line-height:24px;background:white"><span style="font-size:18px;color:black">&nbsp;</span></p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size: 14px;font-family:宋体;color:#333333">第十二条</span></strong><span style="font-size:14px;color:#333333">&nbsp;</span><strong>
+                    <span style="font-size:14px;font-family:宋体;color:#333333">附则</span>
+                </strong>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">12-1&nbsp;</span></strong><span style="font-size:14px;color:#333333">本注册条款中有关条款若被权威机构认定为无效，不应影响其他条款的效力，也不影响本服务条款的解释、违约责任及争议解决的有关约定的效力。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">12-2&nbsp;</span></strong><span style="font-size:14px;color:#333333">一方变更通知、通讯地址或其他联系方式，应自变更之日起及时将变更后的地址、联系方式通知另一方，否则变更方应对此造成的一切后果承担责任。用户同意，鑫亚科技的有关通知只需在鑫亚科技有关网页上发布即视为送达用户。</span>
+            </p>
+            <p style="line-height:24px;background:white">
+                <strong><span style="font-size:14px;font-family:宋体;color:#333333">12-3&nbsp;</span></strong><span style="font-size:14px;color:#333333">因鑫亚科技上市、被收购、与第三方合并、名称变更等事由，用户同意鑫亚科技可以将其权利和/或义务转让给相应的鑫亚科技权利/义务的承受者。</span>
+            </p>
+            <p style="margin-left:48px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">&nbsp;&nbsp;</span>
+            </p>
+            <p style="text-indent:28px;line-height:24px;background:white">
+                <span style="font-size:14px;color:#333333">用户在此保证已经完全阅读并理解了上述会员注册条款并自愿正式进入鑫亚科技会员在线注册程序，接受上述所有条款的约束。</span>
+            </p>
+            <p style="margin-left: 25px; text-align: center; line-height: 24px; background: white;">
+                <span style="font-size:14px;color:#333333"></span><br>
+            </p>
+
+        </div>
+        <div style="width: 100%;text-align:center;margin-bottom: 20px;">
+            <input type="button" value="同意协议" class="register" onclick="parent.agreeAgreement()"
+                   style="background: #ff4444;border: none;color: white;padding: 12px 28px;font-size: 16px;margin-top: 12px;cursor: pointer;">
+        </div>
+
+    </div>
+    <script>
+        uParse('.agreement');
+    </script>
+</body>
+</html>

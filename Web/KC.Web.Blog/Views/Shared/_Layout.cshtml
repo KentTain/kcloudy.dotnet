@@ -1,0 +1,238 @@
+﻿@using KC.Framework.Base
+@using KC.Web.Config.Models
+
+@{
+    var btnStyles = new string[] {"btn btn-default btn-xs", "btn btn-primary btn-xs",
+            "btn btn-success btn-xs", "btn btn-default btn-xs", "btn btn-info btn-xs", "btn btn-warning btn-xs", "btn btn-default btn-xs", "btn btn-danger btn-xs" };
+    var colorIndex = 0;
+    var tenant = ViewBag.UserTenantName ?? ViewBag.TenantName ?? "cdba";
+    var accDomain = KC.Framework.Base.GlobalConfig.GetTenantWebDomain(KC.Framework.Base.GlobalConfig.AccWebDomain, tenant);
+}
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        @if (ViewBag.LayoutModel != null)
+        {
+            @ViewBag.LayoutModel.Title;
+        } - KC.Web.Blog
+    </title>
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/bootstrap/dist/css/bootstrap-theme.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+    <style>
+        .container.footer{padding: 30px 0;line-height: 30px;color: #fff;}
+        .container .blog-footer .contact-top a{color:#fff;float:left;}
+        .container .blog-footer .contact-bottom a{color:#fff;float:left;}
+    </style>
+    @RenderSection("styles", required: false)
+</head>
+<body style="margin:0px;">
+    <partial name="_CookieConsentPartial" />
+    <div class="navbar navbar-inverse navbar-fixed-left" slot="site-header">
+        <div class="container" id="siteHeader">
+            <div class="navbar-header">
+                <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" style="color:white;padding:4px;" href="http://www.kcloudy.com">
+                    <img src="/images/logo-icon.png" style="float:left;height:42px;" />
+                </a>
+            </div>
+            <div class="navbar-collapse collapse" role="navigation">
+                <ul class="nav navbar-nav">
+                    @if (ViewBag.LayoutModel != null)
+                    {
+                        @foreach (var blog in ViewBag.LayoutModel.Categories as List<EFKeyValuePair<int, string>>)
+                        {
+                            <li><a href="javascript:void(0)" onclick="searchBlog(1, 10, @blog.Key)">@blog.Value</a></li>
+                        }
+                    }
+                    <li>
+                        <div class="form-group form-inline form-group-sm" style="padding-top:10px;margin-bottom:0px;margin-left:20px;">
+                            <label for="inputPassword2" class="sr-only">Password</label>
+                            <input id="txtSearch" type="text" onkeypress="if (event.keyCode == 13) { blogSearch();}" class="form-control" placeholder="查询">
+                            <a href="javascript:void(0)" onclick="blogSearch()"><img src="/images/search.png" style="width:16px;" /></a>
+                        </div>
+
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+
+                    </li>
+                    <li><a href="@(accDomain)">管理</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container bs-docs-container" style="min-height: 80%;">
+        <div class="row">
+            <div class="col-md-8" role="main">
+                @RenderBody()
+            </div>
+            <div class="col-md-4 leftPack">
+                <h4>关于</h4>
+                <div slot="about">
+                    <div id="aboutInfo">
+                        @Html.Raw(ViewBag.LayoutModel.AboutMe)
+                    </div>
+                </div>
+                @*<h4>系统资源</h4>
+                    <div slot="system_info">
+                        <div id="serverInfo">
+                            <div class="panel-body" style="height:60px;padding:1px;">
+                                <canvas width="400" height="70" id="cpuCanavas" style="width:100%;height:100%;"></canvas>
+                            </div>
+
+                            <div class="panel-body" style="height:60px;padding:1px;">
+                                <canvas width="400" height="70" id="requestCanvas" style="width:100%;height:100%;"></canvas>
+                            </div>
+                            <div class="panel-body" style="height:60px;padding:1px;">
+                                <canvas width="400" height="70" id="networkCanvas" style="width:100%;height:100%;"></canvas>
+                            </div>
+                            <script>
+                                var cpuMonitor;
+                                var cpu;
+                                var requestMonitor;
+                                var request;
+                                var networkMonitor;
+                                var netInput;
+                                var netOutput;
+                                var serverInfoControl;
+                                serverInfoControl = new Vue({
+                                    el: '#serverInfo',
+                                    data: {
+                                        Data: {}
+                                    }
+                                });
+                                function GetServerInfo() {
+                                    SiteGetServerInfo().execute(function (result) {
+                                        serverInfoControl.Data = result.Data;
+                                        cpu.push(result.Data.Cpu);
+                                        cpuMonitor.draw();
+                                        request.push(result.Data.RequestPer);
+                                        requestMonitor.draw();
+                                        netInput.push(result.Data.ReceiveBytesPer);
+                                        netOutput.push(result.Data.SendBytesPer);
+                                        networkMonitor.draw();
+                                    });
+                                }
+                                cpuMonitor = new Monitor('cpuCanavas');
+                                cpu = cpuMonitor.create();
+                                cpu.label = "Cpu";
+                                requestMonitor = new Monitor('requestCanvas');
+                                request = requestMonitor.create();
+                                request.maxValue = 5000;
+                                request.changeMaxValue = true;
+                                request.label = "Request";
+                                networkMonitor = new Monitor('networkCanvas');
+                                netInput = networkMonitor.create();
+                                netInput.maxValue = 10;
+                                netInput.label = "Network Input(MB)";
+                                netOutput = networkMonitor.create();
+                                netOutput.maxValue = 10;
+                                netOutput.label = "Network Output(MB)";
+                                GetServerInfo();
+                                setInterval(function () { GetServerInfo(); }, 1000);
+                            </script>
+                        </div>
+                    </div>*@
+                <h4>热门标签</h4>
+                <div slot="tags">
+                    <div id="lstTags">
+                        @if (ViewBag.LayoutModel != null)
+                        {
+                            @foreach (var tag in ViewBag.LayoutModel.Tags as List<string>)
+                            {
+                                colorIndex++;
+                                var color = HomeViewModel.GetColor(colorIndex);
+                                <a href="javascript:void(0)" onclick="searchBlog(1, 10, 0, '@tag')" class="@color">@tag</a>
+                            }
+                            @*<a href="/tags.html">更多标签...</a>*@
+                        }
+                    </div>
+                </div>
+                <h4>置顶</h4>
+                <div slot="topBlog">
+                    <ul id="lstTopBlog">
+                        @if (ViewBag.LayoutModel != null)
+                        {
+                            @foreach (var blog in ViewBag.LayoutModel.TopBlogs as List<EFKeyValuePair<int, string>>)
+                            {
+                                <li><a href="/Home/BlogDetail?id=@blog.Key">@blog.Value</a></li>
+                            }
+                        }
+                    </ul>
+                </div>
+                <h4>最新文章</h4>
+                <div slot="newBlog">
+                    <ul id="lstNewBlog">
+                        @if (ViewBag.LayoutModel != null)
+                        {
+                            @foreach (var blog in ViewBag.LayoutModel.NewBlogs as List<EFKeyValuePair<int, string>>)
+                            {
+                                <li><a href="/Home/BlogDetail?id=@blog.Key">@blog.Value</a></li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="background-color:#35a8ff" slot="footer">
+        <div class="container footer" style="">
+            <div class="blog-footer">
+                <div class="col-sm-12">
+                    <img src="/images/logo-icon.png" height="37" style="float:left;margin-bottom:20px;">
+                </div>
+                <div class="col-sm-6">
+                    <p class="contact-top">
+                        <i class="layui-icon layui-icon-time"></i>&nbsp;&nbsp;工作时间&nbsp;&nbsp;&nbsp;&nbsp;周一到周五&nbsp;&nbsp;&nbsp;&nbsp;9:00-17:30
+                    </p>
+
+                    <p class="contact-bottom">
+                        <i class="layui-icon layui-icon-location"></i>&nbsp;
+                        <a href="https://j.map.baidu.com/a1/q51" target="_blank">广东省&nbsp;深圳市&nbsp;龙华区&nbsp;观湖街道&nbsp;新源社区&nbsp;腾龙工业区120号201号</a>
+                    </p>
+                </div>
+                <div class="col-sm-6">
+                    <p class="contact-top">
+                        <span class="right">
+                            <i class="layui-icon layui-icon-cellphone"></i>&nbsp;&nbsp;17744949695&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <i class="layui-icon layui-icon-email"></i>&nbsp;&nbsp;<a href="mailto:kcloudy@163.com">kcloudy@163.com</a>
+                        </span>
+                    </p>
+                    <p class="contact-bottom">
+                        <span class="right">
+                            <a href="https://beian.miit.gov.cn/" target="_blank"><span style="font-size: 16px;">©</span>&nbsp;2020&nbsp;鑫亚（深圳）企业管理咨询有限公司&nbsp;版权所有&nbsp;| 粤ICP备2021043258号</a>
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery/dist/jquery_goup.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/showdown/dist/showdown.js"></script>
+    <script src="~/js/highlight_min.js"></script>
+    <script src="~/js/highlight_pack.js"></script>
+
+    <script>
+        function blogSearch() {
+            var title = $("#txtSearch").val();
+            searchBlog(1, 10, 0, null, title);
+        }
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

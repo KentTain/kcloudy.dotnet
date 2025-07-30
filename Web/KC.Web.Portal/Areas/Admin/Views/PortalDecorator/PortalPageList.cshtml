@@ -1,0 +1,297 @@
+﻿@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "门户页面";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--门户页面-新增/编辑门户页面-->
+    var canOpenPage = (await AuthorizationService.AuthorizeAsync(User, "BDE216C1-5714-41A4-8F05-81C917A28681")).Succeeded;
+    <!--门户页面-删除门户页面-->
+    var canRemove = (await AuthorizationService.AuthorizeAsync(User, "EBCB8106-709A-416F-A95C-0E955C9F1156")).Succeeded;
+    <!--门户页面-启用/禁止门户页面-->
+    var canAudit = (await AuthorizationService.AuthorizeAsync(User, "8DB139EF-2CAB-4737-843F-108111728A1B")).Succeeded;
+
+    <!--门户页面-删除门户页面栏目-->
+    var canRemoveColumn = (await AuthorizationService.AuthorizeAsync(User, "D6FCEAEE-9954-4B40-B395-A480BCC7A9F0")).Succeeded;
+    <!--门户页面-启用/禁止门户页面栏目-->
+    var canAuditColumn = (await AuthorizationService.AuthorizeAsync(User, "FF8CD68F-238B-42B8-B67E-99C6894E8466")).Succeeded;
+}
+
+<div id="toolbar">
+    <div>
+        <!--门户页面-新增/编辑门户页面-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "BDE216C1-5714-41A4-8F05-81C917A28681")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addPage()">添加</a>
+        }
+    </div>
+
+    <div>
+        <input id="txtSkinName" class="easyui-textbox" data-options="prompt:'请输入皮肤名称'" style="width: 160px; height: 26px;" />
+        <input id="txtName" class="easyui-textbox" data-options="prompt:'请输入推荐栏目名称'" style="width: 160px; height: 26px;" />
+        <a href="javascript:void(0)" onclick="searchData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+        const canOpenPage = ('@canOpenPage' === 'True');
+        const canRemove =  ('@canRemove' === 'True');
+        const canAudit = ('@canAudit' === 'True');
+
+        const canRemoveColumn =  ('@canRemoveColumn' === 'True');
+        const canAuditColumn = ('@canAuditColumn' === 'True');
+        $(function() {
+            IniDataGrid();
+        });
+
+        let refreshData = function () {
+            $("#txtName").textbox('setValue', '');
+            $('#txtSkinName').textbox("setValue", '');
+            searchData();
+        }
+        let searchData = function () {
+            $('#datagrid').datagrid('unselectAll');
+            $("#datagrid").datagrid("load", {
+                name: $("#txtName").textbox("getValue"),
+                skinName: $('#txtSkinName').textbox("getValue"),
+            });
+        }
+
+        const loadDataUrl = '@Url.Action(ActionName.PortalDecorator.LoadWebSitePageList, ControllerName.PortalDecorator)';
+        const loadSubDataUrl = '@Url.Action(ActionName.PortalDecorator.LoadWebSiteColumnList, ControllerName.PortalDecorator)';
+        let IniDataGrid = function () {
+            var $dataGrid = $('#datagrid').datagrid({
+                view: detailview,
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: "#toolbar",
+                queryParams: {
+                    name: '',
+                    skinName: '',
+                },
+                fit: true,
+                fitColumns: true,
+                nowrap: false,
+                striped: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [[
+                    { field: 'skinCode', title: '归属皮肤', width: 100, align: 'left', hidden: true },
+                    { field: 'skinName', title: '归属皮肤', width: 100, align: 'left' },
+                    { field: 'name', title: '页面名称', width: 120, align: 'left' },
+                    { field: 'introduction', title: '页面介绍', width: 180, align: 'left' },
+                    { field: 'isEnable', title: '是否置顶', width: 50, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    { field: 'index', title: '排序', width: 30, align: 'left'},
+                    {
+                        field: 'operator', title: '操作', width: 120, align: 'center',
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            let canEdit = row.canEdit;
+                            let isEnable = row.isEnable;
+                            //debugger;
+                            let tdContext = '';
+                            if (canOpenPage && canEdit) {
+                                tdContext += '<a class="btnEdit" style="cursor:pointer" onclick="editPage(\'' + id + '\')" >编辑</a>';
+                            }
+                            if (canAudit) {
+                                if (isEnable)
+                                    tdContext += '<a class="btnCancel" style="cursor:pointer" onclick="auditPage(\'' + id + '\', false)" >禁用</a>';
+                                else
+                                    tdContext += '<a class="btnSubmit" style="cursor:pointer" onclick="auditPage(\'' + id + '\', true)" >启用</a>';
+                            }
+                            if (canRemove && !isEnable && canEdit) {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer" onclick="removePage(\'' + id + '\')" >删除</a>';
+                            }
+
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function (data) {
+                    $dataGrid.datagrid('unselectAll');
+                    $dataGrid.datagrid('clearSelections');
+                    $dataGrid.datagrid("fixRowHeight");
+                    CommonUtil.buttonStyle();
+                },
+                onLoadError: function(data) {
+                },
+                detailFormatter: function (index, row) {
+                    return '<table id="expdatagrid-' + index + '"></table>';
+                },
+                onExpandRow: function (index, row) {
+                    $expdb = $('#expdatagrid-' + index);
+                    $expdb.datagrid({
+                        url: loadSubDataUrl,
+                        idField: 'id',
+                        queryParams: {
+                            PageId: row.id
+                        },
+                        fitColumns: true,
+                        striped: true,
+                        nowrap: false,
+                        rowNumbers: true,
+                        singleSelect: true,
+                        autoRowHeight: true,
+                        columns: [[
+                            { field: 'title', title: '栏目标题', width: 100, align: 'left',
+                                formatter: function (value, row, index) {
+                                    if (value) return value;
+                                    return '<span style="color:red">未设置栏目标题<span>';
+                                }
+                            },
+                            { field: 'subTitle', title: '栏目副标题', width: 320, align: 'left' },
+                            { field: 'typeString', title: '栏目类型', width: 50, align: 'left' },
+                            { field: 'rowCount', title: '行数', width: 30, align: 'left', hidden:true },
+                            { field: 'columnCount', title: '项目数', width: 30, align: 'left' },
+                            { field: 'isShow', title: '是否展示', width: 40, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                            {
+                                field: 'operator', title: '操作', width: 100, align: 'center',
+                                formatter: function (value, row, index) {
+                                    let id = row.id;
+                                    let canEdit = row.canEdit;
+                                    let isShow = row.isShow;
+                                    //debugger;
+                                    let tdContext = '';
+                                    if (canOpenPage && !isShow) {
+                                        tdContext += '<a class="btnSubmit" style="cursor:pointer" onclick="auditColumn(\'' + id + '\', true)" >展示</a>';
+                                    }
+                                    if (canAuditColumn && isShow) {
+                                        tdContext += '<a class="btnCancel" style="cursor:pointer" onclick="auditColumn(\'' + id + '\', false)" >隐藏</a>';
+                                    }
+                                    if (canRemoveColumn && canEdit) {
+                                        tdContext += '<a class="btnDelete" style="cursor:pointer" onclick="removeColumn(\'' + id + '\')" >删除</a>';
+                                    }
+
+                                    return tdContext;
+                                }
+                            }
+                        ]],
+                        onLoadSuccess: function (data) {
+                            $dataGrid.datagrid("fixDetailRowHeight", index);
+                            CommonUtil.buttonStyle();
+                        },
+                    });
+                },
+                onCollapseRow: function (index, row) {
+
+                }
+            });
+        }
+
+        let addPage = function () {
+            openPage(0);
+        }
+        let editPage = function (id) {
+            openPage(id);
+        }
+
+        const getFormUrl = '@Url.Action(ActionName.PortalDecorator.GetWebSitePageForm, ControllerName.PortalDecorator)';
+        let openPage = function (id) {
+            var queryString = "id=" + id;
+            MainPage_PostMessage("openSubPage", getFormUrl, queryString);
+        }
+
+        const auditUrl = '@Url.Action(ActionName.PortalDecorator.ChangeWebSitePageStatus, ControllerName.PortalDecorator)';
+        let auditPage = function (id, isApprove) {
+            $.messager.confirm('确认', '是否确定审核该推荐商品相关记录?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(auditUrl, { id: id, isApprove: isApprove }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '推荐商品审核已成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '推荐商品审核失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+        const removeUrl = '@Url.Action(ActionName.PortalDecorator.RemoveWebSitePage, ControllerName.PortalDecorator)';
+        let removePage = function (id) {
+            $.messager.confirm('确认', '是否确定删除该门户页面相关记录?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '门户页面及相关属性已成功移除。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '门户页面及相关属性已成功移除失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+
+        const auditColumnUrl = '@Url.Action(ActionName.PortalDecorator.ChangeWebSiteColumnStatus, ControllerName.PortalDecorator)';
+        let auditColumn = function (id, isApprove) {
+            $.messager.confirm('确认', '是否确定显示/隐藏该元素组?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(auditColumnUrl, { id: id, isApprove: isApprove }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '保存数据已成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+        const removeColumnUrl = '@Url.Action(ActionName.PortalDecorator.RemoveWebSiteColumn, ControllerName.PortalDecorator)';
+        let removeColumn = function (id) {
+            $.messager.confirm('确认', '是否确定删除该元素组相关记录?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeColumnUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '门户元素组已成功移除。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '门户元素组移除失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+    </script>
+}
+

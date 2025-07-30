@@ -1,0 +1,95 @@
+﻿@using KC.Web.Admin.Constants
+@model KC.Service.DTO.Admin.DatabasePoolDTO
+
+@{
+    Layout = null;
+}
+
+@using (Html.BeginForm(ActionName.DatabasePool.SaveDatabasePoolForm, ControllerName.DatabasePool, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.DatabasePoolId)
+    @Html.HiddenFor(model => model.TenantCount)
+    @Html.HiddenFor(model => model.CanEdit)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            @if (Model.IsEditMode)
+            {
+                <tr>
+                    <td><label class="required">*</label><label for="CloudType">云服务：</label></td>
+                    <td>
+                        <select id="CloudType" name="CloudType" class="easyui-combobox"
+                                data-options="width:220,editable: false, required:true,"
+                                asp-items="ViewBag.CloudTypeList" panelHeight="auto"></select>
+                    </td>
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td><label class="required">*</label><label for="StoragePoolId">云服务：</label></td>
+                    <td>
+                        <select id="CloudType" name="CloudType" class="easyui-combobox"
+                                data-options="width:220,editable: false, "
+                                asp-items="ViewBag.CloudTypeList" panelHeight="auto"></select>
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td><label class="required">*</label><label for="DatabaseType">类型：</label></td>
+                <td>
+                    <select id="DatabaseType" name="DatabaseType" class="easyui-combobox"
+                            data-options="width:220,editable: false, required:true,"
+                            asp-items="ViewBag.DatabaseTypeList" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Server">服务器：</label></td>
+                <td><input id="Server" name="Server" class="easyui-validatebox easyui-textbox" data-options="required:true,width:220" value="@Model.Server" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Database">数据库：</label></td>
+                <td><input id="Database" name="Database" class="easyui-validatebox easyui-textbox" data-options="required:true,width:220" value="@Model.Database" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="UserName">用户名：</label></td>
+                <td><input id="UserName" name="UserName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:220" value="@Model.UserName" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="UserPassword">用户密码：</label></td>
+                <td>
+                    <input id="UserPassword" name="UserPassword" class="easyui-validatebox easyui-textbox" data-options="width:220,validType:'length[3,40]'" value="@Model.UserPassword" />
+                </td>
+            </tr>
+            <tr>
+                <td><a id="btnGeneratePwd" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus-square" plain="true" onclick="generatePasswordHash()">生成加密密码</a></td>
+                <td><input id="UserPasswordHash" readonly="readonly" name="UserPasswordHash" class="easyui-validatebox easyui-textbox" data-options="required:true,multiline:true,width:220,height:60,validType:'length[3,500]'" value="@Model.UserPasswordHash" /></td>
+            </tr>
+            <tr>
+                <td><label for="PasswordExpiredTime">密码过期时间：</label></td>
+                <td><input id="PasswordExpiredTime" name="PasswordExpiredTime" type="text" class="easyui-datebox easyui-textbox" data-options="required:false,width:220,height:26,validType:'date',novalidate:true" value="@Model.PasswordExpiredTime" /></td>
+            </tr>
+            <tr>
+                <td colspan="2"><a id="btnTestConnect" href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-link" plain="true" onclick="testConnection()">测试连接</a></td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+<script type="text/javascript">
+    $("#DatabaseType").combobox({
+        required: true,
+        editable: false
+    })
+    $("#CloudType").combobox({
+        required: true,
+        editable: false
+    })
+</script>

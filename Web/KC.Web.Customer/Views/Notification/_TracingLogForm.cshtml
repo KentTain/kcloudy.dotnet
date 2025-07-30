@@ -1,0 +1,34 @@
+﻿@using KC.Enums.CRM
+@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@using KC.Web.Util
+
+@model KC.Service.DTO.Customer.CustomerTracingLogDTO
+@{
+    ViewBag.Title = "";
+}
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveTracinglogForm" action="@Url.Action(ActionName.Notification.SaveCustomerTracingLog, ControllerName.Notification)">
+    @Html.AntiForgeryToken()
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label>联系人姓名：</label></td>
+                <td>
+                    @Html.HiddenFor(o => o.CustomerContactId)
+                    @Html.TextBoxFor(o => o.ContactName, new { @class = "easyui-textbox", data_options = "required:true", style = "width: 560px; height: 26px;", @readonly = "readonly" })
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label>沟通方式：</label></td>
+                <td>
+                    @Html.DropDownList("TracingType", (IEnumerable<SelectListItem>)ViewBag.TracingTypeList, new { @class = "easyui-combobox", @style = "width: 560px; height: 26px;", @disabled = true })
+                    <input id="TracingType" name="TracingType" type="hidden" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label>沟通日志：</label></td>
+                <td><textarea id="Remark" name="Remark" style="height: 250px; width: 560px">@(null != Model ? Model.Remark : "")</textarea></td>
+            </tr>
+        </tbody>
+    </table>
+</form>

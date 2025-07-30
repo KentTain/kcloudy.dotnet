@@ -1,0 +1,52 @@
+﻿@using KC.Enums.CRM
+@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@using KC.Web.Util
+
+@model List<KC.Service.DTO.Customer.CustomerInfoDTO>
+
+@section scripts{
+}
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform" action="@Url.Action(ActionName.Notification.SendNotification, ControllerName.Notification)">
+    @Html.AntiForgeryToken()
+    @for (int i = 0, len = Model.Count; i < len; i++)
+    {
+        @*<input type="hidden" name="emails[@i]" value="@Model[i].ContactEmail" />
+        <input type="hidden" name="phoneNos[@i]" value="@Model[i].ContactPhoneNumber" />*@
+    }
+    <table>
+        <tbody>
+            <tr>
+                <td colspan="4">
+                    <table class="dialog-form-table" id="datagridF" name="datagridF" data-options=" iconCls: 'icon-standard-text-list-bullets'"></table>
+                </td>
+            </tr>
+            <tr id="tr_Subject">
+                <td id="td_Title" style="display: none">
+                    <label class="required">*</label>
+                    <label for="Subject">邮件标题：</label>
+                </td>
+                <td id="td_Subject" style="display: none">
+                    @*<input id="Subject" name="Subject" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[2,50]'" />@(null != Model ? Model.Select(m => m.Subject).FirstOrDefault() : string.Empty)*@
+                </td>
+                <td id="td_cc" style="display: none">
+                    <input id="btn_openFormCC" value="抄送" type="button" />
+                </td>
+
+                <td id="td_Contact">
+                    @*<input id="btn_openFormAddContact" value="添加联系人" type="button" />*@
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label class="required">*</label>
+                    <label id="lb_SMSContent" for="Contents" style="display: none">短信内容：</label>
+                    <label id="lb_EmailContent" for="Contents" style="display: none">邮件内容：</label>
+                </td>
+                <td colspan="3">
+                    @*<textarea id="Contents" name="Contents" data-options="multiline:true,required:true" style="height: 160px;width: 580px">@(null != Model ? Model.Select(m => m.Contents).FirstOrDefault() : string.Empty)</textarea>*@
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>

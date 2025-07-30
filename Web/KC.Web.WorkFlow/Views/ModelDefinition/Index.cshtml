@@ -1,0 +1,216 @@
+﻿@using KC.Web.Workflow.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "表单管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--表单管理-新增/编辑表单-->
+    var canEdit = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "D0150A82-DB4C-4956-81E0-161AF23469A2")).Succeeded)
+    {
+        canEdit = true;
+    }
+    <!--表单管理-删除表单-->
+    var canDelete = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "2A7717B7-C71E-458D-980D-C4CB8FDB210B")).Succeeded)
+    {
+        canDelete = true;
+    }
+    <!--表单管理-删除表单属性-->
+    var canRemoveAtt = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "93A3A179-6EF4-421F-B9E7-8165B40D59FB")).Succeeded)
+    {
+        canRemoveAtt = true;
+    }
+}
+
+
+<div id="toolbar">
+    <div>
+        <!--表单管理-新增/编辑表单-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "D0150A82-DB4C-4956-81E0-161AF23469A2")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="openForm(0)">添加</a>
+        }
+    </div>
+
+    <div>
+        表单类型：
+        @Html.DropDownList("BusinessTypeList", (IEnumerable<SelectListItem>)ViewBag.BusinessTypeList, new { @id = "BusinessTypeList", @class = "easyui-combobox", @style = "width: 120px;height:26px;", @data_options = "editable: false" })
+        <input id="searchboxName" class="easyui-textbox" data-options="prompt:'请输入表单名称'" style="width:200px">
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+        const canEdit = '@canEdit' === 'True';
+        const canDelete = '@canDelete' === 'True';
+        const canRemoveAtt = '@canRemoveAtt' === 'True';
+        $(function() {
+            IniDataGrid();
+        });
+
+        function reloadDatagrid() {
+            $("#datagrid").datagrid("reload", {
+                name: $("#searchboxName").searchbox("getValue"),
+                type: $('#BusinessTypeList').combobox("getValue"),
+            });
+        }
+        function refreshSearch() {
+            $("#searchboxName").searchbox('setValue', '');
+            $('#BusinessTypeList').combobox("setValue", '所有类型');
+            reloadDatagrid();
+        }
+
+        //主表
+        var ddv;
+        const loadDataUrl = '@Url.Action(ActionName.ModelDefinition.LoadModelDefinitionList, ControllerName.ModelDefinition)';
+        const loadModelDefFieldDataUrl = '@Url.Action(ActionName.ModelDefinition.LoadModelDefFieldList, ControllerName.ModelDefinition)';
+        function IniDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                view: detailview,
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'propertyId',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                columns: [
+                    [
+                        //{ field: 'propertyId', title: 'Id', width: 20, align: 'left' },
+                        { field: 'name', title: '表单名称', width: 80, align: 'left' },
+                        { field: 'businessTypeString', title: '表单类型', width: 50, align: 'left' },
+                        { field: 'description', title: '表单描述', width: 200, align: 'left' },
+                        {
+                            field: 'operator', title: '任务操作', width: 80, align: 'center', formatter : function (value, row, index) {
+                                var tdContext = '';
+                                if (canEdit)
+                                    tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openForm(\'' + row.propertyId + '\')">编辑</a>';
+                                if (canDelete)
+                                    tdContext += '<a href="##" class="btnDelete" style="cursor:pointer" onclick="removeById(\'' + row.propertyId + '\')">删除</a>';
+                                return tdContext;
+                            }
+                        }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    CommonUtil.buttonStyle();
+                    $dataGrid.datagrid('unselectAll');
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function(data) {
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                },
+                onExpandRow: function (index, row) {
+                    let parentId = row.propertyId;
+                    ddv = $(this).datagrid('getRowDetail', index).find('table.ddv').attr('id', 'childGrid' + parentId);
+                    $(ddv).removeClass("tree" + index);
+                    $(ddv).addClass("tree" + index);
+                    ddv.datagrid({
+                        url: loadModelDefFieldDataUrl + '?id=' + parentId,
+                        fitColumns: true,
+                        singleSelect: true,
+                        rowNumbers: true,
+                        loadMsg: '',
+                        height: 'auto',
+                        columns: [
+                            [
+                                //{ field: 'propertyAttributeId', title: 'Id', width: 20 },
+                                { field: 'displayName', title: '显示名', width: 80, align: 'left' },
+                                { field: 'name', title: '属性名', width: 100, align: 'left' },
+                                { field: 'dataTypeString', title: '数据类型', width: 100, align: 'left' },
+                                { field: 'description', title: '说明', width: 200, align: 'left' },
+                                //{ field: 'createdBy', title: '创建人', width: 80, align: 'left' },
+                                //{ field: 'createdDate', title: '创建时间', width: 80, align: 'left' },
+                            ]
+                        ],
+                        onResize: function () {
+                            $('#datagrid').datagrid('fixDetailRowHeight', index);
+                        },
+                        onLoadSuccess: function() {
+                            //$(".btnEdit").linkbutton({ iconCls: 'fa fa-pencil' });
+                            //$(".btnDelete").linkbutton({ iconCls: 'fa fa-trash' });
+                            CommonUtil.buttonStyle();
+
+                            $(ddv).datagrid('fixRowHeight');
+
+                            setTimeout(function() {
+                                $('#datagrid').datagrid('fixDetailRowHeight', index);
+                            }, 0);
+                        }
+                    });
+                },
+            });
+        }
+
+        const getFormUrl = '@Url.Action(ActionName.ModelDefinition.GetModelDefinitionForm, ControllerName.ModelDefinition)';
+        function openForm(id) {
+            var queryString = "id=" + id;
+            MainPage_PostMessage("openSubPage", getFormUrl, queryString);
+        }
+
+        const removeUrl = '@Url.Action(ActionName.ModelDefinition.RemoveModelDefinition, ControllerName.ModelDefinition)';
+        function removeById(id) {
+            $.messager.confirm('确认', '是否确定删除该表单及相关属性记录?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '表单及相关属性已成功移除。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '表单及相关属性已成功移除失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+
+        const removeModelDefFieldDataUrl = '@Url.Action(ActionName.ModelDefinition.RemoveModelDefField, ControllerName.ModelDefinition)';
+        function removeModelDefField(id) {
+            $.messager.confirm('确认', '是否确定删除该表单属性记录?', function(r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeModelDefFieldDataUrl, { id: id }, function(data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+
+    </script>
+}

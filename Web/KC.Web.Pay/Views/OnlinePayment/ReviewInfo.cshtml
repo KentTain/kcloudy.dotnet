@@ -1,0 +1,543 @@
+﻿@using Com.Framework.Tenant
+@using Com.MVC.Core.Util
+@using Com.Portal.Document.App_Start
+@using Com.Portal.Document.Core
+@using Com.Service.Core.Constants
+@{
+    Layout = "~/Views/Shared/_EasyLayout.cshtml";
+    ViewBag.Title = "资料管理";
+    var tenant = ViewData[CustomConstants.TenantRoute] as Tenant;
+    var container = UnityConfig.GetConfiguredContainer();
+    var actionNames = new List<string>() { "SaveDocCategory", "RemoveDocCategory", "DeleteDocument", "EditDocument", "MoveDocumentsToCategory" };
+    var judeResult = PermissionJudgeUtil.JudgeActionPermision(ControllerName.Document, actionNames, tenant, container, null, TenantApplicationConstants.DocAppId.ToString());
+    var SaveDocCategoryPermission = judeResult.FirstOrDefault(m => m.Key.Equals("SaveDocCategory")).Value;
+    var RemoveDocCategoryPermission = judeResult.FirstOrDefault(m => m.Key.Equals("RemoveDocCategory")).Value;
+    var editReviewInfoPermission = judeResult.FirstOrDefault(m => m.Key.Equals("EditDocument")).Value;
+    var removeReviewInfoListPermission = judeResult.FirstOrDefault(m => m.Key.Equals("MoveDocumentsToCategory")).Value;
+    var deleteReviewInfoListPermission = judeResult.FirstOrDefault(m => m.Key.Equals("DeleteDocument")).Value;
+}
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',collapsible:false" title="资料组" style="width:20%;max-width:300px;" id="roles">
+        <table id="treegrid"></table>
+        <div id="toolbar">
+            <a href="#" class="easyui-linkbutton @(SaveDocCategoryPermission ? "" : "NoAuth")" iconcls="icon-add" plain="true" onclick="addCategory(0)">新增</a>
+            <a href="#" class="easyui-linkbutton @(SaveDocCategoryPermission ? "" : "NoAuth") " iconcls="icon-edit" plain="true" onclick="addCategory(1)">编辑</a>
+            <a href="#" class="easyui-linkbutton @(RemoveDocCategoryPermission ? "" : "NoAuth")" iconcls="icon-remove" plain="true" onclick="removeCategory()">删除</a>
+            <a href="#" class="easyui-linkbutton @(SaveDocCategoryPermission ? "" : "NoAuth") " iconcls="icon-add" plain="true" onclick="addCategory(2)">添加子分类</a>
+        </div>
+    </div>
+    <div data-options="region:'center'" title="资料数据">
+        <form id="StoreInitFrom" style="height: 100%">
+            <table id="datagrid"></table>
+        </form>
+        <div id="toolbar1" class="toolbar-f" style="background: #F4F4F4">
+            <a href="javascript:void(0)" id="btnAdd" class="easyui-linkbutton @(editReviewInfoPermission ? "" : "NoAuth")" title="新增" iconcls="icon-add" plain="true" onclick="addMenu(0)">新增</a>
+            <a href="javascript:void(0)" id="btnEdit" class="easyui-linkbutton @(editReviewInfoPermission ? "" : "NoAuth")" title="编辑" iconcls="icon-edit" plain="true" onclick="addMenu(1)">编辑</a>
+            <a href="javascript:void(0)" id="btnDelete" class="easyui-linkbutton @(deleteReviewInfoListPermission ? "" : "NoAuth")" title="删除" iconcls="icon-remove" plain="true" onclick="removeMenu()">删除</a>
+            <a href="javascript:void(0)" id="btnRemove" class="easyui-linkbutton @(removeReviewInfoListPermission ? "" : "NoAuth")" title="移动资料" iconcls="icon-remove" plain="true" onclick="removeReviewInfo()">移动资料</a>
+            <a href="javascript:void(0)" onclick="RefreshSearch()" class="easyui-linkbutton" iconcls="icon-reload" plain="true">刷新</a>
+        </div>
+    </div>
+</div>
+<div id="removeReviewDiv">
+    <label style="padding-top: 20px;padding-left: 40px;">移动到：</label><select class="easyui-combotree" name="reviewcategory" id="reviewcategory" style="width:250px; padding-top: 20px;" data-options="required:true" />
+</div>
+@section styles{
+    <link href="~/Scripts/cfw.webuploader/webuploader.css" rel="stylesheet" />
+    <link href="~/Content/upload.css" rel="stylesheet" />
+}
+@section scripts
+{
+    <script src="~/Scripts/cfw.webuploader/md5.js"></script>
+    <script src="~/Scripts/cfw.webuploader/webuploader.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            InitTreeGrid();
+            InitDataGrid();
+            $("#removeReviewDiv").window({
+                title: "移动资料",
+                width: 430,
+                height: 180,
+                modal: true,
+                minimizable: false,
+                maximizable: false,
+                collapsible: false,
+                closed: true
+            });
+            $("#removeReviewDiv").window('close');
+            $('#reviewcategory').combotree({
+                method: 'get',
+                url: "@Url.Action(ActionName.Document.LoadDocCategories, ControllerName.Document)" + "?type=0",
+                editable: false,
+                valueField: 'Id',
+                textField: 'CompanyReviewCategoryName',
+                cache: false,
+                onLoadSuccess: function () {
+                    $('#reviewcategory').combotree('tree').tree("collapseAll");
+                }
+            });
+        });
+        //左侧资料组
+        var $treeGrid = $("#treegrid");
+        var loadDataUrl = '@Url.Action(ActionName.Document.LoadDocCategories, ControllerName.Document)' + '?type=0';
+        var removeUrl = '@Url.Action(ActionName.Document.RemoveDocCategory, ControllerName.Document)';
+        function InitTreeGrid() {
+            $treeGrid = $("#treegrid").treegrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                striped: true,
+                fitColumns: true,
+                rownumbers: false,
+                singleSelect: true,
+                nowrap: false,
+                selectOnCheck: false,
+                fit: true,
+                lines: true,
+                columns: [[
+                    { field: 'id', title: '类别id', align: 'center', width: '5%', hidden: true },
+                    {
+                        field: 'text', title: '资料组名称', align: 'left', width: '95%', formatter: function (index, row, value) {
+                        return row.CompanyReviewCategoryName;
+                    } }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onClickRow: function (row) {
+                    changeReviewInfoCate(row);
+                },
+                onLoadSuccess: function (data) {
+                    $('#treegrid').treegrid('unselectAll');
+                    $('#treegrid').treegrid('collapseAll');
+                    $('#treegrid').treegrid('clearChecked');
+                },
+                onLoadError: function () {
+                },
+                toolbar: '#toolbar'
+            });
+        }
+
+        var title = "";
+        //新增/编辑
+        function addCategory(flag) {
+            if (flag == 0) {
+                title = "新增资料组"
+                openFrom(0);
+            }
+            var rows = $('#treegrid').treegrid('getSelections');
+            if (flag == 1) {
+                if (rows.length != 1) {
+                    $.messager.showErrorCenter("", "请选择需要编辑的资料组");
+                    return false;
+                }
+                title = "编辑资料组";
+                if (rows[0].Level == 1 && rows[0].children != null && rows[0].children.length > 0) {
+                    openFrom(rows[0].id, rows[0].ParentId,1);
+                } else {
+                    openFrom(rows[0].id, rows[0].ParentId);
+                }
+            }
+            if (flag == 2) {
+                if (rows.length != 1) {
+                    $.messager.showErrorCenter("", "请选择需要添加子分类的资料组");
+                    return false;
+                }
+                if (rows[0].Level == 2) {
+                    $.messager.showErrorCenter("", "资料组只有两级数据，该条数据已经是子级，请选择父级进行添加子级操作");
+                    return false;
+                }
+                title = "添加子资料组";
+                openFrom(0, rows[0].id);
+            }
+        }
+
+        var getCategoryUrl = '@Url.Action(ActionName.Document.GetDocCategory, ControllerName.Document)';
+        var saveCateUrl = '@Url.Action(ActionName.Document.SaveDocCategory, ControllerName.Document)';
+        function openFrom(id, pid,Ischildern) {
+            var dialog = $.easyui.showDialog({
+                title: title,
+                width: 450,
+                height: 300,
+                modal: true,
+                topMost: false,
+                href: getCategoryUrl + "?id=" + id,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                pagination: true,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    var dataInfo = AddAntiForgeryToken(d.form("getData"));
+                    dataInfo.CompanyReviewCategoryId = dataInfo.category;
+                    dataInfo.ParentId = pid;
+                    if (Ischildern == 1 && dataInfo.category != null && dataInfo.category != "") {
+                        $.messager.showErrorCenter("", "该组下面已有子分类，不能直接移动，请先移动或删除子分类");
+                        return false;
+                    }
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveCateUrl,
+                            data: dataInfo,
+                            success: function (data) {
+                                if (data.success) {
+                                    if (data.Result != null && data.Result.success) {
+                                        $.messager.showInfoCenter('保存成功', 2000);
+                                        $("#treegrid").treegrid('reload');
+                                    }
+                                    else {
+                                        $.messager.showErrorCenter(data.Result.message);
+                                    }
+                                } else {
+                                    $.messager.showErrorCenter(data.message);
+                                }
+                            },
+                            complete: function () {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function () {
+                },
+                onClose: function () {
+                }
+            });
+        }
+
+        //删除资料组
+        function removeCategory() {
+            debugger
+            var rows = $('#treegrid').treegrid('getSelected');
+            if (rows == null || rows == undefined) {
+                $.messager.showErrorCenter("", "请选择需要删除的数据");
+                return false;
+            }
+            var text = "确定删除该数据？";
+            if (rows.children.length > 0) {
+                $.messager.showErrorCenter("", "该资料组下有子级资料组，请先将其子级资料组移到到其他资料组下再进行删除");
+                return false;
+            }
+            $.messager.confirm( text, function (f) {
+                if (f) {
+                    $.post(removeUrl, { id: rows.id }, function (data) {
+                        if (data.success) {
+                            if (data.Result != null && data.Result.success) {
+                                $.messager.showInfoCenter('删除成功', 2000);
+                                $("#treegrid").treegrid('reload');
+                                $("#treegrid").datagrid('clearSelections');
+                            }
+                            else {
+                                $.messager.showErrorCenter(data.Result.message);
+                            }
+                        } else {
+                            $.messager.showErrorCenter( data.message);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+        //点击左侧资料组数据，对应改变右侧资料数据
+        function changeReviewInfoCate(data) {
+            if (data != null) {
+                var cateList = data.id + ",";
+                //var childlist = data.children;
+                //if (childlist.length > 0) {
+                //    for (var i = 0; i < childlist.length; i++) {
+                //        cateList += childlist[i].id + ",";
+                //    }
+                //}
+                $("#datagrid").datagrid("load", {
+                    cateid: cateList
+                });
+            }
+        }
+
+        //右侧资料数据
+        var $dataGrid = $("#datagrid");
+        var loadReviewUrl = '@Url.Action(ActionName.Document.FindDocuments, ControllerName.Document)'+'?type=0';
+        var getReviewUrl = '@Url.Action(ActionName.Document.GetDocumentForm, ControllerName.Document)';
+        var editReviewUrl = '@Url.Action(ActionName.Document.EditDocument, ControllerName.Document)';
+        var deleteReviewUrl = '@Url.Action(ActionName.Document.DeleteDocument, ControllerName.Document)';
+        var removeReviewUrl = '@Url.Action(ActionName.Document.MoveDocumentsToCategory, ControllerName.Document)';
+        function InitDataGrid() {
+            $("#datagrid").datagrid({
+                url: loadReviewUrl,
+                method: 'get',
+                idField: 'Id',
+                striped: true,
+                fitColumns: true,
+                singleSelect: false,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                remoteSort: true,
+                sortOrder: 'desc',
+                columns: [[
+                        {
+                            field: 'Name', title: '资料名称', width: '20%', align: 'left', farmatter: function (value, index, row) {
+                                //if (row.ImageUrl) {
+                                //    return "<a href='" + row.ImageUrl + "' target='_blank'></a>";
+                                //}
+                                //return "";
+                            }
+                        },
+                        { field: 'LevelName', title: '资料类型', width: '15%', align: 'center' },
+                    {
+                        field: 'CompanyReviewCategory', title: '所在资料组', width: '15%', align: 'center', formatter: function (value, row, index) {
+                            if (row.CompanyReviewCategory != null) {
+                                return row.CompanyReviewCategory.CompanyReviewCategoryName;
+                            }
+                            return "无";
+                        }
+                    },
+                        { field: 'CreatedDate', title: '上传时间', sortable: true, width: '15%', align: 'center', formatter: FormatterUtil.DateTimeSecondFormatter },
+                        { field: 'Comment', title: '描述', width: '20%', align: 'center' },
+                        { field: 'TemplateBlobId', title: '模版', width: '15%', align: 'center' }
+                ]
+                ],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $('#datagrid').datagrid('unselectAll');
+                    $('#datagrid').datagrid('clearSelections');
+                    $('.operationDetail').linkbutton({
+                        iconCls: 'icon-search'
+                    });
+                },
+                onClickRow:function(row) {
+                    var rows = $('#datagrid').datagrid('getSelections');
+                    if (rows.length > 1) {
+                        $("#btnEdit").linkbutton('disable');
+                        $("#btnEdit").tooltip({
+                            position: 'right',
+                            content: '<span style="color:#fff">只适用于选中单条数据进行编辑</span>',
+                            onShow: function() {
+                                $(this).tooltip('tip').css({
+                                    backgroundColor: 'rgb(255, 126, 0)',
+                                    borderColor: 'rgb(255, 126, 0)'
+                                });
+                            }
+                        });
+                    } else {
+                        $("#btnEdit").linkbutton('enable');
+                        $("#btnEdit").tooltip('destroy');
+                    }
+                },
+                onLoadError: function () {
+                },
+                toolbar: '#toolbar1'
+            });
+        }
+
+        var isowner = false;
+        //添加/编辑资料
+        function addMenu(k) {
+            if (k == 0) {
+                openForm1(0);
+            }
+            if (k == 1) {
+                var row = $('#datagrid').datagrid('getSelections');
+                if (row.length != 1) {
+                    $.messager.showErrorCenter("请选择需要编辑的一条数据");
+                } else {
+                     var c=row[0].CreatedBy;
+                    isowner = '@ViewBag.User' == c;
+                    openForm1(row[0].Id);
+                }
+            }
+        }
+        function openForm1(id) {
+            $.easyui.showDialog({
+                title: id > 0 ? '编辑资料信息' : '新增资料信息',
+                width: 650,
+                height: 550,
+                modal: true,
+                topMost: false,
+                href: getReviewUrl + "?id=" + id,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                pagination: true,
+                onSave: function (d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    var postData = AddAntiForgeryToken(d.form("getData"));
+                    var attblodId = $('#AttachmentBlobId').val();
+                    var comment = $('#Comment').val();
+                    var name = $("#Name").val();
+                    var templateBlobId= $("#TemplateBlobId").val();
+                    if (comment.length!=0 && comment.length > 50) {
+                        $.messager.showErrorCenter('错误消息', "描述最长不超过50字");
+                        return false;
+                    }
+                    if (templateBlobId.length!=0 && templateBlobId.length > 50) {
+                        $.messager.showErrorCenter('错误消息', "模版最长不超过50字");
+                        return false;
+                    }
+                    if (attblodId != "" || name != "") {
+                        if (validate) {
+                            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                            postData.comment = comment;
+                            postData.attblodId = attblodId;
+                            $.ajax({
+                                async: true,
+                                type: "post",
+                                dataType: "json",
+                                url: editReviewUrl + "?cateId=" + postData.CompanyReviewCategory,
+                                data: postData,
+                                success: function (data) {
+                                    if (data.success) {
+                                        d.window('close');
+                                        $.messager.showInfoCenter("保存成功.", 1000);
+                                        $("#Name").val(""); $('#AttachmentBlobId').val("");
+                                        $('#datagrid').datagrid('reload');
+                                    } else {
+                                        $.messager.showErrorCenter('错误消息', data.message);
+                                    }
+                                },
+                                complete: function () {
+                                    $.easyui.loaded();
+                                }
+                            });
+                            return false;
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        $.messager.showErrorCenter("请上传资料");
+                        return false;
+                    }
+                },
+                onLoad: function () {
+                },
+                onClose: function () {
+                }
+            });
+        }
+
+        //删除
+        function removeMenu() {
+            var rowList = $('#datagrid').datagrid('getSelections');
+            if (rowList.length == 0) {
+                $.messager.showErrorCenter('', "请选择需要删除的数据");
+            } else {
+                $.messager.confirm('是否确定删除该条记录?', function (r) {
+                    if (r) {
+                        var ids = "";
+                        for (var i = 0; i < rowList.length; i++) {
+                            ids += rowList[i].Id + ",";
+                        }
+                        ids = ids.substr(0, ids.length - 1);
+                        $.post(deleteReviewUrl, { sid: ids }, function (result) {
+                            if (result.success) {
+                                $.messager.showInfoCenter("删除成功", 2000);
+                                $('#datagrid').datagrid('reload');
+                            } else {
+                                $.messager.showErrorCenter('错误消息', result.message);
+                            }
+                        }, 'json');
+                    }
+                });
+            }
+        }
+        //刷新
+        function RefreshSearch() {
+            $("#datagrid").datagrid("load", {
+                cateid: null
+            });
+            $('#treegrid').treegrid('reload');
+        }
+
+        //移动资料
+        function removeReviewInfo() {
+            var rows = $('#datagrid').datagrid('getSelections');
+            if (rows.length == 0) {
+                $.messager.showErrorCenter("请选择需要移动的数据");
+            } else {
+                $("#removeReviewDiv").window('open');
+                $("#reviewcategory").combotree({
+                    onChange: function (newValue, oldValue) {
+                        if (newValue) {
+                            var text = $("#reviewcategory").combotree('getText');
+                            $.messager.confirm('是否确定将选中的数据移动到【' + text + '】下?', function (r) {
+                                if (r) {
+                                    var getCategoryid = $("#reviewcategory").combotree('getValue');
+                                    var ids = "";
+                                    for (var i = 0; i < rows.length; i++) {
+                                        ids += rows[i].Id + ",";
+                                    }
+                                    ids = ids.substr(0, ids.length - 1);
+                                    $.post(removeReviewUrl, { oldIds: ids, cateId: getCategoryid }, function (data) {
+                                        if (data.success) {
+                                            $.messager.showInfoCenter("转移成功.", 1000);
+                                            $("#removeReviewDiv").window('close');
+                                            $('#datagrid').datagrid('unselectAll');
+                                            $('#datagrid').datagrid('reload');
+                                        } else {
+                                            $.messager.showErrorCenter('错误消息', data.message);
+                                        }
+                                    }, 'json');
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+
+    <script>
+        function InitTreeGrid2() {
+            $("#treegrid-1").treegrid({
+                url: loadTreeUrl,
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                striped: true,
+                fitColumns: true,
+                rownumbers: false,
+                singleSelect: true,
+                nowrap: false,
+                selectOnCheck: false,
+                fit: true,
+                border: false,
+                lines: true,
+                columns: [[
+                    { field: 'id', title: '类别id', align: 'center', hidden: true },
+                    {
+                        field: 'text', title: '资料组名称', align: 'left', width: 200, formatter: function (index, row, value) {
+                            return row.CompanyReviewCategoryName;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onClickRow: function (row) {
+                    if (row != null) {
+                        var cateList = row.id + ",";
+                        $("#datagrid-1").datagrid("load", {
+                            cateid: cateList,
+                        });
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $('#treegrid-1').treegrid('unselectAll');
+                    $('#treegrid-1').treegrid('collapseAll');
+                    $('#treegrid-1').treegrid('clearChecked');
+                },
+                onLoadError: function () {
+                },
+                toolbar: '#toolbar-1'
+            });
+        }
+    </script>
+}

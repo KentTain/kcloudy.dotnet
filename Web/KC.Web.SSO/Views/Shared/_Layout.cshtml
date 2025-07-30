@@ -1,0 +1,236 @@
+﻿@{
+    var tenant = ViewBag.UserTenantName ?? ViewBag.TenantName ?? "cdba";
+    var accDomain = KC.Framework.Base.GlobalConfig.GetTenantWebDomain(KC.Framework.Base.GlobalConfig.AccWebDomain, tenant);
+}
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta http-equiv="content-security-policy" content="default-src 'self' *.kcloudy.com *.docapi.kcloudy.com localhost:9999 'unsafe-eval' 'unsafe-inline'; img-src *; media-src *;font-src *;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="Keywords" content="鑫亚（深圳）企业管理咨询有限公司,鑫亚科技科,科西云,数字化转型,企业管理系统,企业管理信息化,企业管理互联网应用,管理数字化云平台" />
+    <meta name="description" content="鑫亚（深圳）企业管理咨询有限公司是通过将产业线上化便捷流程办公系统研发、云计算、大数据、物联网、移动互联网等新技术与企业业务深度融合，开展“互联网+”建设，搭建的企业产业云平台。" />
+    <meta name="author" content="tianchangjun@outlook.com" />
+    <title>鑫亚科技：@ViewBag.Title @KC.Framework.Base.GlobalConfig.SystemType</title>
+    <link href="~/css/site.css" rel="stylesheet" />
+    <link href="~/lib/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+
+    @*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*@
+<style>
+.main{min-height:65%;}
+.main .text-center{text-align:center}
+
+.nav{width:100%;height:80px;box-shadow:0 3px 3px 0 #ccc;background:#fff;position:fixed;left:0;top:0;z-index:999;background:rgba(230,230,230,.8);box-shadow:0 0 0 0 rgba(0,0,0,.05)}
+.nav .nav-logo{height:100%;position:absolute;top:10px;left:15px;line-height:80px}
+.nav .nav-logo img{height:60px}
+.nav .nav-list{display:inline-block;height:60px}
+.nav .nav-list button{width:25px;height:30px;position:absolute;top:30px;right:20px;background-color:transparent;border:none;outline:0;cursor:pointer;display:none}
+.nav .nav-list button span{display:block;width:25px;height:2px;background:#2db5a3;margin-bottom:6px;transition:.5s}
+.nav .nav-list button span.spa1{transform:rotate(45deg)}
+.nav .nav-list button span.spa3{transform:rotate(-45deg) translate(5px,-5px)}
+.nav .layui-nav{width:auto;position:absolute;top:0;right:0;margin:0;padding:0 5px;border-radius:0;color:#000;background:0 0}
+.nav .layui-nav .layui-nav-item{display:inline-block;line-height:80px;margin:0 20px}
+.nav .layui-nav *{font-size:18px}
+.nav .layui-nav .layui-nav-item a{padding:0 0;color:#000}
+.nav .layui-nav .layui-this:after,.nav .layui-nav-bar{height:2px;background-color:#00b8ee}
+.nav .layui-nav .layui-nav-item a:hover,.nav .layui-nav .layui-this a{color:#00b8ee}
+
+.site-menu {position: fixed;z-index:99;width:18%;max-height:500px;overflow-x:hidden;overflow-y:auto;}
+
+.footer{width:100%;background:#00b8ee;min-height:200px;bottom: 0;left: 0;}
+.footer .footer-web{padding-top:20px;padding-bottom:0}
+.footer .footer-web a{color:#a5aaa9;line-height:22px;margin-right:20px;transition:.3s}
+.footer .footer-web a:hover{color:#dce1e0;transition:.3s}
+.footer .footer-contact{color:#fff}
+.footer .footer-contact a{color:#fff}
+.footer .footer-contact .contact-top{padding-top:20px;line-height:30px}
+.footer .footer-contact .contact-bottom{line-height:36px}
+
+</style>
+    @RenderSection("styles", required: false)
+</head>
+<body style="margin:0px;">
+    <partial name="_CookieConsentPartial" />
+    <!-- nav部分 -->
+    <div class="nav">
+        <div class="layui-container">
+            <!-- 公司logo -->
+            <div class="nav-logo">
+                <a href="http://www.kcloudy.com">
+                    <img src="~/images/logo-icon.png" />
+                </a>
+            </div>
+            <div class="nav-list">
+                <ul class="layui-nav" lay-filter="" style="width:auto;">
+                    <li class="layui-nav-item" style="width:auto;">
+                        @if (ViewBag.isAuth)
+                        {
+                        <div style="width: 160%;height:80px;">
+                            <a href="@(accDomain)" style="float:left;display:inline-block;">@ViewBag.userDisplayName</a>
+                            <p style="float:left;display:inline-block;">&nbsp;&nbsp;/&nbsp;&nbsp;</p>
+                            <a href="@(accDomain)Account/SignOut?ReturnUrl=/Home/Index">注销</a>
+                        </div>
+                        }
+                        else
+                        {
+                        <div style="width: 110px;height:80px;">
+                            <a href="@(accDomain)" style="float:left;display:inline-block;">登录</a>
+                            <p style="float:left;display:inline-block;">&nbsp;&nbsp;/&nbsp;&nbsp;</p>
+                            <a href="/Account/Register">注册</a>
+                        </div>
+                        }
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- menu部分 -->
+    <div class="layui-container" style="margin-top:80px;">
+        <div class="layui-row">
+            <div class="layui-col-md3">
+                <div class="layui-panel site-menu">
+                    <ul class="layui-menu layui-menu-lg">
+                        <li class="layui-menu-item-group" lay-options="{type: 'group', isAllowSpread: true}">
+                            <div class="layui-menu-body-title">
+                                基础说明
+                            </div>
+                            <hr>
+                            <ul>
+                                <li class="">
+                                    <div class="layui-menu-body-title">
+                                        <a href="/Home/Demo">
+                                            <span>开始使用 </span>
+                                            <span class="layui-font-12 layui-font-gray">Getting Started</span>
+                                        </a>
+
+                                    </div>
+                                </li>
+                                <li class="">
+                                    <div class="layui-menu-body-title">
+                                        <a href="/Home/Demo">
+                                            <span>常见问题 </span>
+                                            <span class="layui-font-12 layui-font-gray">FAQ</span>
+                                        </a>
+                                    </div>
+                                </li>
+                                <li class="">
+                                    <div class="layui-menu-body-title">
+                                        <a href="/Home/Demo">
+                                            <span>更新日志 </span>
+                                            <span class="layui-font-12 layui-font-gray">changelog</span>
+
+                                            <span class="layui-badge-dot"></span>
+
+                                        </a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="layui-menu-item-group" lay-options="{type: 'group', isAllowSpread: true}">
+                            <div class="layui-menu-body-title">
+                                统一登录接口
+                            </div>
+                            <hr>
+                            <ul>
+                                <li class="">
+                                    <div class="layui-menu-body-title">
+                                        <a href="/Home/ServiceAddress">
+                                            <span>OpenID Connect服务地址 </span>
+                                            <span class="layui-font-12 layui-font-gray">OICD服务地址</span>
+                                        </a>
+                                    </div>
+                                </li>
+                                <li class="">
+                                    <div class="layui-menu-body-title">
+                                        <a href="/Home/Introduce">
+                                            <span>说明 </span>
+                                            <span class="layui-font-12 layui-font-gray">OICD身份认证说明</span>
+                                        </a>
+                                    </div>
+                                </li>
+                                <li class="">
+                                    <div class="layui-menu-body-title">
+                                        <a href="/Home/Demo">
+                                            <span>示例 </span>
+                                            <span class="layui-font-12 layui-font-gray">验证码相关接口示例</span>
+                                        </a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                <div class="layui-hide-v"> - </div>
+            </div>
+            <div class="layui-col-md9" style="padding-left:30px;line-height:2.2;">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <!-- footer部分 -->
+    <div class="footer">
+        <div class="layui-container">
+            @*<p class="footer-web">
+                    平台官方运营&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="javascript:;" title="请致电1828877178" target="_blank">在线咨询</a>
+                    <a href="https://wpa.qq.com/msgrd?v=3&uin=22256931&site=qq&menu=yes" target="_blank">技术支持</a>
+                </p>*@
+            <div class="layui-row footer-web">
+                <img src="/images/logo-icon.png" height="37">
+            </div>
+            <div class="layui-row footer-contact">
+                <div class="layui-col-sm12">
+                    <div class="layui-row">
+                        <div class="layui-col-sm6">
+                            <p class="contact-top">
+                                <i class="layui-icon layui-icon-time"></i>&nbsp;&nbsp;工作时间&nbsp;&nbsp;&nbsp;&nbsp;周一到周五&nbsp;&nbsp;&nbsp;&nbsp;9:00-17:30
+                            </p>
+
+                            <p class="contact-bottom">
+                                <i class="layui-icon layui-icon-location"></i>&nbsp;
+                                <a href="https://j.map.baidu.com/a1/q51" target="_blank">广东省&nbsp;深圳市&nbsp;龙华区&nbsp;观湖街道&nbsp;新源社区&nbsp;腾龙工业区120号201号</a>
+                            </p>
+                        </div>
+                        <div class="layui-col-sm6">
+                            <p class="contact-top">
+                                <span class="right">
+                                    <i class="layui-icon layui-icon-cellphone"></i>&nbsp;&nbsp;17744949695&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <i class="layui-icon layui-icon-email"></i>&nbsp;&nbsp;<a href="mailto:kcloudy@163.com">kcloudy@163.com</a>
+                                </span>
+                            </p>
+                            <p class="contact-bottom">
+                                <span class="right">
+                                    <a href="https://beian.miit.gov.cn/" target="_blank"><span style="font-size: 16px;">©</span>&nbsp;2020&nbsp;鑫亚（深圳）企业管理咨询有限公司&nbsp;版权所有&nbsp;| 粤ICP备2021043258号</a>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="@(ViewBag.ResWebDomain)lib/jquery/dist/jquery.js"></script>
+    <script src="@(ViewBag.ResWebDomain)lib/layui/layui.js"></script>
+
+    <script>
+        $.ajaxSetup({
+            xhrFields: {
+                withCredentials: true
+            }
+        });
+        layui.config({
+            base: "~/js/"
+        });
+
+
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

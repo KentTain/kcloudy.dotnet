@@ -1,0 +1,74 @@
+﻿@using KC.Framework.Extension
+@using KC.Web.Message.Constants
+@model KC.Service.DTO.Message.MessageTemplateDTO
+
+@section styles{
+    <style>
+        .dialog-form-table tr td:nth-child(odd) {
+            width: 100px;
+        }
+
+        .dialog-form-table tr td:nth-child(even) {
+            width: 260px;
+        }
+    </style>
+}
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform" action="@Url.Action(ActionName.Message.SaveSmsTemplate, ControllerName.Message)">
+    @Html.AntiForgeryToken()
+    <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+    <input id="MessageClassId" name="MessageClassId" type="hidden" value="@Model.MessageClassId" />
+    <input id="IsDeleted" name="IsDeleted" type="hidden" value="@Model.IsDeleted" />
+    <input id="CreatedBy" name="CreatedBy" type="hidden" value="@Model.CreatedBy" />
+    <input id="CreatedName" name="CreatedName" type="hidden" value="@Model.CreatedName" />
+    <input id="CreatedDate" name="CreatedDate" type="hidden" value="@Model.CreatedDate" />
+    <input id="ModifiedBy" name="ModifiedBy" type="hidden" value="@Model.ModifiedBy" />
+    <input id="ModifiedName" name="ModifiedName" type="hidden" value="@Model.ModifiedName" />
+    <input id="ModifiedDate" name="ModifiedDate" type="hidden" value="@Model.ModifiedDate" />
+    <table class="table table-bordered table-form tr-col2">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="Name">模板名称：</label></td>
+                <td><input id="Name" name="Name" class="easyui-validatebox easyui-textbox" 
+                           data-options="required:true,width:'100%',validType:'length[2,100]'" 
+                           value="@(null != Model ? Model.Name : string.Empty)" /></td>
+
+                <td><label class="required">*</label><label for="TemplateType">模板类型：</label></td>
+                <td>
+                    @*https://docs.microsoft.com/en-us/aspnet/core/mvc/views/working-with-forms?view=aspnetcore-5.0#the-select-tag-helper*@
+                    <select id="TemplateType" name="TemplateType" class="easyui-combobox"
+                            data-options="width:'100%',editable: false, required:true,readonly:true,"
+                            asp-items="ViewBag.MessageTemplateTypeList" panelHeight="auto"></select>
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Subject">模板标题：</label></td>
+                <td><input id="Subject" name="Subject" class="easyui-validatebox easyui-textbox" 
+                           data-options="required:true,width:'100%',validType:'length[2,200]'" 
+                           value="@(null != Model ? Model.Subject : string.Empty)" /></td>
+                <td><label for="ReplaceParametersString">替换参数：</label></td>
+                <td><input id="ReplaceParametersString" name="ReplaceParametersString" 
+                           class="easyui-validatebox easyui-textbox" 
+                           data-options="readonly:true,width:'100%',validType:'length[0,500]'" 
+                           value="@(null != Model ? Model.ReplaceParametersString : string.Empty)" /></td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Content">模板内容：</label></td>
+                <td colspan="3">
+                    <textarea id="Content" name="Content" class="easyui-textbox" data-options="multiline:true,required:true" style="height: 320px;width: 560px">@(null != Model ? Model.Content : "")</textarea>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+<script type="text/javascript">
+
+
+    $(function () {
+        $("#TemplateType").combobox({
+            editable: false
+        });
+    });
+</script>
+
+

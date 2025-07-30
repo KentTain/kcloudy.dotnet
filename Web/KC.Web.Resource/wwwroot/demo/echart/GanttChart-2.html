@@ -1,0 +1,333 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="../../lib/jquery/dist/jquery.js"></script>
+    <script src="../../lib/echarts/echarts.js"></script>
+    <!--项目任务图表-->
+    <script>
+        $(function () {
+            InitChart(rawData);
+        });
+
+        var nowDate = new Date();//今日日期为2020年2月14日
+        var nowDateStr = formatDate(nowDate);
+        var rawData = [
+            {
+                name: "可行性研究",
+                //项目索引  计划开始日期   计划结束日期  总任务数   已完成个数
+                value: [0, '2019-10-12', '2020-01-28', 56, 56]
+            },
+            {
+                name: "方案设计",
+                value: [1, '2020-01-25', '2020-03-31', 21, 14]
+            },
+            {
+                name: "初步设计",
+                value: [2, '2020-02-07', '2020-04-30', 31, 11]
+            },
+            {
+                name: "施工图设计",
+                value: [3, '2020-04-01', '2020-07-30', 12, 3]
+            },
+            {
+                name: "深化设计",
+                value: [4, '2020-07-15', '2021-01-01', 9, 0]
+            }
+        ];
+        function InitChart(data) {
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('divChart'));
+
+            var categories = ['可行性研究', '方案设计', '初步设计', '施工图设计', '深化设计'];
+            var dayTime = 3600 * 24 * 1000;
+
+            myChart.setOption({
+                title: {
+                    text: '项目进度',
+                    left: 'center'
+                },
+                tooltip: {
+                    //自定义提示信息
+                    formatter: function (params) {//params为当前点击图形元素的数据信息的对象
+                        //debugger;
+                        //计划类型：0-可行性研究；1-方案设计；2-初步设计；3-施工图设计；4-深化设计；
+                        var planType = params.value[0];
+                        //计划开始时间
+                        var startDate = params.value[1];
+                        //计划结束时间
+                        var endDate = params.value[2];
+                        //总任务个数
+                        var taskTotalCount = params.value[3] ? params.value[3] : 0;
+                        //完成任务个数
+                        var taskFinishedCount = params.value[4] ? params.value[4] : 0;
+                        //完成率
+                        let taskCompleteRate = taskTotalCount != 0 ? (taskFinishedCount / taskTotalCount) : 0;
+
+                        //项目周期(毫秒值)：计划结束日期 - 计划开始日期
+                        var projectCycle_millisecond = +echarts.number.parseDate(endDate) - +echarts.number.parseDate(startDate);
+                        //项目周期(天数)
+                        var projectCycle_days = projectCycle_millisecond / dayTime;
+
+                        return params.name + '<br/>'
+                            + '计划开始时间：' + startDate + '<br/>'
+                            + '计划结束时间：' + endDate + '<br/>'
+                            + '项目周期：' + projectCycle_days + '天<br/>'
+                            + '总任务数：' + taskTotalCount + '<br/>'
+                            + '已完成任务数：' + taskFinishedCount + '<br/>'
+                            + '完成率：' + (taskCompleteRate * 100).toFixed(0) + '%<br/>'
+                    }
+                },
+                dataZoom: [{
+                    type: 'slider',
+                    filterMode: 'weakFilter',
+                    showDataShadow: false,
+                    top: 400,
+                    height: 10,
+                    borderColor: 'transparent',
+                    backgroundColor: '#e2e2e2',
+                    handleIcon: 'M10.7,11.9H9.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4h1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7v-1.2h6.6z M13.3,22H6.7v-1.2h6.6z M13.3,19.6H6.7v-1.2h6.6z', // jshint ignore:line
+                    handleSize: 20,
+                    handleStyle: {
+                        shadowBlur: 6,
+                        shadowOffsetX: 1,
+                        shadowOffsetY: 2,
+                        shadowColor: '#aaa'
+                    },
+                    labelFormatter: ''
+                }, {
+                    type: 'inside',
+                    filterMode: 'weakFilter'
+                }],
+                //图表底板
+                grid: {
+                    height: 300
+                },
+                xAxis: {
+                    type: "time",//x轴类型为时间轴
+                    min: 'dataMin',
+                    max: 'dataMax',
+                    //min: 1577808000000,//最小值为2020-01-01
+                    //max: 1609344000000,//最大值为2020-12-31
+                    axisLabel: {
+                        interval: 0,//强制显示所有标签
+                    }
+                },
+                yAxis: {
+                    data: categories,
+                    axisTick: {
+                        alignWithLabel: true//保证刻度线和标签对齐，当boundaryGap为true的时候有效，不过boundaryGap默认就是true
+                    }
+                },
+                legend: {
+                    left: '70%',
+                    top: 10,
+                    data: ['项目计划', '已完成任务']
+                },
+                series: [
+                    {
+                        type: 'custom',
+                        //使用自定义的图形元素
+                        renderItem: renderItem,
+                        name: '项目计划',
+                        itemStyle: {
+                            //透明度
+                            opacity: 0.8,
+                            color: '#AACCF9'
+                        },
+                        encode: {
+                            //将维度1和维度2的数据映射到x轴
+                            x: [1, 2],
+                            //将维度0的数据映射到y轴
+                            y: 0
+                        },
+                        data: data
+                    },
+                    //这个系列并没有太大作用，也没有给它设置data，只是为了通过这个系列，显示图例(legend)而已
+                    {
+                        type: 'custom',
+                        name: '已完成任务',
+                        itemStyle: {
+                            //透明度
+                            opacity: 0.8,
+                            color: '#2076ED'
+                        }
+                    }
+                ]
+            });
+        }
+
+        function formatDate(date) {
+            //将2020/2/3这种日期格式，转换为2020-02-03
+            var arr = date.toLocaleDateString().split("/");
+            if (arr[1].length < 2) {//对月份进行处理：如果月份的长度为1，则拼接上字符串0
+                arr.splice(1, 1, "0" + arr[1]);
+            }
+            if (arr[2].length < 2) {//对天数进行处理：如果天数的长度为2，则拼接上字符串0
+                arr.splice(2, 1, "0" + arr[2]);
+            }
+            return arr.join("-");
+        }
+
+        //在渲染时，data中的每个数据项都会调用这个方法
+        function renderItem(params, api) {//params为data中的数据项的信息对象    api中是一些开发者可调用的方法集合，可以对data中的数据项进行操作
+            //计划类型：0-可行性研究；1-方案设计；2-初步设计；3-施工图设计；4-深化设计；
+            let planType = api.value(0);//取出data中数据项的第一个维度的值
+            //计划开始时间
+            let startDate = api.value(1);
+            //计划结束时间
+            let endDate = api.value(2);
+            //任务开始时间
+            let pStartDate = startDate;
+            //总任务个数
+            let taskTotalCount = api.value(3) ? api.value(3) : 0;
+            //完成任务个数
+            let taskFinishedCount = api.value(4) ? api.value(4) : 0;
+            //完成率
+            let taskCompleteRate = taskTotalCount != 0 ? (taskFinishedCount / taskTotalCount) : 0;
+
+            console.debug('---planType: ' + planType + '---planStartDate: ' + startDate
+                + '---planEndDate: ' + endDate + '---practiceStartDate: ' + pStartDate
+                + '---taskTotalCount: ' + taskTotalCount + '---taskFinishedCount: ' + taskFinishedCount
+                + '---taskCompleteRate:' + taskCompleteRate)
+
+            //===============计划工期进度条
+            //计划开始日期(在屏幕上的像素值)
+            var planStartDate = api.coord([startDate, planType]);//将数据项中的数值对应的坐标系上的点，转换为屏幕上的像素值
+            //坐标系上的点：是数据项映射到坐标系的x轴和y轴后，对应的位置
+            //屏幕上的像素值：是坐标系上的点，在屏幕上的位置
+            //计划结束日期(在屏幕上的像素值)
+            var planEndDate = api.coord([endDate, planType]);
+            //由于data.value中维度1和维度2的数据会被映射到x轴，而x轴的type为time，即时间轴，
+            //所以api.value(1)和api.value(2)获取到的值是将日期转换后的毫秒值
+            //设置图形的高度
+            var height = api.size([0, 1])[1] * 0.4;//获得Y轴上数值范围为1的一段所对应的像素长度；这是官方文档的注释，对于api.size()方法，目前我还不是很理解；先做个标记??? 以后再说
+
+            //使用graphic图形元素组件，绘制矩形
+            //clipRectByRect方法，在绘制矩形时，如果矩形大小超出了当前坐标系的包围盒，则裁剪这个矩形
+            var rectShape1 = echarts.graphic.clipRectByRect({
+                //矩形的位置
+                x: planStartDate[0],
+                y: planStartDate[1],
+                //矩形的宽高
+                width: planEndDate[0] - planStartDate[0],
+                height: height
+            }, {
+                //当前坐标系的包围盒
+                x: params.coordSys.x,
+                y: params.coordSys.y,
+                width: params.coordSys.width,
+                height: params.coordSys.height
+            });
+
+            //debugger;
+            //项目周期(毫秒值)：计划结束日期 - 计划开始日期
+            let project_millisecond = +echarts.number.parseDate(endDate) - +echarts.number.parseDate(startDate);
+            //已完成任务占用时间（毫秒值）：项目周期(毫秒值)*完成率
+            let finished_millisencond = project_millisecond * taskCompleteRate;
+
+            //===============已完成进度条
+            let rectShape2 = null;
+            //判断已完成任务占用时间是否为0，如果为空，说明项目还没开始
+            if (finished_millisencond !== 0) {//如果实际开始日期不为空
+                //实际开始日期(在屏幕上的像素值)
+                var practiceStartDate = api.coord([pStartDate, planType]);
+                //当前日期或实际结束日期
+                var nowDate_or_practiceEndDate;
+                //项目周期(毫秒值)：计划结束日期(毫秒值) - 计划开始日期(毫秒值)
+                var projectCycle_millisecond = endDate - startDate;
+                //实际开始日期(毫秒值)
+                var practiceStartDate_millisecond = +echarts.number.parseDate(pStartDate);
+                //当前日期(毫秒值)
+                var nowDate_millisecond = +echarts.number.parseDate(nowDateStr);
+                //如果项目进度未完成或刚好完成。
+                //比如计划开始时间1月10日，计划结束时间1月20日，项目周期10天，实际开始时间1月10日，当前日期1月18日，说明项目进度未完成
+                //那么在渲染实际工期的进度条时，进度条的范围为1月10日至1月18日(实际开始日期至当前日期)
+                //比如计划开始时间1月10日，计划结束时间1月20日，项目周期10天，实际开始时间1月10日，当前日期1月20日，说明项目进度刚好完成
+                //那么在渲染实际工期的进度条时，进度条的范围为1月10日至1月20日(实际开始日期至当前日期)
+                if ((nowDate_millisecond - practiceStartDate_millisecond) <= projectCycle_millisecond) {
+                    //取当前日期(在屏幕上的像素值)
+                    nowDate_or_practiceEndDate = api.coord([nowDate_millisecond, planType]);
+                } else {//比如计划开始时间1月10日，计划结束时间1月20日，项目周期10天，实际开始时间1月10日，当前日期1月22日，说明项目已结束
+                    //那么在渲染实际工期的进度条时，进度条的范围应该是1月10日至1月20日(实际开始日期至实际结束日期)，
+                    //而不是1月10日至1月22日(实际开始日期至当前日期)
+                    //已完成的结束时间（毫秒值）：计划开始日期(毫秒值) + 项目周期(毫秒值)
+                    var practiceEndDate_millisecond = +echarts.number.parseDate(startDate) + finished_millisencond;
+                    //取实际结束日期(在屏幕上的像素值)
+                    nowDate_or_practiceEndDate = api.coord([practiceEndDate_millisecond, planType]);
+                }
+
+                //使用graphic图形元素组件，绘制矩形
+                //clipRectByRect方法，在绘制矩形时，如果矩形大小超出了当前坐标系的包围盒，则裁剪这个矩形
+                rectShape2 = echarts.graphic.clipRectByRect({
+                    //矩形的位置
+                    x: practiceStartDate[0],
+                    y: practiceStartDate[1],
+                    //矩形的宽高
+                    width: nowDate_or_practiceEndDate[0] - practiceStartDate[0],
+                    height: height
+                }, {
+                    //当前坐标系的包围盒
+                    x: params.coordSys.x,
+                    y: params.coordSys.y,
+                    width: params.coordSys.width,
+                    height: params.coordSys.height
+                });
+            }
+
+            //如果项目还没开始，那么只渲染计划工期的进度条
+            if (rectShape2 == null) {
+                //设置绘制的矩形的元素定义
+                return rectShape1 && {
+                    type: 'group',
+                    children: [
+                        {
+                            //类型为矩形
+                            type: 'rect',
+                            //具体形状
+                            shape: rectShape1,
+                            //样式
+                            style: api.style({
+                                fill: '#AACCF9'
+                            })
+                        }
+                    ]
+                };
+            } else {//渲染计划工期和实际工期
+                //设置绘制的矩形的元素定义
+                return rectShape1 && rectShape2 && {
+                    type: 'group',
+                    children: [
+                        {
+                            //类型为矩形
+                            type: 'rect',
+                            //具体形状
+                            shape: rectShape1,
+                            //样式
+                            style: api.style({
+                                fill: '#AACCF9'
+                            })
+                        },
+                        {
+                            //类型为矩形
+                            type: 'rect',
+                            //具体形状
+                            shape: rectShape2,
+                            //样式
+                            style: api.style({
+                                fill: '#2076ED'
+                            })
+                        }
+                    ]
+                };
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="divChart" style="width:100%;height:800px;">
+
+    </div>
+</body>
+</html>

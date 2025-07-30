@@ -1,0 +1,282 @@
+﻿@model  KC.Service.DTO.Pay.PaymentViewModelDTO
+@{
+    Layout = "~/Views/Shared/_PaymentLayout.cshtml";
+}
+<style>
+    /*.sendChargePhoneCode {
+        margin-left: 4px;
+        line-height: initial;
+        background-color: #1b8cf2;
+        color: white;
+        border-radius: 3px;
+        border: 0px;
+    }*/
+</style>
+<form method="post" data-options="novalidate:true" id="saveform">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.MemberId)
+    @Html.HiddenFor(model => model.UserName)
+    @Html.HiddenFor(model => model.Amount)
+    @Html.HiddenFor(model => model.OrderType)
+    @Html.HiddenFor(model => model.PaymentOrderId)
+    @Html.HiddenFor(model => model.OrderAmount)
+    @Html.HiddenFor(model => model.Usage)
+    @Html.HiddenFor(model => model.FeeAmount)
+
+    <div id="container">
+        <div id="order">
+            <div class="orderDetail-base" data-role="J_orderDetailBase">
+                <h3> 充值订单详情 </h3>
+                <div class="ajax-Account od-more-cnt fn-clear">
+                    <ul class="order-detail-container">
+                        <li class="order-item">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <th class="sub-th">
+                                            订单类型：
+                                        </th>
+                                        <td>
+                                            <p id="OrderType">@Model.OrderType</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="sub-th">
+                                            支付订单号：
+                                        </th>
+                                        <td>
+                                            <p id="PaymentOrderId">@Model.PaymentOrderId</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="sub-th">
+                                            充值金额：
+                                        </th>
+                                        <td>
+                                            <p id="OrderAmount">@Model.Amount</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="sub-th">
+                                            手续费：
+                                        </th>
+                                        <td>
+                                            <p id="OrderAmount">@Model.FeeAmount</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="sub-th">
+                                            用途 / 备注：
+                                        </th>
+                                        <td>
+                                            <p id="Usage">@Model.Usage</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <style>
+            </style>
+            <div class="bianji_div bdrt0 wdauto">
+                <ul class="input_ul shouhuo_li_div ">
+                    <li>
+                        <div>
+                            <p>
+                                本次交易金额：
+                            </p>
+                        </div>
+                        <p id="showAmount" class="ph_num num_p">
+
+                        </p>
+                    </li>
+                    <li>
+                        <div>
+                            <p>
+                                交易密码：
+                            </p>
+                        </div>
+                        <input type="password" id="Password" name="Password" />
+                    </li>
+                    <li>
+                        <div>
+                            <p>
+                                手机号码：
+                            </p>
+                        </div>
+                        @{
+                            string phide = Model.Phone;
+                            if (!string.IsNullOrEmpty(phide))
+                            {
+                                phide = phide.Substring(0, phide.Length - (phide.Substring(3)).Length) + "****" + phide.Substring(7);
+                            }
+                            else
+                            {
+                                phide = "";
+                            }
+
+                        }
+                        <p class="ph_num">
+                            @phide
+                        </p>
+                        <div>
+                            <input type="button" value="发送验证码" id="yzm" class="sendChargePhoneCode" />
+                        </div>
+                    </li>
+                    <li>
+                        <div>
+                            <p>
+                                手机验证码：
+                            </p>
+                        </div>
+                        <input id="PhoneCode" name="PhoneCode" />
+                    </li>
+                </ul>
+                <div class="btwp_div2">
+                    <div type="button" id="btnPay" class="bt_red_bg">
+                        确认充值
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+<form id="postForm" method="post">
+    <input id="message" name="message" type="hidden" />
+    <input id="signature" name="signature" type="hidden" />
+</form>
+
+@section scripts
+{
+    <script src="~/js/layer/layer.js"></script>
+    <script>
+        $(document).ready(function () {
+            var amount = fmoney(@(Model.Amount+Model.FeeAmount), 2).replace("￥","");
+            $("#showAmount").html(amount+ " <span class='yuan_p'>元</span>");
+            var countdown = 60;
+            $("#yzm").click(function () {
+                layer.msg('正在获取验证码，请稍等•••', { icon: 16, shade: 0.01 });
+                $.ajax({
+                    url: '@Url.Action("GenerateVerfiyPhoneCode", "CPCNPay")',
+                    type: "post",
+                    data: { memberId: '@Model.MemberId', type:1, amount: amount },
+                    success: function (data) {
+                        layer.closeAll('loading');
+                        if (data.success) {
+                            countdown = 120;
+                            settime($("#yzm"));
+                        } else {
+                            settime($("#yzm"));
+                            if (data.message == "") {
+                                layer.alert("获取失败，请稍后再试", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                            } else {
+                                layer.alert(data.message, { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                            }
+                        }
+                    },
+                    error: function () {
+                        layer.closeAll('loading');
+                        layer.alert("错误代码500", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                    }
+                });
+            });
+
+            $("#btnPay").click(function () {
+                var password = $("#Password").val();
+                var code = $("#PhoneCode").val();
+                if (password == "") {
+                    layer.alert("请输入交易密码", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                    return;
+                }
+
+                if (code == "") {
+                    layer.alert("请输入手机验证码", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                    return;
+                }
+                layer.msg('正在提交数据，请稍等•••', { icon: 16, shade: 0.01 });
+                var postData = $("#saveform").serialize();
+                $.ajax({
+                    async: true,
+                    type: "post",
+                    dataType: "json",
+                    url: "/CPCNPay/SubmitCharge",
+                    data: postData,
+                    success: function (data) {
+                        if (data) {
+                            if (data.success) {
+                                if (data.result.Success) {
+                                    layer.msg('正在提交数据，请稍等•••', { icon: 16, shade: 0.01 });
+                                    var retUrl = data.result.ReturnData;
+                                    var submitUrl = "";
+                                    var key1 = "";
+                                    var val1 = "";
+                                    var key2 = "";
+                                    var val2 = "";
+                                    if (retUrl != "") {
+                                        if (retUrl.indexOf("?") != -1) {
+                                            submitUrl = retUrl.split("?")[0];
+                                            var urlParam = retUrl.split("?")[1];
+                                            var urlParamArry = urlParam.split("&");
+                                            for (var i = 0; i < urlParamArry.length; i++) {
+                                                if (i == 0) {
+                                                    val1 = urlParamArry[i].replace('message=', '');
+                                                }
+                                                if (i == 1) {
+                                                    val2 = urlParamArry[i].replace('signature=', '');
+                                                }
+
+                                            }
+
+                                        }
+                                    }
+                                    if (submitUrl == "" || val1 == "" || val2 == "") {
+                                        layer.alert("返回的跳转地址有误！", { icon: 1, offset: ['200px'], title: '系统提示', time: 3000 });
+                                    }
+                                    else {
+                                        layer.confirm('是否确认跳转到第三方平台充值？', {
+                                            btn: ['确定', '取消'] //按钮
+                                        }, function () {
+                                            $('#message').val(val1);
+                                            $('#signature').val(val2);
+                                            $('#postForm').attr('action', submitUrl).submit();
+                                        });
+                                    }
+
+                                } else {
+                                    layer.alert(data.result.ErrorMessage, { icon: 2, offset: ['200px'], title: '系统提示'});
+                                }
+                            }
+                            else {
+                                layer.alert("充值失败。", { icon: 2, offset: ['200px'], title: '系统提示'});
+                            }
+                        }
+                    },
+                    complete: function () {
+                        layer.closeAll('loading');
+                    }
+                });
+
+            });
+
+            function settime(itms) {
+                if (countdown == 0) {
+                    $(itms).removeAttr("disabled");
+                    $(itms).val("发送验证码");
+                    countdown = 60;
+                    return;
+                } else {
+                    $(itms).attr("disabled", true);
+                    $(itms).val("重新发送(" + countdown + ")");
+                    countdown--;
+                }
+                setTimeout(function () {
+                    settime(itms);
+                }, 1000);
+            }
+        });
+    </script>
+}

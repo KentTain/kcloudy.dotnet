@@ -1,0 +1,295 @@
+﻿@using KC.Framework.Base
+@using KC.Web.Pay.Constants
+
+@{
+    var cashType = ViewBag.Type;
+    var type = cashType == 1 ? "充值" : "支付";
+    var platformPortalDomain = GlobalConfig.PayWebDomain;
+    var min = ViewBag.Min == null ? 0.01 : ViewBag.Min;
+}
+<style>
+    p.recharge {
+        padding: 15px;
+        font-size: 100%;
+        background: #fafafa;
+        line-height: 25px;
+    }
+
+    .recharge label {
+        font-weight: 400;
+    }
+
+    .payfor {
+        padding: 0 0 15px 0;
+        margin: 10px;
+    }
+
+        .payfor h4 {
+            padding: 30px 20px 15px 45px;
+            font-size: 100%;
+        }
+
+        .payfor p {
+            color: #999;
+            margin: 0 120px 30px;
+            border-bottom: 1px solid #f9f9f9;
+            height: 42px;
+        }
+
+    .btn-payfor {
+        padding-left: 15px;
+    }
+
+    .recharge b {
+        margin-left: 10px;
+    }
+
+    .realTimeAmount {
+        float: right;
+        width: 200px;
+        display: none;
+    }
+
+        .realTimeAmount label {
+            color: #f60;
+            font-weight: 700;
+            margin: 0 5px;
+        }
+
+    .payResult input[type=button] {
+        margin-left: 6%;
+        width: 100px;
+    }
+
+    .moneyInput {
+        width: 250px;
+        display: inline-block;
+    }
+
+    .row-container {
+        padding: 4px 4px 3px;
+        position: relative;
+        margin-bottom: 1px;
+        border-bottom: 1px solid #E6E6E6;
+    }
+
+    .row-basic {
+        height: 52px;
+        width: 100%;
+        line-height: 52px;
+        padding-left: 20px;
+        cursor: pointer;
+    }
+
+    .row-container:hover {
+        border: 4px solid #cad6ef;
+    }
+
+    .row-container-focus, .row-container-focus:hover {
+        border: 4px solid #85A1D4;
+    }
+
+    .row-container-focus, .row-container:hover {
+        padding: 0;
+        background-position: -4px -4px;
+    }
+
+    .payText {
+        margin: 0 20px;
+        display: inline-block;
+    }
+
+    #formSub {
+        background: #fff;
+    }
+
+    .paymentCount {
+        color: green;
+        padding: 0 10px;
+    }
+
+    .payList {
+        margin-top: 10px;
+    }
+
+    .succssPay {
+        color: green;
+        font-weight: 700;
+    }
+
+    .payTips {
+        color: #ff7000;
+        font-weight: 700;
+        padding: 5px 0;
+        font-size: 18px;
+    }
+
+    .bootstrap-dialog-message .table.table-striped.table-hover td {
+        text-align: left;
+    }
+
+    .payTipsTable {
+        width: 400px;
+        margin: 0 auto;
+    }
+
+    .cbsTips {
+        color: #e4393c;
+    }
+
+    .cbsAccounts, .cbsPaymenting, .cbsPaySuccess {
+        display: none;
+        width: 1020px;
+        padding: 20px;
+    }
+
+    .layui-layer-btn a {
+        box-sizing: initial;
+    }
+
+    #cbsAccounts tr {
+        cursor: pointer;
+    }
+
+    .cbsPaymenting, .cbsPaySuccess {
+        width: 440px;
+        text-align: center;
+    }
+
+    .cbsPayAmout {
+        color: #e4393c;
+        padding: 0 10px;
+    }
+
+    .countdown {
+        border: 2px solid #888;
+        border-radius: 50%;
+        color: #888;
+        display: block;
+        font-size: 18px;
+        font-weight: 300;
+        height: 100px;
+        line-height: 32px;
+        margin: 25px auto;
+        padding: 10px 0 0;
+        width: 100px;
+        transition: 1s;
+        -webkit-transition: 1s;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+        .countdown.end {
+            border: 2px solid #27ae60;
+            color: #27ae60;
+        }
+</style>
+
+<div class="payfor">
+    <ul id="paymentList"></ul>
+</div>
+<div class="alert-warning m15">
+    <div class="alert-icons"></div>
+    说明：金额需为正数，精确到分,每次 @(type.Equals("充值") ? "最少充值" + min + "元," : "") 最多 @type 990 万,请确保输入正确。
+</div>
+<p class="recharge">
+    <span>
+        <label>@(type)金额：</label>
+        <input type="hidden" id="payOrderId" />
+        <input type="hidden" id="orderRequestDatetime" />
+        <input class="easyui-numberspinner moneyInput cashNumber" id="cashInput" name="cashInput" data-options="required:true,precision:2,groupSeparator:',',decimalSeparator:'.',prefix:'￥',spinAlign:'horizontal',min:@min,max:9900000">
+        <a href="javascript:payment.paymentConfirm('cashInput')" class="easyui-linkbutton button-line-green" data-options="iconCls:'icon-standard-money-yen'" id="btn_addmoney"> 在线@(type) </a>
+    </span>
+</p>
+<p class="btn-payfor">
+
+    @*<a id="btn_addmoney" title="下一步" class="btn btn-success" href="javascript:payment.paymentConfirm('cashInput')">在线@(type)</a>*@
+</p>
+
+<form id="payForm" action=@Url.Action(ActionName.OnlinePayment.Payment, ControllerName.OnlinePayment) method=" post" target="_blank" style="display: none;">
+    @*<form id="payForm" action="@Url.Action(ActionName.OnlinePayment.Payment, ControllerName.OnlinePayment)" method="POST" target="_blank" style="display: none;">*@
+    <input type="hidden" name="isAdminPortal" id="isAdminPortal"/>
+    <input type="hidden" name="payType" id="payType" />
+    <input type="hidden" name="orderAmount" id="orderAmount" />
+    <input type="hidden" name="billNo" id="billNo" />
+    <input type="hidden" name="orderTime" id="orderTime" />
+    <input type="hidden" name="goodsName" id="goodsName" value="" />
+    <input type="submit" id="btnPay" />
+</form>
+
+<div class="cbsAccounts">
+    <table class="table table-bordered">
+        <tr>
+            <td style="width: 5%;font-weight: bold;">#</td>
+            <td style="width: 20%;font-weight: bold;">开户行</td>
+            <td style="width: 10%;font-weight: bold;">银行类型</td>
+            <td style="width: 25%;font-weight: bold;">开户名</td>
+            <td style="width: 15%;font-weight: bold;">账户</td>
+            <td style="width: 25%;font-weight: bold;">开户地</td>
+        </tr>
+        <tbody id="cbsAccounts"></tbody>
+    </table>
+    @if (type.Equals("支付"))
+    {
+        <label class="cbsTips">*货款会先存入平台托管账户，收货后货款会转入卖家招行CBS账户！</label>
+    }
+</div>
+<div class="cbsPaymenting">
+    <span id="countdown" class="countdown">
+        <span id="timer" class="timer">5</span>
+        <br>秒
+    </span>
+    <span style="font-size: 14px;">正在发送委托付款请求，请稍候···</span>
+</div>
+<div class="cbsPaySuccess layui-layer-dialog">
+    <span id="countdownPaySuccess" class="countdown">
+        <span id="timerPaySuccess" class="timer">8</span>
+        <br>秒
+    </span>
+    <span class="layui-layer-content" style="top:-20px;left: -10px;"><i class="layui-layer-ico layui-layer-ico1"></i></span>
+    <span style="text-align: left;display: inline-block;font-size: 14px;">
+        委托付款成功，等待财经办确认!<br />请通知财务人员登录招行CBS确认付款！
+        @if (type.Equals("支付"))
+        {
+            Html.Raw("<br />确认付款之后请点击上方的《刷新支付状态》按钮！");
+        }
+    </span>
+</div>
+
+<script src="@Url.Content("~/js/OnlinePayment/Index.js")"></script>
+<script>
+    payment.queryPaymentMethodUrl = '@Url.Action(ActionName.OnlinePayment.QueryPaymentMethod, ControllerName.OnlinePayment)';
+    payment.createPaymentUrl = '@Url.Action(ActionName.OnlinePayment.CreatePayment, ControllerName.OnlinePayment)';
+    @*payment.createPaymentUrl = '@platformPortalDomain' + "OnlinePayment/CreatePayment";*@
+    payment.getOnlinePaymentRecordsUrl = '@Url.Action(ActionName.OnlinePayment.GetOnlinePaymentRecords, ControllerName.OnlinePayment)';
+    payment.getCBSAccounts = '@Url.Action(ActionName.OnlinePayment.GetCBSAccounts, ControllerName.OnlinePayment)';
+    payment.cbsPaymentUrl = '@Url.Action(ActionName.OnlinePayment.CBSPaymentMethod, ControllerName.OnlinePayment)';
+    payment.platformPortalDomain = '@platformPortalDomain';
+    if (@cashType ===1) {
+        payment.orderId = '充值记录';
+        payment.type = '充值';
+    }
+    payment.cashType = @cashType;
+
+    var $paymentList = null;
+    if (typeof jQuery != 'undefined') {
+        $(function() {
+            $paymentList = $('#paymentList');
+            payment.initOnlinePaymentForm();
+        });
+
+    } else {
+        document.ready(function () {
+            $('#cashInput').val(payment.needPayAmount);
+            $paymentList = $('#paymentList');
+            payment.initOnlinePaymentForm();
+            if (payment.orderAmount == 0) {
+                payment.orderAmount = 99000000;
+                payment.needPayAmount=99000000;
+            }
+        });
+    }
+
+</script>
+
+

@@ -1,0 +1,139 @@
+
+.theme_btn {
+    background: red;
+}
+
+    .theme_btn:hover {
+        background: #e87d07;
+    }
+
+.theme_title {
+    background-color: red;
+}
+
+
+.page_theme a:hover, .page_theme a.select {
+    background: red;
+    border: 1px solid red;
+    color:white;
+}
+
+.page_span_theme, .page_span_theme span {
+    color: red !important;
+}
+
+.cat_theme {
+    background-color: red;
+}
+
+.nav_theme li a:hover {
+    color: red !important;
+}
+
+    .nav_theme li a:hover:after {
+        background: red;
+    }
+
+.search_theme {
+    border: 2px solid red;
+}
+
+.zoom_theme {
+    background: url(/css/images/home_1/search_red.png) no-repeat 92%;
+}
+.btn_search {
+     background: url(/css/images/home_1/search_red.png) no-repeat 92%;
+}
+.theme_clear {
+    border: 1px solid red;
+    color: red;
+}
+
+ 
+.hot_theme {
+    color: red;
+}
+
+    .hot_theme:before {
+        background: red !important;
+    }
+
+.a_slec_theme {
+    color: red;
+}
+
+    .a_slec_theme:after {
+        color: red;
+    }
+
+.serise_prd li a:hover {
+    color: red;
+}
+
+.bt_blue_bg_ck {
+    background: red;
+    border: 1px solid red;
+}
+
+    .bt_blue_bg_ck:hover {
+        background: #da0d0d;
+        border: 1px solid #da0d0d;
+    }
+
+
+.li_active {
+    background: red;
+}
+
+.toggle_div {
+    border-top: 3px solid red;
+}
+
+.ygPageNum span {
+    color: red;
+}
+
+.tab_head_blue {
+    background: #ffaeae;
+}
+
+.hover_act:after {
+    background: red;
+}
+
+.hover_act {
+    color: red;
+}
+
+.search_theme {
+    border: 2px solid red;
+    border-radius: 4px;
+}
+
+.serise_prd li a:hover{
+    content: '';
+    border-bottom: 3px solid;
+    display: block;
+    width: 100%;
+
+	color:red;
+}
+
+.a_slec_theme{
+	color:red;
+}
+.a_slec_theme:after{
+    content: '';
+    border-bottom: 3px solid;
+    display: block;
+    width: 100%;
+	color:red;
+}
+
+ .Consultation{
+    background-color: red;
+}
+
+  .caption_comprehensive{background-color:red!important}
+  .pd_tip .layui-layer-TipsG{border-right-color:red!important}
+  .pd_tip .layui-layer-content{background-color:red !important}

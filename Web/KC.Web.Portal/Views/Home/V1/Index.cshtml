@@ -1,0 +1,307 @@
+﻿@using KC.Web.Constants;
+@*@inject Tenant tenant*@
+@{
+    ViewBag.Title = "EPC平台-首页-Jumoon";
+    Layout = "~/Views/Home/V1/_HomeLayout.cshtml";
+    /*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*/
+}
+
+@section styles{
+    <link href="~/css/home/V1/home.css" rel="stylesheet" />
+    <style>
+
+.main .divGroup:nth-child(even){background-color: #fff;margin:20px auto;}
+.main .divGroup:nth-child(odd){background-color: rgba(230,230,230,.1);margin:20px auto;}
+
+.main .title{padding:2% 0;text-align:center}
+.main .title h2{color:#333;letter-spacing:4px;font-size:30px;margin-bottom:10px;}
+.main .title h2 i{display:inline-block;width:65px;height:3px;background:#09f;margin-bottom:6px}
+.main .title span{color:#999;}
+
+.main .news_list{text-align:left;font-size:14px;list-style:disc;display:block;overflow:hidden;white-space:nowrap;max-height:175px;min-height:100px;margin-top:11px;margin-left: 20px;padding-right:0;padding-left: 20px;float:left}
+.main .news_list li{width:50%;list-style:disc;float:left;font-size:12px;line-height: 17px;margin-top:3px}
+.main .news_list li a{width: 324px;overflow: hidden;display: inline-flex;}
+
+    </style>
+}
+
+@section Scripts {
+    <!--Main-->
+    <script>
+
+        $(function () {
+            layui.use('carousel', function () {
+                var carousel = layui.carousel;
+                //建造实例
+                carousel.render({
+                    elem: '#divCarousel'
+                    , arrow: 'always' //始终显示箭头
+                    , width: '100%' //设置容器宽度
+                    , height: 460
+                    //,anim: 'updown' //切换动画方式
+                });
+            });
+        });
+    </script>
+}
+
+<!-- banner部分 -->
+<div style="background-color: rgba(230,230,230 ,0.1);">
+    <div class="layui-carousel" id="divCarousel">
+        <div carousel-item>
+            <div class="bgImage banner" style="background: url(/images/demo/banner/banner-3.jpg) no-repeat center top; background-size: cover; box-sizing: border-box;">
+            </div>
+            <div class="bgImage banner" style="background: url(/images/demo/banner/banner-1.jpg) no-repeat center top; background-size: cover; box-sizing: border-box; ">
+            </div>
+            <div class="bgImage banner" style="background: url(/images/demo/banner/banner-4.jpg) no-repeat center top; background-size: cover; box-sizing: border-box; ">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- main部分 -->
+<div class="main" layout:fragment="content">
+    <!-- contact部分 -->
+    @await Html.PartialAsync("_ContactPartial.cshtml")
+
+    <!--主营业务-->
+    <div class="layui-container divGroup">
+        <div class="layui-row">
+            <div class="layui-col-xs12 layui-col-sm12 layui-col-md12 layui-col-lg12">
+                <div class="layui-col-xs12 layui-col-sm12 layui-col-md4 layui-col-lg4">
+                    <div style="background: linear-gradient(#2775FD, #309DF8);border-radius: 4px;height:180px;margin-right:40px">
+                        <div class="layui-col-xs6 layui-col-sm6 layui-col-md6 layui-col-lg6" style="color:#fff;text-align:center;margin-top:50px;">
+                            <i class="fa fa-file-text fa-5x" aria-hidden="true"></i>
+                        </div>
+                        <div class="layui-col-xs6 layui-col-sm6 layui-col-md6 layui-col-lg6" style="color:#fff;margin-top:20px;">
+                            <p style="font-size: 24px;font-weight: bold;">数字化咨询</p>
+                            <p style="padding-top: 20px;padding-right: 20px;">基于国际主流的方法理论体系及丰富的团队经验，为企业提供数字化规划等咨询服务。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-col-xs12 layui-col-sm12 layui-col-md4 layui-col-lg4">
+                    <div style="background: linear-gradient(#2775FD, #309DF8);border-radius: 4px;height:180px;margin-right:40px">
+                        <div class="layui-col-xs5 layui-col-sm5 layui-col-md5 layui-col-lg5" style="color:#fff;text-align:center;margin-top:50px;">
+                            <i class="fa fa-envelope fa-5x" aria-hidden="true"></i>
+                        </div>
+                        <div class="layui-col-xs7 layui-col-sm7 layui-col-md7 layui-col-lg7" style="color:#fff;margin-top:20px;">
+                            <p style="font-size: 24px;font-weight: bold;">软件及服务</p>
+                            <p style="padding-top: 20px;padding-right: 20px;">基于跳月Paas/SaaS一体化柔性平台，为用户提供标准化软件产品、定制化开发服务。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-col-xs12 layui-col-sm12 layui-col-md4 layui-col-lg4">
+                    <div style="background: linear-gradient(#2775FD, #309DF8);border-radius: 4px;height:180px;margin-right:40px">
+                        <div class="layui-col-xs6 layui-col-sm6 layui-col-md6 layui-col-lg6" style="color:#fff;text-align:center;margin-top:50px;">
+                            <i class="fa fa-university fa-5x" aria-hidden="true"></i>
+                        </div>
+                        <div class="layui-col-xs6 layui-col-sm6 layui-col-md6 layui-col-lg6" style="color:#fff;margin-top:20px;">
+                            <p style="font-size: 24px;font-weight: bold;">整体解决方案</p>
+                            <p style="padding-top: 20px;padding-right: 20px;">通过软硬件集成与定制化开发，为企业用户提供数字化专项整体解决方案实施服务。</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!--软件产品与服务-->
+    <div class="divGroup">
+        <div class="layui-container title">
+            <h2>
+                <i></i>
+                软件产品与服务
+                <i></i>
+            </h2>
+            <span>
+                跳月PaaS/SaaS一体化柔性平台，基于云原生、零代码、微服务、容器、移动应用等新一代IT技术，<br>
+                为用户提供标准化软件产品、定制化开发服务、零代码搭建平台。
+            </span>
+        </div>
+        <div class="layui-container">
+            <div class="layui-row">
+                <div class="layui-col-xs12 layui-col-sm12 layui-col-md12 layui-col-lg12">
+                    <img src="/images/demo/home/home-2.png" style="width:100%">
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+
+    <!--三大类用户服务-->
+    <div class="divGroup">
+        <div class="layui-container title">
+            <h2>
+                <i></i>
+                三大类用户服务
+                <i></i>
+            </h2>
+            <span>基于跳月柔性云平台，为用户提供标准化产品、定制化服务和零代码搭建。</span>
+        </div>
+        <div class="layui-container">
+            <div class="layui-row">
+                <div class="layui-col-xs12 layui-col-sm12 layui-col-md12 layui-col-lg12">
+                    <div class="layui-col-xs12 layui-col-sm12 layui-col-md4 layui-col-lg4">
+                        <div style="border: 1px #e4e4e4 solid;border-radius: 20px;overflow: hidden;margin:20px;">
+                            <img style="width:100%" src="/images/demo/home/home-3-1.png">
+                            <div style="height:210px;padding-right: 40px;">
+                                <p style="color: #666;padding: 20px;line-height: 2em;">跳月柔性云平台已数字化封装100余项标准化业务应用，涵盖HSE（健康安全环境）、质量管理、设备及物资管理、合同采购、施工管理、行政后勤、财务管理等领域。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layui-col-xs12 layui-col-sm12 layui-col-md4 layui-col-lg4">
+                        <div style="border: 1px #e4e4e4 solid;border-radius: 20px;overflow: hidden;margin:20px;">
+                            <img style="width:100%" src="/images/demo/home/home-3-2.png">
+                            <div style="height:210px;padding-right: 40px;">
+                                <p style="color: #666;padding: 20px;line-height: 2em;">跳月Pass/Saas一体化平台，具备敏捷开发、便捷拓展的特点，围绕企业个性化需求，同时为企业用户提供私有化系统定制开发服务。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layui-col-xs12 layui-col-sm12 layui-col-md4 layui-col-lg4">
+                        <div style="border: 1px #e4e4e4 solid;border-radius: 20px;overflow: hidden;margin:20px;">
+                            <img style="width:100%" src="/images/demo/home/home-3-3.png">
+                            <div style="height:210px;padding-right: 40px;">
+                                <p style="color: #666;padding: 20px;line-height: 2em;">跳月为用户提供零代码定制平台，无需具备IT技能，业务用户可自己动手轻松创建个性化、轻量化应用系统，实现随时随地数字化、移动化管理。</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+
+    <!--招采需求展示-->
+    <div class="divGroup">
+        <div class="layui-container title">
+            <h2>
+                <i></i>
+                招采设备材料展示
+                <i></i>
+            </h2>
+            <span>基于跳月柔性云平台，为用户提供标准化产品、定制化服务和零代码搭建。</span>
+        </div>
+        <div class="layui-container">
+            <div class="layui-row" style="text-align:center">
+                <div th:each="entity,stats : ${data.rows}" th:if="*{stats.count % 3 == 1}"
+                     class="layui-col-xs12 layui-col-sm4 layui-col-md4 layui-col-lg4">
+                    <div style="padding:20px;margin:0 20px;border:solid 1px #ddd;">
+                        <img src="~/images/demo/require/require-1-1.jpg" style="width:100%;height:200px;">
+                        <div style="text-align:center">
+                            <p class="label" th:text="${entity.offeringName}">设备材料名称</p>
+                            <p class="detail" th:text="${entity.description}">
+                                设备材料采购描述........
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-xs12 layui-col-sm4 layui-col-md4 layui-col-lg4">
+                    <div style="padding:20px;margin:0 20px;border:solid 1px #ddd;">
+                        <img src="~/images/demo/require/require-1-2.jpg" style="width:100%;height:200px;">
+                        <div style="text-align:center">
+                            <p class="label">设备材料名称</p>
+                            <p class="detail">
+                                设备材料采购描述........
+                            </p>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="layui-col-xs12 layui-col-sm4 layui-col-md4 layui-col-lg4">
+                    <div style="padding:20px;margin:0 20px;border:solid 1px #ddd;">
+                        <img src="~/images/demo/require/require-1-3.jpg" style="width:100%;height:200px;">
+                        <div style="text-align:center">
+                            <p class="label">设备材料名称</p>
+                            <p class="detail">
+                                设备材料采购描述........
+                            </p>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--产品展示-->
+    <div class="divGroup">
+        <div class="layui-container title">
+            <h2>
+                <i></i>
+                供应商<span>  ·  </span>产品
+                <i></i>
+            </h2>
+            <span>基于跳月柔性云平台，为用户提供标准化产品、定制化服务和零代码搭建。</span>
+        </div>
+        <div class="layui-container">
+            <div class="layui-row" style="text-align:center">
+                <div class="layui-col-xs12 layui-col-sm6 layui-col-md6 layui-col-lg6" >
+                    <div style="padding:20px;margin:0 20px;border:solid 1px #ddd;">
+                        <img src="~/images/demo/product/product-1-1.jpg" style="width:100%;height:300px;">
+                        <div style="text-align:center">
+                            <p class="label">产品名称</p>
+                            <div class="title detail">
+                                <p>零&nbsp;&nbsp;门&nbsp;&nbsp;槛<span> - </span>企业无需配置IT人员、服务器等硬件设施</p>
+                                <p>低&nbsp;&nbsp;成&nbsp;&nbsp;本<span> - </span>云端共享服务、提升资源利用率、简化运维</p>
+                                <p>协同共享<span> - </span>各参与方全面互联、数据共享、无缝协同</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-xs12 layui-col-sm6 layui-col-md6 layui-col-lg6">
+                    <div style="padding:20px;margin:0 20px;border:solid 1px #ddd;">
+                        <img src="~/images/demo/product/product-1-2.jpg" style="width:100%;height:300px;">
+                        <div style="text-align:center">
+                            <p class="label">产品名称</p>
+                            <div class="title detail">
+                                <p>无缝对接<span> - </span>PC端、移动端无缝对接</p>
+                                <p>便捷至简<span> - </span>仅手机端即可实现安全生产电子化管理</p>
+                                <p>随时随地<span> - </span>让安全管理无处不在、无时不有</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--news部分 -->
+    <div class="layui-container divGroup" style="background-color:#fff;">
+        <div class="layui-row" style="border:1px solid #ddd;margin:40px 0;">
+            <div class="layui-col-xs2 layui-col-sm2 layui-col-md2 layui-col-lg2" style="text-align:center;margin:50px 0;">
+                <i class="fa fa-newspaper-o fa-5x" aria-hidden="true"></i>
+                <p>News</p>
+            </div>
+            <div class="layui-col-xs10 layui-col-sm10 layui-col-md10 layui-col-lg10">
+                <ul class="news_list">
+                    <li><a title="starlu" href="/news/details/205" target="_blank">starlu</a></li>
+                    <li><a title="唯品会" href="/news/details/201" target="_blank">唯品会</a></li>
+                    <li><a title="分分" href="/news/details/196" target="_blank">分分</a></li>
+                    <li><a title="标题" href="/news/details/187" target="_blank">标题</a></li>
+                    <li><a title="tesst" href="/news/details/179" target="_blank">tesst</a></li>
+                    <li><a title="20180111新闻" href="/news/details/176" target="_blank">20180111新闻</a></li>
+                    <li><a title="最后一轮3" href="/news/details/173" target="_blank">最后一轮3</a></li>
+                    <li><a title="香港金融行业的冲击" href="/news/details/166" target="_blank">香港金融行业的冲击</a></li>
+                    <li><a title="（行业新闻、热门推荐、网站公告也是如此）" href="/news/details/163" target="_blank">（行业新闻、热门推荐、网站公告也是如此）</a></li>
+                    <li><a title="春节活动来袭" href="/news/details/162" target="_blank">春节活动来袭</a></li>
+                    <li><a title="元旦活动来袭" href="/news/details/161" target="_blank">元旦活动来袭</a></li>
+                    <li><a title="愚人节活动来袭" href="/news/details/156" target="_blank">愚人节活动来袭</a></li>
+                    <li><a title="中秋节活动来袭" href="/news/details/155" target="_blank">中秋节活动来袭</a></li>
+                    <li><a title="劳动节活动来袭" href="/news/details/154" target="_blank">劳动节活动来袭</a></li>
+                    <li><a title="国庆节活动来袭" href="/news/details/152" target="_blank">国庆节活动来袭</a></li>
+                    <li><a title="万圣节活动来袭" href="/news/details/151" target="_blank">万圣节活动来袭</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+</div>

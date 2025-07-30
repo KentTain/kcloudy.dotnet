@@ -1,0 +1,90 @@
+﻿@using KC.Web.Contract.Constants
+@model KC.Service.DTO.Contract.ContractTemplateDTO
+@{
+    Layout = null;
+}
+<link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.css" rel="stylesheet" />
+<link href="~/css/upload.css" rel="stylesheet" />
+
+<style type="text/css">
+    .webuploader-pick {
+        padding: 0 30px;
+        width: 220px;
+    }
+
+    .webuploader-pick-hover {
+        background: #00a2d4;
+    }
+
+    .glyphicon {
+        line-height: 30px;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+@using (Html.BeginForm(ActionName.ContractTemplate.SaveContractTemplate, ControllerName.ContractTemplate, FormMethod.Post, new { id = "saveform", @class = "easyui-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td>
+                    <div>
+                        <label class="required">*</label>
+                        <span for="Name">合同名称：</span>
+                    </div>
+                </td>
+                <td id="dia-name">
+                    <input id="Name" name="Name" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:'length[1,50]'" value="@Model.Name" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="Level">合同类型：</span>
+                    </div>
+                </td>
+                <td>
+                    @Html.DropDownList("ContractType", ViewBag.ContractTypeList as SelectList, new { @id = "ContractType", @class = "easyui-combobox", @style = "width: 280px;height:30px;", @DropDownStyle = "DropDownList" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="Comment">描述：</span>
+                    </div>
+                </td>
+                <td>
+                    <input id="Comment" name="Comment" class="easyui-textbox" style="width:280px;height: 45px" data-options="width:250,validType:['unSpace']" maxlength="50" value="@(null != Model ? Model.ContractValue : string.Empty)" />
+                </td>
+            </tr>
+
+            
+        </tbody>
+    </table>
+}
+
+<script>
+    $(function () {
+
+        $("#ContractType option").each(function (e, i) {
+            var val = $(this).text();
+            if (val == level) {
+                $("#ContractType").val($(this).val());
+                return;
+            }
+        });
+    });
+
+    $('#ContractType').combobox({ editable: false });
+
+</script>
+

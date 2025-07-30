@@ -1,0 +1,79 @@
+﻿@using KC.Web.Constants;
+@using KC.Service.DTO.Portal;
+@model KC.Service.ViewModel.Portal.FrontSiteDetailViewModel<RecommendOfferingDTO>
+@*@inject Tenant tenant*@
+@{
+    ViewBag.Title = "鑫亚科技平台-商品详情";
+    Layout = "../_HomeLayout.cshtml";
+    /*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*/
+}
+@section styles{
+    <style>
+.main .banner{padding:30px 0}
+.main .banner .content-img img{max-width:100%;text-align:center;border:1px solid #e8e8e8}
+.main .banner .label{color:#666;font-size:32px;margin:10px 0}
+.main .banner .descption{font-size:18px;color:#9d9d9d;margin:0 0 10px 0;max-height:100px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.main .banner .price{font-size:20px;color:#666;margin:20px 0 10px 0}
+.main .banner .price span{color:red}
+.main .banner a{color:#fff;background-color:#2277DD;padding:10px 25px;margin:0;font-size:16px;letter-spacing:3px;line-height:38px;border:1px solid #2277DD;border-radius:3px;cursor:pointer}
+.main .content .adside{background:#fff;border:1px solid #e8e8e8}
+.main .content .adside .item-title{text-align:center;color:#666;font-size:24px;margin:10px 0}
+.main .content .adside .item-box{background:#fff;text-align:center}
+.main .content .adside .item{margin:15px auto}
+.main .content .adside .item img{width:210px}
+.main .content .adside .item .title{font-size:16px;line-height:40px}
+.main .content .adside .item .price span.number{color:#e00;font-size:20px}
+.main .content .adside .item .price span{color:#888;font-size:16px;padding-left:2px}
+.main .content .detail{font-size:18px;color:#9d9d9d;padding:10px 20px;border:1px solid #e8e8e8}
+    </style>
+}
+@section Scripts {
+
+
+}
+<!-- main部分 -->
+<div class="main home main-content" layout:fragment="content">
+    <div class="layui-container">
+        <div class="layui-row banner">
+            <div class="layui-col-xs12 layui-col-sm4 layui-col-md5 layui-col-lg5 content-img">
+                <img src="@(Model != null && Model.DetailInfo != null && Model.DetailInfo.OfferingImageBlob != null ? Model.DetailInfo.OfferingImageBlob.ShowImageUrl : "~/images/image-no.jpg")" width="389" height="280">
+            </div>
+            <div class="layui-col-xs12 layui-col-sm6 layui-col-md7 layui-col-lg7 right">
+                <p class="label">@(Model != null && Model.DetailInfo != null ? Model.DetailInfo.RecommendName : "无商品名称")</p>
+                <p class="descption">
+                    @(Model != null && Model.DetailInfo != null ? Model.DetailInfo.Description : "")
+                </p>
+                <p class="price">价格：<span>￥@(Model != null && Model.DetailInfo != null && Model.DetailInfo.OfferingPrice.HasValue ? Model.DetailInfo.OfferingPrice.ToString() : "面议")</span></p>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div><a id="advisory">商品咨询 >&nbsp;</a></div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-container">
+        <div class="layui-row content">
+            <div class="layui-col-xs12 layui-col-sm3 layui-col-md3 layui-col-lg3 adside">
+                <div class="item-title">推荐的招采信息</div>
+                <div class="item-box">
+                    @foreach (var recommendInfo in Model.RecommendInfos)
+                    {
+                        <div class="item">
+                            <a href="javascript:;">
+                                <img src="@(recommendInfo != null && recommendInfo.RecommendImageBlob != null ? recommendInfo.RecommendImageBlob.ShowImageUrl : "~/images/noPicture.jpg")">
+                            </a>
+                            <div class="title">@(recommendInfo != null ? recommendInfo.RecommendName : "")</div>
+                            <div class="price">
+                                @*<span class="number">@(recommendInfo != null && recommendInfo.RecommendPrice.HasValue ? recommendInfo.RecommendPrice.Value.ToString() : "面议")@(recommendInfo != null ? recommendInfo.RecommendUnit : "")</span>
+                                <span>截止：@(recommendInfo != null && recommendInfo.RecommendDate != null ? recommendInfo.RecommendDate.Value.ToShortDateString() : "长期")</span>*@
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="layui-col-xs12 layui-col-sm9 layui-col-md9 layui-col-lg9 detail">
+                <p class="label">商品详情</p>
+                @(Model != null && Model.DetailInfo != null ? Model.DetailInfo.Content : "")
+            </div>
+        </div>
+    </div>
+</div>

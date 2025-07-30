@@ -1,0 +1,1033 @@
+﻿@using KC.Web.Constants;
+@*@inject Tenant tenant*@
+@{
+    ViewData["Title"] = "主页";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    /*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*/
+}
+<!-- accordion -->
+<style>
+.accordion{border:none}
+.accordion .accordion-header{padding:0 20px;height:44px;border-top:1px solid #fff;border-bottom:0;background:#2d3540}
+.accordion .accordion-header .panel-title{height:1pc;color:#fff;font-weight:700;font-size:1pc;line-height:40px}
+.accordion .accordion-header .panel-icon{left:30px;width:40px;height:40px}
+.accordion .accordion-header .panel-with-icon{padding-left:36px}
+.accordion .accordion-header .panel-icon.fa{margin-top:-10px;color:#fff;text-shadow:1px 1px 1px #ccc;font-size:1.5em}
+.accordion .accordion-header .panel-tool{display:none}
+.accordion .accordion-header-selected{border-top:3px solid #5cb85c;background:#2d3540}
+.accordion .accordion-header-selected .panel-title{color:#fff}
+.accordion ul{margin:0;padding:0;list-style-type:none}
+.accordion ul li{padding:0}
+.accordion ul li a{display:block;padding-left:50px;height:44px;background:#465569;color:#fff;font-size:14px;line-height:44px}
+.accordion ul li a:hover{color:#5cb85c;font-size: 14px;font-weight: 600;cursor:pointer;}
+.accordion ul li a.selected{padding-left:60px;border-left:3px solid #5cb85c;background:#1c3244;color:#5cb85c;font-size:14px;font-weight:600;cursor:default}
+.ui-icon[class*=" icon-"]{background:none repeat scroll 0 0 transparent;text-indent:0;margin-top:-.5em}
+.ui-icon.icon-large{margin-top:-.75em}
+.ui-button-icon-only .ui-icon[class*=" icon-"]{margin-left:-7px}
+</style>
+<!-- topbutton with message -->
+<style>
+#topLayout .top-bar{width:100%;height:43px;background-image:linear-gradient(to right , #2d3540, #555);}
+#topLayout .top-bar-left{position:absolute;width:auto!important;height:50px!important;background-image:none!important;left:10px;top:10px;display:block;}
+#topLayout .top-bar-left a{display:inline-block;position:relative;float:left}
+#topLayout .top-bar-left p{display:inline-block;text-align:center;line-height:20px;position:relative;font-size:18px;float:left;color:#fff;text-indent:20px}
+#topLayout .top-bar-right{float:right;width:auto!important;height:40px;text-align:right;color:#fff}
+#topLayout .top-bar-right a{display:inline-block;position:relative;float:left;cursor:default}
+#topLayout .top-bar-right a:hover{cursor:pointer;background:#e0e0e0;border-bottom:3px solid #5cb85c}
+#topLayout .top-bar-right a:hover .fa{color:#2d3540}
+#topLayout .top-bar-right a:hover p{color:#2d3540}
+#topLayout .top-bar-right a.selected{cursor:pointer;background:#fff;border-bottom:3px solid #5cb85c}
+#topLayout .top-bar-right a.selected .fa{color:#2d3540}
+#topLayout .top-bar-right a.selected p{color:#2d3540}
+#topLayout .top-bar-right p{display:inline-block;text-align:center;line-height:20px;position:relative;font-size:16px;float:left;color:#fff;text-indent:10px;margin:6px}
+#topBar .top-bar-right .btn .fa{color:#fff;margin:10px 14px 0 0;width:24px;height:24px}
+#topBar .top-bar-right .btn div{width:50px;height:40px}
+.message{position:absolute;right:0;top:0;box-shadow:0 0 5px 0 #999;background:#fff;z-index:9999;display:none;width:280px}
+.message .closeImg{position:absolute;top:0;right:0;width:16px;height:16px;background-color:#fff;color:#2d3540;padding:1px;margin:1px}
+.message input{width:180px;border:1px solid #2d3540}
+.message p{margin-top:8px;margin-bottom:6px;font-size:14px}
+.message a{text-decoration:none;border-radius:4px;background-color:#2d3540;color:#fff;font-size:14px;font-weight:700;padding:7px 0;text-align:center;margin:4px 0;}
+.message a:hover{cursor:pointer;background:#e0e0e0;color:#2d3540}
+.message table tr td.tdLeft{width:80px;text-align:right}
+.message table tr td span{margin:2px 0;}
+</style>
+<!-- Tabs -->
+<style>
+.tabs { border: 0 }
+.tabs-container .tabs-header{padding-bottom:3px;padding-left:8px;background:#fff}
+.tabs-container .tabs-scroller-left,.tabs-container .tabs-scroller-right{border:0;background-color:#fff}
+.tabs .tabs-title{padding-left:0;color:#636b7d;font-size:1pc}
+.tabs .tabs-icon{display:none}
+.tabs li{margin:0}
+.tabs li a.tabs-inner{padding:0 20px;min-width:36px;border:0;border-radius:0;background:#fff}
+.tabs li.tabs-selected .tabs-title{color:#5a9cf9}
+.tabs li.tabs-selected{border-bottom:3px solid #5a9cf9}
+.subTab.tabs-container .tabs-header{padding-left:0;background:#fff}
+.subTab .tabs-title{padding-left:0;color:#636b7d;font-size:9pt}
+.subTab li{margin:0;border:1px solid #ddd;border-left:none}
+.subTab li a.tabs-inner{padding:0 40px;min-width:36px;background:#fff}
+.subTab li.tabs-selected{border-top:2px solid #5a9cf9;border-bottom:0;background-color:#ddd}
+.subTab li.tabs-selected .tabs-title{position:relative;color:#5a9cf9}
+</style>
+<!-- notifyLayout -->
+<style>
+    #notifyLayout .tabs-container .tabs-header {
+        padding-left: 34px;
+    }
+</style>
+<!-- messageLayout -->
+<style>
+    #messageLayout .tabs-container .tabs-header {
+        padding-left: 68px;
+    }
+</style>
+
+@section Scripts {
+    <!--Menu & TopButton & Tabs-->
+    <script>
+        var prx_iframe = "tab_frm_";
+        var prx_subiframe = "subtab_frm_";
+        var prx_subTabParentId = "#subTabs-";
+        var topButton = "#topbar";
+        var mainTabs = "#mainTabs";
+        var leftMenu = "#leftMenu";
+        var loadMenusUrl = "@Url.Action(ActionNameBase.LoadMenus, ControllerNameBase.Home)";
+        function TreeNodeVM() {
+            var me = this;
+
+            me.parentId = null;
+            me.id = 0;
+            me.text = '';
+            me.url = '';
+            me.leaf = false;
+            me.level = 0;
+            me.treeCode = '';
+            me.applicationId = '';
+            me.checked = false;
+            me.isExtPage = false;
+            me.smallIcon = '';
+            me.children = new Array();
+        }
+
+        function MainPageVM() {
+            var me = this;
+
+            me.initTabs = function () {
+                $(mainTabs).tabs({
+                    tabHeight: 36,
+                    onSelect: function (title, index)
+                    {
+                        updateHash(index);
+                    }
+                });
+            };
+
+            me.initTopButton = function () {
+                var $topButton = $(topButton);
+                var $buttons = $('.top-bar-right a', $topButton);
+                $.each($buttons, function (i, btn) {
+                    $(btn).click(function () {
+                        var $button = $(this);
+                        if ($button.hasClass("selected")) {
+                            $('.top-bar-right a', $topButton).removeClass("selected");
+
+                            var layoutId = $button.attr('for');
+                            $("#" + layoutId).hide();
+                            return;
+                        }
+
+                        //所有按钮不被选中后，选中触发事件的按钮
+                        $('.top-bar-right a', $topButton).removeClass("selected");
+                        $button.addClass("selected");
+                        //隐藏所有的右侧消息栏
+                        var $messages = $('.message');
+                        $.each($messages, function (j, layout) {
+                            $(layout).hide();
+                        });
+                        //显示按钮所需显示的消息栏，根据按钮属性（for）所指明的消息栏
+                        var layoutId = $button.attr('for');
+                        $("#" + layoutId).fadeIn();
+                    });
+                });
+
+                var $closeButtons = $('.message .closeimg');
+                $.each($closeButtons, function (i, btn) {
+                    $(btn).click(function () {
+                        var $button = $(this);
+
+                        $button.parent().fadeOut();
+                        $('.top-bar-right a', $topButton).removeClass("selected");
+                    });
+                });
+            }
+
+            me.menuData;
+            me.initMenus = function() {
+                $.ajax({
+                    async: true,
+                    type: "get",
+                    dataType: "json",
+                    url: loadMenusUrl,
+                    success: function (data) {
+                        //console.log(data);
+                        if (me.menuData == null)
+                            me.menuData = data;
+
+                        loadMenu(me.menuData);
+                        loadHash(window.location.hash);
+                    },
+                    complete: function () {
+
+                    }
+                });
+            };
+            //  初始化应用程序主界面左侧面板中“导航菜单”的数据，并加载特定的子菜单树数据。
+            var loadMenu = function (menus) {
+                var $leftMenu = $(leftMenu).empty();
+                var menulist = "";
+                $.each(menus, function (i, n) {
+                    menulist += '<div title="' + n.text + '" data-options="split:true,border:false,collapsible:true, iconCls:\'' + n.smallIcon + '\'">';
+                    menulist += '<ul>';
+                    $.each(n.children, function (j, o) {
+                        var url = '';
+                        if (!location.origin) {
+                            location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+                        }
+                        if (!o.isExtPage)
+                            menulist += '<li id="menu_' + o.id + '"  iconCls:\'' + o.smallIcon + '\'' + (o.isActive ? 'class="selected"' : '') + '><div class:"' + o.smallIcon + '"><a id="linkmenu_' + o.id + '" target="mainFrame" menuId="' + o.id + '" ref="' + o.url + '"  class:"' + o.smallIcon + '">' + o.text + '</a></div></li> ';
+                    });
+                    menulist += '</ul></div>';
+                });
+
+                $leftMenu.append(menulist);
+
+                $('li a', $leftMenu).click(function () {
+                    //隐藏所有的右侧消息栏
+                    var $messages = $('.message');
+                    $.each($messages, function (j, layout) {
+                        $(layout).hide();
+                    });
+                    //所有按钮不被使用
+                    var $topButton = $(topButton);
+                    $('.top-bar-right a', $topButton).removeClass("selected");
+
+                    var $this = $(this);
+                    var id = $this.attr("menuId");;
+                    me.openTab(id);
+                    $('li a', $leftMenu).removeClass("selected");
+                    $this.addClass("selected");
+
+                }).hover(function () {
+                    $(this).addClass("hover");
+                }, function () {
+                    $(this).removeClass("hover");
+                });
+
+                $leftMenu.accordion({
+                    border: false,
+                    fit: false,
+                    collapsed: true,
+                    onSelect: function (title, index) {
+                        //将所有的父菜单（Accordion）设为非选中状态
+                        $('.panel.panel-htop', $leftMenu).removeClass('selected');
+                        //将所选中的父菜单（Accordion）设为选中状态
+                        $leftMenu.accordion('getSelected').parent().addClass("selected");
+                    }
+                });
+                $('.panel-tool', $leftMenu).remove();
+                $('li.selected a', $leftMenu).trigger('click');
+
+                var $panels = $leftMenu.accordion('panels');
+                $.each($panels, function (i, n) {
+                    if ($('li.selected', n).length) {
+                        $leftMenu.accordion('select', i);
+                        return;
+                    }
+                });
+            };
+            // 根据浏览器的hash值，选中所需选中的父菜单（Accordion）及其下的子菜单（li a）
+            var loadHash = function (hash) {
+                while (hash.left(1) === "#") {
+                    hash = hash.substr(1);
+                }
+                if (hash.isNullOrWhiteSpace()) {
+                    return;
+                }
+
+                var refresh = false;
+                var queryString = "";
+                if (hash.indexOf("?") > 0) {
+                    queryString = hash.split("?")[1];
+                    hash = hash.split("?")[0];
+                    refresh = true;
+                }
+
+                var iHash = tryParseInt(hash, 0);
+                if (hash === "") {
+                    me.openTab(0);
+                    return;
+                }
+
+                me.openTab(iHash, queryString, refresh);
+                selectMenuById(iHash);
+            };
+            // 根据选中Tab页面的索引值（index），设置浏览器的hash值（menu.Id?queryParms, 如：10?id=5），并选中的所对应父菜单（Accordion）及其下的子菜单（li a）
+            var updateHash = function (index) {
+                var opts = $(mainTabs).tabs("getTab", index).panel("options");
+                var frmId = opts.id;
+                if (frmId == undefined || frmId == null) {
+                    window.location.hash = "#";
+                    $('li a', leftMenu).removeClass("selected");
+                    return;
+                }
+
+                var menuId = frmId.replace(prx_iframe, '');
+
+                var queryString = "";
+                //var hash = opts.href ? opts.href : "";
+                var ifr = $('#' + frmId + ' iframe');
+                var hash = ifr[0] != null && ifr[0].src ? ifr[0].src : "";
+                if (hash.indexOf("?") > 0) {
+                    queryString = hash.split("?")[1];
+                    hash = hash.split("?")[0];
+                }
+
+                if (queryString != undefined && queryString != null && queryString != "") {
+                    hash = menuId ? (menuId + "?" + queryString) : "";
+                } else {
+                    hash = menuId ? menuId : "";
+                }
+
+                window.location.hash = hash;
+
+                //将父菜单（Accordion）面板及其下的所有子菜单（li a）设为非选中状态---删除class中的selected
+                $(leftMenu).find('.panel.selected').removeClass('selected');
+                $('li a', $(leftMenu)).removeClass("selected");
+                //设置选中的父菜单（Accordion）及其下的子菜单（li a）
+                selectMenuById(menuId);
+            };
+            // 根据菜单Id，设置选中的父菜单（Accordion）及其下的子菜单（li a）
+            var selectMenuById = function (menuId) {
+                $('.panel-htop', $(leftMenu)).removeClass('selected');
+                $('.accordion-header', $(leftMenu)).removeClass('accordion-header-selected');
+                $.each(me.menuData, function (i, menus) {
+                    menus.checked = false;
+                    $.each(menus.children, function (j, menu) {
+                        menu.checked = false;
+                    });
+                });
+
+                var iMenuId = tryParseInt(menuId, 0);
+                for (var i = 0, len = me.menuData.length; i < len; i++) {
+                    if (me.menuData[i].children.length) {
+                        for (var j = 0; j < me.menuData[i].children.length; j++) {
+                            if (me.menuData[i].children[j].id === iMenuId) {
+                                me.menuData[i].checked = true;
+                                me.menuData[i].children[j].checked = true;
+                                //触发父菜单（Accordion）的OnSelect事件
+                                $(leftMenu).accordion('select', i);
+                                //设置父菜单（Accordion）为选中状态---设置class为selected
+                                $('.panel.panel-htop', $(leftMenu)).eq(i).addClass('selected');
+                                $('.panel.panel-htop .accordion-header', $(leftMenu)).eq(i).addClass('accordion-header-selected');
+                                //设置父菜单（Accordion）下的子菜单（li a）为选中状态---设置class为selected
+                                $('li a', $(leftMenu).find('.panel.selected')).eq(j).addClass('selected');
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            // 根据菜单Id，获取菜单iframe对象
+            //  id：菜单Id(menuData.id)---5
+            //  isReturnParentMenu：是否返回菜单父节点---true
+            var getMenuById = function (id, isReturnParentMenu) {
+                if (isReturnParentMenu == undefined || isReturnParentMenu == null)
+                    isReturnParentMenu = false;
+                id = tryParseInt(id, 0);
+                for (var i = 0; i < me.menuData.length; i++) {
+                    var menu = me.menuData[i];
+                    if (menu.id == id) {
+                        return menu;
+                    } else {
+                        var children = menu.children;
+                        for (var j = 0; j < children.length; j++) {
+                            var cmenu = children[j];
+                            if (cmenu.id == id) {
+                                return cmenu;
+                            } else {
+                                var cChildren = cmenu.children;
+                                for (var k = 0; k < cChildren.length; k++) {
+                                    var ccmenu = cChildren[k];
+                                    if (ccmenu.id == id) {
+                                        if (isReturnParentMenu) {
+                                            return cmenu;
+                                        }
+                                        return ccmenu;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return null;
+            }
+            var tryParseInt = function (str, defaultValue) {
+                if (Number.isInteger(str))
+                    return str;
+
+                var retValue = defaultValue;
+                if (str !== null) {
+                    if (str.length > 0) {
+                        if (!isNaN(str)) {
+                            retValue = parseInt(str);
+                        }
+                    }
+                }
+                return retValue;
+            }
+
+            // 根据菜单Id，添加一个新的选项卡(Tab页面)；
+            //  id：菜单Id(menu.id)---5
+            //  queryParms：查询条件---'id=5'
+            //  refresh：是否刷新页面---true
+            me.openTab = function (id, queryParms, refresh) {
+                var menu = getMenuById(id);
+                if (menu == undefined || menu == null)
+                    return;
+
+                var isexists = isExists(prx_iframe + id);
+                if (isexists) {
+                    jumpTab(menu, queryParms, refresh, false);
+                } else {
+                    createTab(menu, queryParms, false);
+                }
+            };
+            // 根据菜单Id，在主选项卡中添加一个新的子选项卡(当前Tab页面添加一个子Tab页面)；
+            //  id：菜单Id(menu.id)---5
+            //  queryParms：查询条件---'id=5'
+            //  refresh：是否刷新页面---true
+            me.openSubTab = function (id, queryParms, refresh) {
+                //debugger;
+                var menu = getMenuById(id);
+                if (menu == undefined || menu == null)
+                    return;
+
+                var isexists = isExists(prx_subiframe + id, prx_subTabParentId + menu.parentId);
+                if (isexists) {
+                    jumpTab(menu, queryParms, refresh, true);
+                } else {
+                    createTab(menu, queryParms, true);
+                }
+            };
+            // 根据菜单Id，关闭一个选项卡(Tab页面)；
+            //  id：菜单Id(menuData.id)---5
+            me.closeTab = function (id) {
+                var menu = getMenuById(id, false);
+                if (menu == undefined || menu == null)
+                    return;
+                
+                var index = $(mainTabs).tabs('getTabIndex', $('#' + prx_iframe + id));  // get tab index
+                $(mainTabs).tabs("close", index);
+                //$(mainTabs).tabs("close", menu.text);
+            };
+            // 根据菜单Id，关闭一个选项卡中的子选项卡(Tab页面中的子Tab页)；
+            //  id：菜单Id(menuData.id)---5
+            me.closeSubTab = function (id) {
+                var menu = getMenuById(id, false);
+                if (menu == undefined || menu == null)
+                    return;
+
+                var parentTabId = prx_subTabParentId + menu.parentId;
+                var index = $(parentTabId).tabs('getTabIndex', $('#' + prx_subiframe + id));  // get tab index
+                $(parentTabId).tabs("close", index);
+                ////$(parentTabId).tabs("close", menu.text);
+            };
+
+            var createTab = function (menu, queryParms, isOpenSubTab) {
+                var id = menu.id;
+                var title = menu.text;
+                var parentId = menu.parentId;
+
+                var menus = menu.children;
+                if (isOpenSubTab && isSubTab(menu)) {
+                    var subId = menu.id;
+                    var subTitle = menu.text;
+                    var subHref = getHrefByUrlwithParams(menu.url, queryParms);
+                    var subTab = '<div id="' + prx_iframe + subId + '" title="' + subTitle + '" data-options="refreshable: false, iniframe: true, selected: false, delayLoadIframe:\'' + subHref + '\'"></div>';
+
+                    $(prx_subTabParentId + parentId).append(subTab);
+
+                    var subTabOption = {
+                        id: prx_subiframe + subId,
+                        title: subTitle,
+                        delayLoadIframe: subHref,
+                        iniframe: true,
+                        closable: true,
+                        refreshable: false,
+                        iconCls: "fa fa-list-alt",
+                        repeatable: false,
+                        selected: false
+                    }
+                    $(prx_subTabParentId + parentId).tabs("add", subTabOption);
+                    var index = $(prx_subTabParentId + parentId).tabs('getTabIndex', $('#' + prx_subiframe + subId));
+                    $(prx_subTabParentId + parentId).tabs("select", index);
+                } else if (menus.length == 0) {
+                    var href = getHrefByUrlwithParams(menu.url, queryParms);
+                    var tabOption = {
+                        id: prx_iframe + id,
+                        title: title,
+                        href: href,
+                        iniframe: true,
+                        closable: true,
+                        refreshable: false,
+                        iconCls: "fa fa-list-alt",
+                        repeatable: false,
+                        selected: true
+                    };
+
+                    $(mainTabs).tabs("add", tabOption);
+                } else {
+                    var tabOption = {
+                        id: prx_iframe + id,
+                        title: title,
+                        content: "<div id='subTabs-" + id + "' class='easyui-tabs subTab' data-options='fit: true'></div>",
+                        iniframe: false,
+                        closable: true,
+                        refreshable: false,
+                        iconCls: "fa fa-list-alt",
+                        repeatable: false,
+                        selected: true
+                    };
+                    $(mainTabs).tabs("add", tabOption);
+
+                    //设置子Tab页面
+                    $.each(menus, function (i, n) {
+                        //扩展页面不显示，需要通过单击打开新页面的方式访问
+                        if (!n.isExtPage) {
+                            var subId = n.id;
+                            var subTitle = n.text;
+                            var subHref = n.url;
+
+                            var subTab = '<div id="' + prx_iframe + subId + '" title="' + subTitle + '" data-options="refreshable: false, iniframe: true, selected: false, delayLoadIframe:\'' + subHref + '\'"></div>';
+
+                            $("#subTabs-" + id).append(subTab);
+
+                            var subTabOption = {
+                                id: prx_subiframe + subId,
+                                title: subTitle,
+                                delayLoadIframe: subHref,
+                                iniframe: true,
+                                closable: false,
+                                refreshable: false,
+                                iconCls: "fa fa-list-alt",
+                                repeatable: false,
+                                selected: false
+                            }
+                            $("#subTabs-" + id).tabs("add", subTabOption);
+                        }
+                    });
+
+                    $(prx_subTabParentId + id).tabs({
+                        onSelect: function (header, index) {
+                            $("#subTabs-" + id).tabs('updateIniframe', index);
+                        }
+                    }).tabs('unselect', 0);
+                    $(prx_subTabParentId + id).tabs('select', 0);
+                }
+            };
+            var jumpTab = function (menu, queryParms, refresh, isOpenSubTab) {
+                if (menu === undefined || menu === null) {
+                    $(mainTabs).tabs("select", id);
+                    return;
+                }
+
+                var id = menu.id;
+                var href = getHrefByUrlwithParams(menu.url, queryParms);
+                if (refresh === undefined || refresh === null)
+                    refresh = false;
+
+                if (isOpenSubTab && isSubTab(menu)) {
+                    var ifr = $('#' + prx_subiframe + id + ' iframe');
+                    if (ifr != undefined && href !== undefined && href !== null && href !== "") {
+                        if (refresh) {
+                            ifr[0].src = href;
+                        }
+                    }
+
+                    var parentId = menu.parentId;
+                    var index = $("#subTabs-" + parentId).tabs('getTabIndex', $('#' + prx_subiframe + id));
+                    $("#subTabs-" + parentId).tabs("select", index);
+                } else {
+                    var ifr = $('#' + prx_iframe + id + ' iframe');
+                    if (ifr != undefined && href !== undefined && href !== null && href !== "") {
+                        if (refresh) {
+                            ifr[0].src = href;
+                        }
+                    }
+
+                    var index = $(mainTabs).tabs('getTabIndex', $('#' + prx_iframe + id));  // get tab index
+                    $(mainTabs).tabs("select", index);
+                }
+            };
+            // 判断指定的选项卡是否存在于当前主页面的选项卡组(Tabs)中；
+            var isExists = function (id, parentTabId) {
+                var tabs = $(mainTabs).tabs("tabs");
+                if (parentTabId != undefined && parentTabId != null && parentTabId != "") {
+                    tabs = $(parentTabId).tabs("tabs");
+                }
+                var options = $.array.map(tabs, function (val) { return val.panel("options"); });
+
+                var idIsExist = $.array.some(options, function (val) {
+                    if (val.id == null || id == null) {
+                        return val.id == null && id == null;
+                    }
+                    return $.trim(val.id.toLowerCase()) == $.trim(id.toLowerCase())
+                        || $.trim(val.id.toLowerCase()) == (encodeURI($.trim(id))).toLowerCase();
+                });
+
+                return idIsExist;
+            };
+            var getHrefByUrlwithParams = function (url, queryParams) {
+                var href = url;
+                if (queryParams != undefined && queryParams != null && queryParams != '') {
+                    if (href.indexOf("?") > 0) {
+                        href = href + "&" + queryParams
+                    } else {
+                        href = href + "?" + queryParams
+                    }
+                }
+
+                return href;
+            }
+            var isSubTab = function(menu)
+            {
+                var parentId = menu.parentId;
+                var level = menu.level;
+                return level == 3 && (parentId != undefined || parentId != null && parentId != '');
+            }
+        }
+    </script>
+
+    <!--userLayout Change Password-->
+    <script type="text/javascript">
+        var savePasswordFormUrl = '@Url.Action(ActionNameBase.ChangePassword, ControllerNameBase.Account)';
+        function submitPasswordForm() {
+            var validate = $('#fromChangePwd').form("enableValidation").form("validate");
+            if (validate) {
+                $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                var formData = $('#fromChangePwd').form("getData");
+                $.ajax({
+                    async: true,
+                    type: "post",
+                    dataType: "json",
+                    url: savePasswordFormUrl,
+                    data: AddAntiForgeryToken(formData),
+                    success: function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $.messager.showInfoTopCenter('系统提示', '保存成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '保存失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                })
+            }
+        }
+        function clearPasswordForm() {
+            $('#fromChangePwd').form('clear');
+        }
+    </script>
+    <!--userLayout Change Mail & Phone-->
+    <script type="text/javascript">
+        var saveMailPhoneFormUrl = '@Url.Action(ActionNameBase.ChangeMailPhone, ControllerNameBase.Account)';
+        function submitMailPhoneForm() {
+            var validate = $('#fromMailPhone').form("enableValidation").form("validate");
+            if (validate) {
+                $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                var formData = $('#fromMailPhone').form("getData");
+                $.ajax({
+                    async: true,
+                    type: "post",
+                    dataType: "json",
+                    url: saveMailPhoneFormUrl,
+                    data: AddAntiForgeryToken(formData),
+                    success: function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $.messager.showInfoTopCenter('系统提示', '保存成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '保存失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                })
+            }
+        }
+        function clearMailPhoneForm() {
+            $('#fromMailPhone').form('clear');
+        }
+    </script>
+
+    <!--notifyLayout Message-->
+    <script type="text/javascript">
+        var getMessagesData = '@Url.Action(ActionNameBase.LoadMessages, ControllerNameBase.Home)';
+        function getMessages() {
+            $.ajax({
+                async: true,
+                type: "get",
+                dataType: "json",
+                url: getMessagesData,
+                success: function (data) {
+                    var $notify = $('notifyLayout').empty();
+                    var unReadContent = "";
+                    var readContent = "";
+
+                    var content = '<div title="" data-options="split:true,border:false,collapsible:true, ">';
+                    content += '<ul>';
+                    $.each(data, function (i, msg) {
+                        content += '<li id="msg_' + msg.Id + '"' + (msg.Status = 0 ? ' class="unreadmsg"' : 'class="readmsg"') + '><div class:"' + (msg.Status = 0 ? ' class="unreadmsg"' : 'class="readmsg"') + + '"><a id="linkmsg_' + msg.id + '" ref="" >' + msg.MemberRemindMessage + '</a></div></li> ';
+
+                        if (msg.Status == 0) {
+                            unReadContent += content;
+                        } else {
+                            readContent += content;
+                        }
+                    });
+
+                    unReadContent += "</ul></div>";
+                    readContent += "</ul></div>";
+
+                    //console.log(unReadContent);
+                    //console.log(readContent);
+
+                    $('.content.unread', $notify).append(unReadContent);
+                    $('.content.read', $notify).append(readContent);
+                },
+                complete: function () {
+
+                }
+            });
+        }
+    </script>
+
+    <!--Main-->
+    <script>
+        var mainpageVM;
+        $(function () {
+            if (mainpageVM == null)
+                mainpageVM = new MainPageVM();
+
+            mainpageVM.initTopButton();
+            mainpageVM.initTabs();
+            mainpageVM.initMenus();
+
+            getMessages();
+
+            $("#btnSignOut").click(function () {
+                $.easyui.messager.confirm("您确定要退出当前程序并关闭该网页？", function (c) {
+                    if (c) {
+                        window.location = "/Account/SignOut";
+                    }
+                });
+            });
+        });
+
+        // 接受Tab中Iframe传递的参数，并做出相应的操作
+        //  showLoadingMessage、showInfoMessage、showErrorMessage
+        //  openPage、closePage、openSubPage、closeSubPage、closeCurrentPage、refreshPage、getPage
+        window.addEventListener('message', function (e) {
+            if (e.data) {
+                $('#divMenusData').append(e.data);
+                var rdata = eval('(' + e.data + ')')
+                //console.log(rdata);
+
+                var command = rdata.command;
+                var data = rdata.data;
+                if (command == 'showLoadingMessage') {
+                    var message = data.message;
+                    if (message != message && message != null && message != '') {
+                        $.easyui.loading({ msg: message });
+                    } else {
+                        $.easyui.loading({ msg: '加载中，请稍后...' });
+                    }
+                } else if (command == 'showInfoMessage') {
+                    var code = data.code;
+                    var message = data.message;
+                    if (message != message && message != null && message != '') {
+                        $.messager.showInfoTopCenter('系统提示', message, 1000);
+                    }
+                } else if (command == 'showErrorMessage') {
+                    var code = data.code;
+                    var message = data.message;
+                    if (message != message && message != null && message != '') {
+                        $.messager.showErrorTopCenter('错误消息', message, 1000);
+                    }
+                } else if (command == 'openPage') {
+                    var key = data.page_id;
+                    var queryParms = data.parame;
+                    var refresh = data.refresh;
+                    //this.console.log('index.html----openPage：' + key);
+
+                    mainpageVM.openTab(key, queryParms, refresh);
+                } else if (command == 'openSubPage') {
+                    var key = data.page_id;
+                    var queryParms = data.parame;
+                    var refresh = data.refresh;
+                    //this.console.log('index.html----openPage：' + key);
+
+                    mainpageVM.openSubTab(key, queryParms, refresh);
+                } else if (command == 'closePage') {
+                    var key = data.page_id;
+                    //this.console.log('index.html----closePage：' + key);
+
+                    mainpageVM.closeTab(key);
+                } else if (command == 'closeSubPage') {
+                    var key = data.page_id;
+                    //this.console.log('index.html----closeSubPage：' + key);
+
+                    mainpageVM.closeSubTab(key);
+                } else if (command == 'closeCurrentSubPage') {
+                    mainpageVM.closeCurrentTab();
+                } else if (command == 'closeCurrentPage') {
+                    mainpageVM.closeCurrentTab();
+                } else if (command == 'refreshPage') {
+                    var key = data.page_id;
+                    //this.console.log('index.html----refreshPage：' + key);
+
+                    var ifr = $('#' + prx_iframe + key + ' iframe');
+                    ifr[0].src = ifr[0].src;
+                } else if (command == 'getPage') {
+                    var key = data.page_id;
+                    //this.console.log('index.html----getPage：' + key);
+
+                    var curTab = $(mainpageVM.mainTabs).tabs('getSelected');
+                    if (curTab && curTab.find('iframe').length > 0) {
+                        var curTabWin = curTab.find('iframe')[0].contentWindow;
+                        curTabWin.postMessage('{"command": "getPage", "returnKey" :"' + returnKey + '", "data": {"id": "' + prx_iframe + key + '"}}', '*');
+                    }
+                }
+            }
+        }, false);
+
+    </script>
+}
+
+<div class="easyui-layout" style="width:100%;height:100%;">
+    <div id="topLayout" data-options="region:'north',border:false" style="height:43px;overflow: hidden;">
+        <div id="topbar" class="top-bar">
+            <div class="top-bar-left">
+                <a href="javascript:void(0);">
+                    <div class="logo_div">
+                    </div>
+                    <p>分布式多租户SAAS平台--@ViewBag.TenantDisplayName</p>
+                </a>
+            </div>
+            <div class="top-bar-right">
+                <div style="float:left;">
+                    <a id="btnSetting" for="" href="javascript:void(0);" class="easyui-tooltip btn" title="系统设置">
+                        <div>
+                            <i class="fa fa-cog fa-2x" aria-hidden="true"></i>
+                        </div>
+                    </a>
+                    <a id="btnNotify" for="notifyLayout" href="javascript:void(0);" class="easyui-tooltip btn " title="通知消息">
+                        <div>
+                            <i class="fa fa-bell fa-2x" aria-hidden="true"></i>
+                        </div>
+                    </a>
+                    <a id="btnMessage" for="messageLayout" href="javascript:void(0);" class="easyui-tooltip btn " title="站内信">
+                        <div>
+                            <i class="fa fa-envelope fa-2x" aria-hidden="true"></i>
+                        </div>
+                    </a>
+                </div>
+                <div style="float:left;">
+                    <a for="userLayout" class="btn" style="width:120px;height:43px;">
+                        <p>
+                            @ViewBag.UserName
+                            <i class="fa fa-user fa-2x" style="margin:0px;" aria-hidden="true"></i>
+                        </p>
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div id="leftMenuLayout" title="" data-options="region:'west', border:false, split: false" style="width:200px;background: #2d3540;padding-bottom: 30px">
+        <div id="leftMenu">
+        </div>
+    </div>
+    <div id="mainLayout" data-options="region:'center',border:false">
+        <div id="mainTabs" class="easyui-tabs" data-options="iconCls:'icon-home', fit:true,border:false,collapsible:false,closable:false,refreshable:false">
+            <div title="主页" data-options="refreshable:false">
+                <div class="homeLayout" data-options="fit: true">
+                    <div id="divErrorMsg"></div>
+                    <br />
+                    <div id="divMenusData"></div>
+                </div>
+            </div>
+
+            @*嵌套Tab*@
+            @*<div title="test" data-options="refreshable:false">
+                <div id="subTabs" class="easyui-tabs subTab" data-options="fit:true">
+                    <div title="Title1" data-options="refreshable:false,iniframe:true,selected:false,delayLoadIframe:'/DatabasePool/Index'"></div>
+                    <div title="Title2" data-options="refreshable:false,iniframe:true,selected:false,delayLoadIframe:'http://www.baidu.com'"></div>
+                    <div title="Title3" data-options="refreshable:false,iniframe:true,selected:false,delayLoadIframe:'http://www.baidu.com'">
+                    </div>
+                    <div title="Title4" data-options="refreshable:false,iniframe:true,selected:false,delayLoadIframe:'http://www.baidu.com'">
+                    </div>
+                    <div title="Title5" data-options="refreshable:false,iniframe:true,selected:false,delayLoadIframe:'http://www.baidu.com'">
+                    </div>
+                </div>
+            </div>*@
+        </div>
+
+        <div id="userLayout" class="message" style="height:100%;">
+            <a id="btnClose" class="closeimg">
+                <div>
+                    <i class="fa fa-times fa-1x" aria-hidden="true"></i>
+                </div>
+            </a>
+            <div style="margin-top:16px;">
+                <div style="float:left;margin:12px;">
+                    <i class="fa fa-user-circle fa-5x" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <div>
+                        <p style="font-size:16px;font-weight:bold;">@ViewBag.UserDisplayName</p>
+                        <a id="btnSignOut" class="btn" href="javascript:void(0);" style="position:absolute;top: 68px;right: 28px;width:60px;">
+                            <div>
+                                <i class="fa fa-sign-out fa-1x" aria-hidden="true"></i>
+                                <span style="font-size: 12px;font-weight:bold;">退出</span>
+                            </div>
+                        </a>
+                    </div>
+                    <p>@ViewBag.UserEmail</p>
+                    <p>@ViewBag.UserPhone</p>
+                </div>
+            </div>
+            <div class="easyui-accordion" style="width:280px;">
+                <div title="修改密码" data-options="split:true,border:false,collapsible:true,iconCls:'fa fa-key'" style="overflow:auto;padding:10px;border:none;">
+                    <form id="fromChangePwd" method="post" enctype="multipart/form-data">
+                        <table>
+                            <tr>
+                                <td class="tdleft">当前密码:</td>
+                                <td><input name="OldPassword" type="password" class="easyui-validatebox easyui-textbox" data-options="plain:true, required:true, missingMessage:'必填项'"></input></td>
+                            </tr>
+                            <tr>
+                                <td class="tdleft">  新密码:</td>
+                                <td><input name="NewPassword" type="password" class="easyui-validatebox easyui-textbox" data-options="plain:true, required:true, missingMessage:'必填项'"></input></td>
+                            </tr>
+                            <tr>
+                                <td class="tdleft">确认密码:</td>
+                                <td><input name="ConfirmPassword" type="password" class="easyui-validatebox easyui-textbox" data-options="plain:true, required:true, missingMessage:'必填项'"></input></td>
+                            </tr>
+                        </table>
+                    </form>
+                    <div style="text-align:center;">
+                        <a href="javascript:void(0);" style="width:70px;" class="fa fa-check-square-o fa-1x" onclick="submitPasswordForm()"><span>确认</span></a>
+                        <a href="javascript:void(0);" style="width:70px;" class="fa fa-eraser fa-1x" onclick="clearPasswordForm()">清除</a>
+                    </div>
+
+                </div>
+                <div title="修改邮箱/手机" data-options="split:true,border:false,collapsible:true,iconCls:'fa fa-address-book'" style="overflow:auto;padding:10px;border:none;">
+                    <form id="fromMailPhone" method="post" enctype="multipart/form-data">
+                        <table>
+                            <tr>
+                                <td class="tdleft">邮箱:</td>
+                                <td><input name="Email" class="easyui-validatebox easyui-textbox" data-options="required:true, missingMessage:'必填项'" value="@ViewBag.UserEmail"></input></td>
+                            </tr>
+                            <tr>
+                                <td class="tdleft">手机:</td>
+                                <td><input name="Phone" class="easyui-validatebox easyui-textbox" data-options="required:true, missingMessage:'必填项'" value="@ViewBag.UserPhone"></input></td>
+                            </tr>
+                        </table>
+                    </form>
+                    <div style="text-align:center;">
+                        <a href="javascript:void(0);" style="width:70px;" class="fa fa-check-square-o fa-1x" onclick="submitMailPhoneForm()">确认</a>
+                        <a href="javascript:void(0);" style="width:70px;" class="fa fa-eraser fa-1x" onclick="clearMailPhoneForm()">清除</a>
+                    </div>
+                </div>
+                <div title="" selected></div>
+            </div>
+        </div>
+
+        <div id="notifyLayout" class="message" style="height:100%; width:386px;">
+            <a class="closeimg">
+                <div>
+                    <i class="fa fa-times fa-1x" aria-hidden="true"></i>
+                </div>
+            </a>
+            <div style="margin-top:14px;" class="easyui-tabs" data-options="iconCls:'icon-home', fit:true,border:false,collapsible:false,closable:false,refreshable:false">
+                <div class="content companyNote" data-options="title:'公司通告', refreshable:false" style="padding:10px">
+                    <p style="font-size:14px">jQuery EasyUI framework helps you build your web pages easily.</p>
+                    <ul>
+                        <li>easyui is a collection of user-interface plugin based on jQuery.</li>
+                        <li>easyui provides essential functionality for building modem, interactive, javascript applications.</li>
+                        <li>using easyui you don't need to write many javascript code, you usually defines user-interface by writing some HTML markup.</li>
+                        <li>complete framework for HTML5 web page.</li>
+                        <li>easyui save your time and scales while developing your products.</li>
+                        <li>easyui is very easy but powerful.</li>
+                    </ul>
+                </div>
+                <div class="content systemNote" data-options="title:'系统更新', refreshable:false" style="padding:10px;">
+                    <p style="font-size:14px">jQuery EasyUI framework helps you build your web pages easily.</p>
+                    <ul>
+                        <li>easyui is a collection of user-interface plugin based on jQuery.</li>
+                        <li>easyui provides essential functionality for building modem, interactive, javascript applications.</li>
+
+                    </ul>
+                </div>
+                <div class="content advertiseNote" data-options="title:'推广广告', refreshable:false" style="padding:10px;">
+                    <p style="font-size:14px">jQuery EasyUI framework helps you build your web pages easily.</p>
+                    <ul>
+                        <li>easyui is a collection of user-interface plugin based on jQuery.</li>
+                        <li>easyui provides essential functionality for building modem, interactive, javascript applications.</li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="messageLayout" class="message" style="height:100%; width:386px;">
+            <a class="closeimg">
+                <div>
+                    <i class="fa fa-times fa-1x" aria-hidden="true"></i>
+                </div>
+            </a>
+            <div style="margin-top:16px;" class="easyui-tabs" data-options="iconCls:'icon-home', fit:true,border:false,collapsible:false,closable:false,refreshable:false">
+                <div class="content unread" data-options="title:'未读消息', refreshable:false" style="padding:10px">
+                    <p style="font-size:14px">jQuery EasyUI framework helps you build your web pages easily.</p>
+                    <ul>
+                        <li>easyui is a collection of user-interface plugin based on jQuery.</li>
+                        <li>easyui provides essential functionality for building modem, interactive, javascript applications.</li>
+                        <li>using easyui you don't need to write many javascript code, you usually defines user-interface by writing some HTML markup.</li>
+                        <li>complete framework for HTML5 web page.</li>
+                        <li>easyui save your time and scales while developing your products.</li>
+                        <li>easyui is very easy but powerful.</li>
+                    </ul>
+                </div>
+                <div class="content read" data-options="title:'已读消息', refreshable:false" style="padding:10px;">
+                    <p style="font-size:14px">jQuery EasyUI framework helps you build your web pages easily.</p>
+                    <ul>
+                        <li>easyui is a collection of user-interface plugin based on jQuery.</li>
+                        <li>easyui provides essential functionality for building modem, interactive, javascript applications.</li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

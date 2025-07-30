@@ -1,0 +1,186 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Account.Constants
+@using KC.Framework.Tenant
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    //分配角色
+    ViewBag.Title = "用户角色";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var userId = ViewBag.SelectUserId;
+}
+
+@section styles{
+    <style type="text/css">
+        #UserData {
+            font-family: "Microsoft yahei", "微软雅黑", "宋体", "Tahoma", "Verdana", "Arial", "sans-serif";
+        }
+    </style>
+
+}
+<div class="easyui-panel" data-options="fit:true">
+    <div class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',fit:true" style="padding:8px">
+            @*用户管理-保存用户角色数据*@
+            @if ((await AuthorizationService.AuthorizeAsync(User, "E95A9A8A-3368-4BCA-9D24-05369B1C7D15")).Succeeded)
+            {
+                <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-floppy-o" onclick="SavaPermission()">保存</a>
+            }
+            <table id="UserData" style="height: 20%;border: 1px #2779AA solid;width:1000px;align-content: center;font-size:16px;margin: 5px 0px;" title="当前用户"></table>
+            <table id="RoleData" title="所有角色" style="min-height: 540px;max-height: 70%;margin-top: 5px;"></table>
+        </div>
+    </div>
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        var preSelectRoleId = '@(userId ?? 0)';
+        var adminUserId = '@RoleConstants.AdminUserId';
+        var canEditRole = ('True' === '@ViewBag.canEditRole');
+        var RoleData = $('#RoleData');
+        var UserData = $('#UserData');
+        $(function () {
+
+            LoadUserData(preSelectRoleId);
+            InitDataGrid(preSelectRoleId);
+        });
+
+        var getUserListUrl = '@Url.Action(ActionName.User.GetRoleInUserUserList, ControllerName.User)';
+        function LoadUserData(id) {
+            $.easyui.loading({ msg: '正在加载数据，请稍等...' });
+            $.ajax({
+                url: getUserListUrl,//所有菜单
+                data: { "userId": id },
+                async: false,
+                type: "post",
+                success: function (result) {
+                    //debugger;
+                    $.easyui.loaded();
+
+                    bindUser(result);
+                },
+                error: function () {
+                    $.easyui.loaded();
+                }
+            });
+        }
+
+        function bindUser(data) {
+            var str = "<tr>";
+            str += "<th style='width:140px; text-align:center'>用户名</th>";
+            str += "<th style='width:100px; text-align:center'>姓名</th>";
+            str += "<th style='width:160px; text-align:center'>邮箱</th>";
+            str += "<th style='width:100px; text-align:center'>手机号</th>";
+            str += "<th style='width:100px; text-align:center'>所属部门</th>";
+            str += "<th style='width:100px; text-align:center'>部门岗位</th>";
+            str += "</tr>";
+            for (var i = 0; i < data.length; i++) {
+                str += "<tr>";
+                str += "<td style='width:140px; text-align:center'>" + (data[i].userName == null ? '' : data[i].userName) + "</td>";
+                str += "<td style='width:100px; text-align:center'>" + (data[i].displayName == null ? '' : data[i].displayName) + "</td>";
+                str += "<td style='width:160px; text-align:center'>" + (data[i].email == null ? '' : data[i].email) + "</td>";
+                str += "<td style='width:100px; text-align:center'>" + (data[i].phoneNumber == null ? '' : data[i].phoneNumber) + "</td>";
+                str += "<td style='width:100px; text-align:center'>" + (data[i].organizationNames == null ? '' : data[i].organizationNames) + "</td>";
+                str += "<td style='width:100px; text-align:center'>" + (data[i].positionLevelName == null ? '' : data[i].positionLevelName) + "</td>";
+                str += "</tr>";
+            }
+            UserData.empty().append(str);
+        }
+
+        var getRoleListUrl = '@Url.Action(ActionName.User.GetRoleInUserRoleList, ControllerName.User)';
+        function InitDataGrid(userId) {
+            var $dataGrid = RoleData.datagrid({
+                url: getRoleListUrl + "?userId=" + userId,
+                idField: 'roleId',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                nowrap: false,
+                fit: true,
+                //pagination: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                checkbox: true,
+                columns: [
+                [
+                    { field: 'roleId', checkbox: true, title: 'ID', width: 400, align: 'left' },
+                    { field: 'roleName', title: '角色名', width: 100, align: 'left' },
+                    { field: 'displayName', title: '角色显示名', width: 100, align: 'left' },
+                    { field: 'isSystemRole', title: '是否为系统角色', width: 100, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    { field: 'applictionName', title: '应用名称', width: 100, align: 'left' },
+                     // { field: 'Name', title: '名称', width: 100, align: 'left' },
+                    { field: 'description', title: '描述', width: 200, align: 'left' }
+                ]],
+                onLoadSuccess: function (row) {
+                    bindRole(row.rows);
+                    $dataGrid.datagrid("fixRowHeight");
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+        function bindRole(datas) {
+            if (datas.length > 0) {
+                $.each(datas, function () {
+                    var $this = this;
+                    if ($this.checked) {
+                        let rows = RoleData.datagrid("getRows");
+                        let row;
+                        let index;
+                        $.each(rows, function (idx, val) {
+                            if (this.roleId == $this.roleId) {
+                                index = idx;
+                                row = this;
+                            }
+                        });
+                        //index = RoleData.datagrid("getRowIndex", row);
+                        RoleData.datagrid('checkRow', index);
+                    }
+                });
+            }
+        }
+
+        var savePermissionInrole = '@Url.Action(ActionName.User.SubmitRoleInUser, ControllerName.User)';
+        function SavaPermission() {
+            var checkedNodes = RoleData.datagrid('getChecked');
+
+            var newlist = [];
+            var rolenamelist = [];
+
+            if (checkedNodes.length > 0) {
+                for (var i = 0; i < checkedNodes.length; i++) {
+                    newlist.push(checkedNodes[i].roleId);
+                    rolenamelist.push(checkedNodes[i].roleName);
+
+                }
+            }
+
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                url: savePermissionInrole,
+                type: "post",
+                data: { 'userId': preSelectRoleId, 'addList': newlist, "type": "user", "rolenamelist": rolenamelist },
+                success: function (data) {
+                    $.easyui.loaded();
+                    if (data.success) {
+                        if (data.result) {
+                            $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('系统提示', '保存数据失败。', 1000);
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('系统提示', data.message, 1000);
+                    }
+                },
+                error: function () {
+                    $.easyui.loaded();
+                    $.messager.showErrorTopCenter('系统提示', '保存数据失败。');
+                }
+            });
+        }
+
+    </script>
+}

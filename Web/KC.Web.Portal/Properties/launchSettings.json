@@ -1,0 +1,47 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://cTest.localhost:4001",
+      "sslPort": 4011
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev"
+      }
+    },
+    "KC.Web.Portal-Product": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Product"
+      },
+      "applicationUrl": "http://cTest.localhost:4001;https://cTest.localhost:4011"
+    },
+    "KC.Web.Portal-Beta": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Beta"
+      },
+      "applicationUrl": "http://cTest.localhost:4001;https://cTest.localhost:4011"
+    },
+    "KC.Web.Portal-Test": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Test"
+      },
+      "applicationUrl": "http://cTest.localhost:4001;https://cTest.localhost:4011"
+    },
+    "KC.Web.Portal-Dev": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev"
+      },
+      "applicationUrl": "http://cTest.localhost:4001;https://cTest.localhost:4011"
+    }
+  }
+}

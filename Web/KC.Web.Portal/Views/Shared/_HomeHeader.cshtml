@@ -1,0 +1,182 @@
+﻿@using KC.Framework.Tenant
+@using KC.Service.DTO.Portal
+@{
+    var storeInfo = ViewBag.shopHomeDetails as ShopHomeDetailsDTO;
+    var shopInfo = storeInfo!=null?storeInfo.ShopInfoAll:new ShopInfoAllDTO();
+}
+<style>
+    .header_row1:hover .header_station {
+        display: block;
+        box-shadow: 2px 3px 3px #bcbcbc;
+        z-index: 999;
+    }
+
+    .wrapwrap_theme_banner {
+        position: relative;
+        width: 100%;
+        margin: 0;
+        height: 494px;
+        background-size: 100% 494px !important;
+    }
+
+    .banner_shuidian {
+        background: url(/images/home/water_banner.png) no-repeat center !important;
+    }
+
+    .top_ad_1 {
+        margin-top: 20px;
+        display: block;
+    }
+
+    .header_l img {
+        margin-top: 7px;
+        position: absolute;
+        margin-top: 30px;
+    }
+
+    .header_c {
+        margin-right: 28px;
+        float: right;
+    }
+
+    .new_nav {
+        float: right;
+        margin-right: 60px;
+    }
+</style>
+
+<div class="site_nav">
+    <div class="site_nav_bd clearfix">
+        <ul class="site_nav_l">
+            <li class="site_nav_menu mr6">
+                <div class="site_nav_menu_hd">
+                    <span class="mr6"><img src="~/images/home/nav_home.png" alt=""></span>
+                    <a href="@(shopInfo.PlatformDomain)">返回平台首页</a>
+                </div>
+            </li>
+            <li class="site_nav_menu">
+                <div class="site_nav_menu_hd">
+                    <span class="color_h">您好，欢迎来到财富共赢产融平台！</span>
+                </div>
+            </li>
+            <li class="site_nav_menu site_nav_pipe">|</li>
+            @*<li class="site_nav_menu mr6"><div class="site_nav_menu_hd"><span class="color_o">@companyName</span></div></li>*@
+
+            <li class="site_nav_menu"><div class="site_nav_menu_hd">@await Html.PartialAsync("_HomePageLogin")</div></li>
+        </ul>
+        <ul class="site_nav_r color_h">
+            <li class="site_nav_menu pl20">
+                <div class="site_nav_menu_hd">
+                    <a href="#"><span class="mr6">大陆之星商城</span></a>
+                    <span><img src="~/images/home/nav_drop.png" alt=""></span>
+                </div>
+                <div class="site_nav_menu_hidden">
+                    <img src="~/images/home/sanjiao_bg.png" alt="" class="nav_sanjian">
+                    <ul class="site-nav-menu-bd-panel menu-bd-panel">
+                        <li><a href="http://www.cfwin.com" target="_blank">财富共赢金融超市</a></li>
+                        <li><a href="http://www.scsimu.com" target="_blank">善长股权公司官网</a></li>
+                        <li><a href="http://www.cfwin.com" target="_blank">财富共赢集团官网</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li class="site_nav_menu pl20">
+                <div class="site_nav_menu_hd">
+                    <a href="@(ViewBag.CurrentLoginTenantDomain)Admin/AdminHome?OfficeCenter=true" )"><span class="mr6">办公中心</span></a>
+                    @*<span><img src="~/images/home/nav_drop.png" alt=""></span>*@
+                </div>
+                @*<div class="site_nav_menu_hidden">
+                        <img src="~/images/home/sanjiao_bg.png" alt="" class="nav_sanjian">
+                        <ul class="site-nav-menu-bd-panel menu-bd-panel">
+                            <li><a href="@(GlobalData.ShopDomain.Replace(TenantConstant.SubDomain, ViewBag.TenantName)+"Admin?OfficeCenter=true")" target="_blank">电商系统</a></li>
+                            <li><a href="@(GlobalData.MarketDomain.Replace(TenantConstant.SubDomain, ViewBag.TenantName) + "Admin?OfficeCenter=true")" target="_blank">融资系统</a></li>
+                            <li><a href="@(GlobalData.ErpDomain.Replace(TenantConstant.SubDomain, ViewBag.TenantName) + "?OfficeCenter=true")" target="_blank">ERP系统</a></li>
+                            <li><a href="@(GlobalData.CrmDomain.Replace(TenantConstant.SubDomain, ViewBag.TenantName)+ "?OfficeCenter=true"))" target="_blank">CRM系统</a></li>
+                            <li><a href="@(GlobalData.FlowDomain.Replace(TenantConstant.SubDomain, ViewBag.TenantName)+ "?OfficeCenter=true"))" target="_blank">工作流系统</a></li>
+                            <li><a href="@(GlobalData.MarketDomain.Replace(TenantConstant.SubDomain, ViewBag.TenantName)+ "Admin?OfficeCenter=true"))" target="_blank">赊销系统</a></li>
+                            <li><a href="@(GlobalData.SSODomain.Replace(TenantConstant.SubDomain, ViewBag.TenantName)+"?OfficeCenter=true")" target="_blank">后台管理系统</a></li>
+                            <li><a href="@(GlobalData.ApiServerDomain.Replace(TenantConstant.SubDomain, ViewBag.TenantName))" target="_blank">接口管理系统</a></li>
+                        </ul>
+                    </div>*@
+            </li>
+            <li class="site_nav_menu pl20">
+                <div class="site_nav_menu_hd">
+                    <a href="#"><span class="mr6">收藏夹</span></a>
+                    <span><img src="~/images/home/nav_drop.png" alt=""></span>
+                </div>
+                <div class="site_nav_menu_hidden left-30">
+                    <img src="~/images/home/sanjiao_bg.png" alt="" class="nav_sanjian">
+                    <ul class="site-nav-menu-bd-panel menu-bd-panel">
+                        <li><a href="/Admin/AdminHome#/Admin/Purchase/Index?title=购物车&type=1">收藏的宝贝</a></li>
+                        <li><a href="/Admin/AdminHome#/Admin/Purchase/Index?title=购物车&type=2">收藏的店铺</a></li>
+                        <li><a href="/Admin/AdminHome#/Admin/Purchase/List?title=采购订单">交易过的供应商</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li class="site_nav_menu pl20">
+                <div class="site_nav_menu_hd">
+                    <span class="mr6"><img src="~/images/home/nav_shop.png" alt=""></span>
+                    <a href="/Admin/AdminHome#/Admin/Purchase/Index?title=购物车"><span>购物车</span></a>
+                </div>
+            </li>
+            <li class="site_nav_menu pl20">
+                <div class="site_nav_menu_hd">
+                    <a href="http://www.starlu.com/Help/List" target="_blank"><span>帮助中心</span></a>
+                </div>
+            </li>
+            <li class=" site_nav_menu pl20">
+                <div class="site_nav_menu_hd">
+                    <a href="#"><span class="mr6">网址导航</span></a>
+                    <span><img src="~/images/home/nav_drop.png" alt=""></span>
+                </div>
+                <div class=" site_nav_menu_last clearfix width564">
+                    <img src="~/images/home/sanjiao_bg.png" alt="" class="nav_sanjian">
+                    <div class="fl menu-bd-panel_one">
+                        <h1 class="color_7">大陆之星商城行业分类</h1>
+                        
+                    </div>
+                    <div class="fl menu-bd-panel_three"></div>
+                    <div class="fl menu-bd-panel_two">
+                        <h1 class="color_7">财富共赢服务平台</h1>
+                        <ul class="menu-bd-panel">
+                            <li class="pt14"><a href="http://www.cfwin.com" target="_blank">财富共赢金融超市</a></li>
+                            <li class="pt14"><a href="http://www.scsimu.com" target="_blank">善长股权公司官网</a></li>
+                            <li class="pt14"><a href="http://www.cfwin.com" target="_blank">财富共赢集团官网</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
+
+<div class="header">
+    <div class="header_con">
+
+        <a href="/" class="header_l fl "><img src="" alt="企业logo" style="height:60px;max-width: 230px;display:none; " id="campanylogo"></a>
+        <div class="header_r fr">
+            <div class="header_r_con clearfix  search_theme">
+                <ul class="header_row1 fl">
+                    <li class="header_station_active"><span>本铺搜产品</span> <img src="~/images/home/nav_drop.png" alt=""></li>
+                    <li class="header_station">全站搜产品</li>
+                </ul>
+                <input type="text" class="header_search fl zoom_theme">
+                <span class="btn_search" id="search_btn"></span>
+            </div>
+            <input type="hidden" value="1" id="txt_search_type" />
+        </div>
+        <div class="header_c fl">
+            <ul class="clearfix nav_theme">
+                <li><a href="/Home/Index?isV=false" class="first" id="homePage">首页</a><p></p></li>
+                <li><a href="/offering/" id="offeringList">产品信息</a><p></p></li>
+                <li><a href="/Buy/Search" id="purchaseHomePage">采购信息</a><p></p></li>
+                <li><a href="/EnterpriseProfile" id="companyHomePage">公司档案</a><p></p></li>
+                <li><a href="/News" id="newsHomePage">公司动态</a><p></p></li>
+                <li><a href="/Home/ContactWay" id="ContactWayHomePage">联系方式</a><p></p></li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+

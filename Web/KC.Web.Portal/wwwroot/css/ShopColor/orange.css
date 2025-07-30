@@ -1,0 +1,137 @@
+
+.theme_btn {
+    background: #ff8805;
+}
+
+    .theme_btn:hover {
+        background: #e87d07;
+    }
+
+.theme_title {
+    background-color: #ff8805;
+}
+
+
+.page_theme a:hover, .page_theme a.select {
+    background: #ff8805;
+    border: 1px solid #ff8805;
+    color:white;
+}
+
+.page_span_theme, .page_span_theme span {
+    color: #ff8805 !important;
+}
+
+.cat_theme {
+    background-color: #ff8805;
+}
+
+.nav_theme li a:hover {
+    color: #ff8805 !important;
+}
+
+    .nav_theme li a:hover:after {
+        background: #ff8805;
+    }
+
+.search_theme {
+    border: 2px solid #ff8805;
+}
+
+.zoom_theme {
+    background: url(/css/images/home_1/search_orange.png) no-repeat 92%;
+}
+ .btn_search {
+     background: url(/css/images/home_1/search_orange.png) no-repeat 92%;
+}
+.theme_clear {
+    border: 1px solid #ff8805;
+    color: #ff8805;
+}
+ 
+.hot_theme {
+    color: #ff8805;
+}
+
+    .hot_theme:before {
+        background: #ff8805 !important;
+    }
+
+.a_slec_theme {
+    color: #ff8805;
+}
+
+    .a_slec_theme:after {
+        color: #ff8805;
+    }
+
+.serise_prd li a:hover {
+    color: #ff8805;
+}
+
+.bt_blue_bg_ck {
+    background: #ff8805;
+    border: 1px solid #ff8805;
+}
+
+    .bt_blue_bg_ck:hover {
+        background: #e87d07;
+    }
+
+
+.li_active {
+    background: #ff8805;
+}
+
+.toggle_div {
+    border-top: 3px solid #ff8805;
+}
+
+.ygPageNum span {
+    color: #ff8805;
+}
+
+.tab_head_blue {
+    background: #ffc789;
+}
+
+.hover_act:after {
+    background: #ff8805;
+}
+
+.hover_act {
+    color: #ff8805;
+}
+
+.search_theme {
+    border: 2px solid #ff8805;
+    border-radius: 4px;
+}
+
+.serise_prd li a:hover{
+    content: '';
+    border-bottom: 3px solid;
+    display: block;
+    width: 100%;
+
+	color:#ff8805;
+}
+
+.a_slec_theme{
+	color:#ff8805;
+}
+.a_slec_theme:after{
+    content: '';
+    border-bottom: 3px solid;
+    display: block;
+    width: 100%;
+
+	color:#ff8805;
+}
+ .Consultation{
+    background-color: #ff8805;
+}
+
+   .caption_comprehensive{background-color:#ff8805!important}
+   .pd_tip .layui-layer-TipsG{border-right-color:#ff8805!important}
+  .pd_tip .layui-layer-content{background-color:#ff8805 !important}

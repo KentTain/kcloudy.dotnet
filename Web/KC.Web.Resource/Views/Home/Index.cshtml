@@ -1,0 +1,220 @@
+﻿@{
+    ViewData["Title"] = "统一资源";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section styles{
+
+}
+
+@*使用网站（https://www.bejson.com/convert/html2markdown/）将MD文件转换为Html*@
+<div class="main">
+    <h1>一. 生成核心类库并推送中Nexus下私有Nuget仓库</h1>
+
+    <h2>1. 相关依赖顺序</h2>
+    <blockquote>
+        <div style="padding-left:20px;">
+            <ul><li>1.IdentityModel    </li><li>2.IdentityModel.AspNetCore.OAuth2Introspection（IdentityModel）							IdentityServer4.Storage（IdentityModel）    </li><li>3.IdentityServer4.AccessTokenValidation（IdentityModel.AspNetCore.OAuth2Introspection）	IdentityServer4（IdentityServer4.Storage）    </li><li>4.IdentityServer4.AspNetIdentity（IdentityServer4）    </li></ul>
+
+            <hr />
+
+            <ul><li>1.KC.Framework				KC.Multitenancy.Mvc    </li><li>2.KC.Common（KC.Framework）	KC.Database（KC.Framework）				KC.ThirdParty（KC.Framework）    </li><li>3.KC.Component（KC.Common）	KC.Service（KC.Common、IdentityModel）	KC.Storage（KC.Common）			KC.UnitTest	（KC.Common）	KC.VOD（KC.Common）    </li><li>4.KC.Job（KC.Component）		KC.Web（KC.Service、KC.Storage、IdentityServer4.AccessTokenValidation）			KC.Service.Component（KC.Component）    </li></ul>
+        </div>
+    </blockquote>
+    <h2>2. 设置项目打包需要的参数</h2>
+
+    <p>右键项目--&gt;属性--&gt;打包，设置：包名（KC.XXX）、版本（1.0.X）、作者（tianchangjun）、公司（KCloudy）    </p>
+
+    <h2>3. 根据Nexus的本地仓还原项目</h2>
+
+    <p>
+        <code>
+            dotnet restore KC.Common/KC.Common.csproj --no-cache -s http://nexus.kcloudy.com/repository/nuget-group/index.json
+        </code>
+    </p>
+
+    <h2>4. 项目打包，生成nuget packeage</h2>
+
+    <p>
+        <code>
+            dotnet pack KC.Common/KC.Common.csproj --no-restore  -c Release -o ../Publish/ /p:Version=1.0.0
+        </code>
+    </p>
+
+    <h2>5. 推送项目至Nexus中的nuget本地仓</h2>
+
+    <p>
+        <code>
+            dotnet nuget push ../Publish/KC.Common.1.0.0.nupkg --skip-duplicate --api-key 1e91362f-15e4-3d2e-935c-e31067d00218 -s http://nexus.kcloudy.com/repository/nuget-hosted/index.json
+        </code>
+    </p>
+
+    <h2>6. 删除Nexus中的nuget本地仓中的项目</h2>
+
+    <p>
+        <code>
+            dotnet nuget delete KC.Common 1.0.0 --non-interactive --api-key 1e91362f-15e4-3d2e-935c-e31067d00218 -s http://nexus.kcloudy.com/repository/nuget-hosted/index.json
+        </code>
+    </p>
+
+    <h2>7. 与Nuget本地源相关的操作</h2>
+
+    <p>
+        <code>
+            dotnet nuget list source				# 当前目录中的已配置源
+            dotnet nuget locals all -l				# 显示所有本地缓存目录的路径
+            dotnet nuget locals all --clear			# 清除所有本地缓存目录的文件（http 缓存目录、全局包缓存目录和临时缓存目录）
+            dotnet nuget locals global-packages -c	# 清除本地全局包缓存目录中的所有文件
+            dotnet nuget remove source mySource		# 删除名为 mySource 的源
+        </code>
+    </p>
+
+    <h1>二. 生成核心应用，包括：Resource相关静态资源、SSO单点登录、Account账户及权限管理</h1>
+
+    <ul><li>第三方JavaScript类库包括：bootstrap、echarts、jquery、jquery-easyui、jquery-validation、JsPlumb、layui、videojs、ueditor、webuploader</li><li>通用JS库：com.common.js、com.uploader.js、com.easyui.extension.js、mainTabs.js、jquery.extension.js</li><li>通用CSS库：common.css、step.css</li></ul>
+
+    <h2>相关应用占用端口如下：</h2>
+
+    <p>KC.Web.Resource（192.168.0.1:9999）、KC.Web.SSO（192.168.0.3:1001）、KC.Web.Admin（192.168.0.5:1003）、KC.Web.Account（192.168.0.7:2001）</p>
+
+    <h2>1. 前置条件：创建docker自定义网络，以便设置容器的固定IP，为nginx设置反向代理指向IP</h2>
+
+    <h3>1.1 查看docker现有网络类型</h3>
+
+    <p>
+        <code>
+            #查看相应网络类型：  docker network ls
+            #查看现有容器自动分配的IP：  docker inspect -f=&#39;{{.Name}} {{.NetworkSettings.IPAddress}} {{.HostConfig.PortBindings}}&#39; $(docker ps -aq)
+
+        </code>
+    </p>
+
+
+    <h3>1.2 创建自定义网络类型，并且指定网段（每次只能创建16个）</h3>
+
+    <p>
+        <code>
+            docker network create --subnet=192.168.0.0/16 kc-CoreNet
+        </code>
+    </p>
+
+    <h3>1.3 使用新的网络类型创建并启动容器</h3>
+
+    <p>
+        <code>
+            docker run --name userserver --net kc-CoreNet --ip 192.168.0.1 nginx
+        </code>
+    </p>
+
+    <h2>2. 使用插件（Extended Choice Parameter）设置参数化过程</h2>
+
+    <h3>2.1 设置参数名称为：Param_Assemblys；</h3>
+
+    <h3>2.2 选择JSON Parameter Type--&gt;JSON Parameter Config Groovy Script，并将文件Scripts/jenkinsUI.groovy内容复制到文本框内；</h3>
+
+    <h3>2.3 在源码管理中选择Git，</h3>
+
+    <ul><li>添加项目URL：ssh://git@gitlab.kcloudy.com:722/app/net/kcloudy.app.core.git</li><li>指定分支：*/main</li><li>选择在系统管理--&gt;Manage Credential--&gt;配置好的：SSH Username with private key的SSH凭证</li></ul>
+
+    <h3>2.4 在构建中增加构建步骤：执行Shell，将文件Scripts/jenkinsBuild.sh内容复制到命令文本框内；</h3>
+
+    <h3>2.5 在构建中增加构建步骤：Send files or execute commands over SSH，选择配置好的服务器：kc-server1</h3>
+
+    <ul>
+        <li>在Source files文本框添加：runRemoteShellForAppCore.sh</li>
+        <li>
+            在Exec command文本框中添加以下命令：
+            <code>
+                cd /mnt/remote
+                sh runRemoteShellForAppCore.sh
+            </code>
+        </li>
+    </ul>
+
+    <h3>2.6 相关资料如下：</h3>
+
+    <ul><li>插件（Extended Choice Parameter）：https://plugins.jenkins.io/extended-choice-parameter/</li><li>插件JSON对象验证网站：https://www.jeremydorn.com/json-editor</li></ul>
+
+    <h2>3. 使用Nginx反向代理本地所有的Web站点</h2>
+
+    <h3>3.1 创建宿主机相关文件夹，用于保存docker内部nginx配置文件</h3>
+
+    <p>
+        <code>
+            mkdir /mnt/nginx &amp;&amp; \
+            mkdir /mnt/nginx/html &amp;&amp; \
+            mkdir /mnt/nginx/logs &amp;&amp; \
+            mkdir /mnt/nginx/conf &amp;&amp; mkdir /mnt/nginx/conf/conf.d
+        </code>
+    </p>
+
+    <h3>3.2 使用docker安装nginx镜像</h3>
+
+    <p>
+        <code>
+            docker run -d --restart=always \
+            --name nginx \
+            -p 80:80 \
+            -v /mnt/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
+            -v /mnt/nginx/conf/conf.d:/etc/nginx/conf.d \
+            -v /mnt/nginx/html:/usr/share/nginx/html \
+            -v /mnt/nginx/logs:/var/log/nginx \
+            nginx
+        </code>
+    </p>
+
+    <h3>3.3 服务器安装上传下载软件：yum install -y lrzsz</h3>
+
+    <h3>3.4 将项目文件夹（Scripts/conf/*）下的nginx的反向代理配置文件复制到服务器目录（/mnt/nginx/conf/conf.d/）</h3>
+
+    <h3>3.5 进入nginx的docker环境，使用命令：nginx -s reload，重置nginx设置</h3>
+
+    <h2>4. KC.Web.Resource项目涉及使用库：System.Drawing.Common，已经中文字体乱码的解决方案</h2>
+
+    <h3>4.1 在Windows系统目录中：C://Windows/Fonts，找到相关中文字体文件（例如：仿宋体-SIMSUN.TTC），并复制到项目（./Fonts目录）中去；</h3>
+
+    <h3>4.2 在jenkinsBuild.sh中，将项目的字体文件拷贝到编译后的项目文件夹下，以便Docker可以进行复制到发布环境，相关命令如下：</h3>
+
+    <p>
+        <code>
+            echo &quot;拷贝中文字体文件：项目目录/Fonts，到：项目发布后的目录&quot;
+            cp -rf ${workspaceDir}/Fonts ${webDir}/
+        </code>
+    </p>
+
+    <h3>4.3 在Dockerfile中，设置以下内容</h3>
+
+    <p>
+        <code>
+            RUN sed -i &quot;s@http://deb.debian.org@http://mirrors.aliyun.com@g&quot; /etc/apt/sources.list
+            RUN apt-get update -y &amp;&amp; apt-get install -y libgdiplus locales fontconfig &amp;&amp; apt-get clean &amp;&amp; ln -s /usr/lib/libgdiplus.so /usr/lib/gdiplus.dll
+            RUN sed -ie &#39;s/# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/g&#39; /etc/locale.gen &amp;&amp; locale-gen &amp;&amp; mkdir /usr/share/fonts/truetype/deng/
+            ADD ./Fonts/* /usr/share/fonts/truetype/deng/
+            RUN fc-cache -vf &amp;&amp; fc-list
+            ENV LANG zh_CN.UTF-8
+        </code>
+    </p>
+
+    <h3>4.4 相关资料如下：</h3>
+
+    <ul><li>docker里图像上生成中文乱码问题：https://www.cnblogs.com/lori/p/8358285.html</li><li>dotnet使用System.DrawingCore部署Linux需要注意的：https://www.cnblogs.com/lori/p/8117932.html</li></ul>
+
+    <h2>docker常用操作</h2>
+
+    <ul><li>查看所有容器内应用IP及绑定端口：docker inspect -f=&#39;{{.Name}}---{{.NetworkSettings.IPAddress}}---{{.HostConfig.PortBindings}}&#39; $(docker ps -aq)</li><li>停止所有kcloudy中的容器：docker stop $(docker ps -a | grep -i &#39;kcloudy*&#39; | awk &#39;{print $1}&#39;)</li><li>删除所有kcloudy中的容器：docker rm $(docker ps -a | grep -i &#39;kcloudy*&#39; | awk &#39;{print $1}&#39;)</li><li>删除所有kcloudy中的镜像：docker rmi $(docker images | grep -i &#39;kcloudy*&#39; | awk &#39;{print $3}&#39;)</li><li>强制删除所有未用容器、镜像：docker image prune -f</li></ul>
+
+    <h2>字符串截取：http://c.biancheng.net/view/1120.html</h2>
+
+    <p>
+        inIP=&quot;192.168.0.9&quot;
+        <em> ${inIP##</em>.}=9，解释：192.168.0.9从右边(#)找，直到符合判断字符串(<em>
+            .)第一个字符串（9）
+        </em> ${inIP%.*}=192.168.0，解释：192.168.0.9从左边(%)找，直到符合判断字符串(.)最后一个字符串(192.168.0)
+    </p>
+    <br />
+</div>
+
+
+@section Scripts {
+    <script>
+    </script>
+}

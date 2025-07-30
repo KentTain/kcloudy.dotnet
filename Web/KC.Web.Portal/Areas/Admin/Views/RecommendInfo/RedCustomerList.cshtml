@@ -1,0 +1,222 @@
+﻿@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "推荐企业";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--推荐企业-新增/编辑推荐企业-->
+    var canOpenPage = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "6F7FD3F4-CAD5-42FF-8705-3C732B62A535")).Succeeded)
+    {
+        canOpenPage = true;
+    }
+    <!--推荐企业-删除推荐企业-->
+    var canRemove = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "DC0F94EC-3658-4E89-B44F-AB66B2A10DF6")).Succeeded)
+    {
+        canRemove = true;
+    }
+    <!--推荐企业-审核推荐企业申请-->
+    var canAudit = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "0EF1FFBD-1D65-4F2B-AF78-5A9846315D00")).Succeeded)
+    {
+        canAudit = true;
+    }
+    <!--推荐企业-下架推荐商品-->
+    var canTakeOff = (await AuthorizationService.AuthorizeAsync(User, "301FA9BF-E23D-4AF0-AFA2-4FAB68EF0E4E")).Succeeded;
+}
+
+<div id="toolbar">
+    <div>
+        <!--推荐企业-新增/编辑推荐企业-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "6F7FD3F4-CAD5-42FF-8705-3C732B62A535")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addConfig()">添加</a>
+        }
+    </div>
+
+    <div>
+        推荐状态：
+        @Html.DropDownList("StatusList", (IEnumerable<SelectListItem>)ViewBag.StatusList, new { @id = "StatusList", @class = "easyui-combobox", @style = "width: 120px;height:26px;", @data_options = "editable: false", @panelHeight = "auto" })
+        <input id="txtName" class="easyui-textbox" data-options="prompt:'请输入推荐企业名称'" style="width: 200px; height: 26px;" />
+        <a href="javascript:void(0)" onclick="searchData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshData()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+        const canOpenPage = ('@canOpenPage' === 'True');
+        const canRemove = ('@canRemove' === 'True');
+        const canAudit = ('@canAudit' === 'True');
+        const canTakeOff = ('@canTakeOff' === 'True');
+        $(function() {
+            IniDataGrid();
+        });
+
+        let refreshData = function () {
+            $("#txtName").textbox('setValue', '');
+            $('#StatusList').combobox("setValue", '所有状态');
+            searchData();
+        }
+        let searchData = function () {
+            $('#datagrid').datagrid('unselectAll');
+            $("#datagrid").datagrid("load", {
+                name: $("#txtName").textbox("getValue"),
+                status: $('#StatusList').combobox("getValue"),
+            });
+        }
+
+        const loadDataUrl = '@Url.Action(ActionName.RecommendInfo.LoadRedCustomerList, ControllerName.RecommendInfo)';
+        let IniDataGrid = function () {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'recommendId',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [[
+                    { field: 'companyLogoBlob', title: '企业Logo', width: 100, align: 'left', formatter: FormatterUtil.ShowImageBlobFormatter },
+                    { field: 'recommendName', title: '推荐企业', width: 200, align: 'left' },
+                    { field: 'companyTypeString', title: '推荐企业类型', width: 60, align: 'left' },
+                    { field: 'statusString', title: '状态', width: 80, align: 'left' },
+                    { field: 'isTop', title: '是否置顶', width: 60, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    { field: 'createdDate', title: '创建日期', width: 80, align: 'left', formatter: FormatterUtil.DateTimeFormatter},
+                    {
+                        field: 'operator', title: '操作', width: 150, align: 'center',
+                        formatter: function (value, row, index) {
+                            let id = row.recommendId;
+                            let status = row.status;
+                            //debugger;
+                            let tdContext = '';
+                            if (canOpenPage && (status === 0 || status === 4)) {
+                                tdContext += '<a class="btnEdit" style="cursor:pointer" onclick="editConfig(\'' + id + '\')" >编辑</a>';
+                            }
+                            if (canAudit && status === 1) {
+                                tdContext += '<a class="btnSubmit" style="cursor:pointer" onclick="auditConfig(\'' + id + '\', true)" >审核通过</a>';
+                                tdContext += '<a class="btnCancel" style="cursor:pointer" onclick="auditConfig(\'' + id + '\', false)" >审核不通过</a>';
+                            }
+                            if (canTakeOff && status === 2) {
+                                tdContext += '<a class="btnDown" style="cursor:pointer" onclick="takeOffConfig(\'' + id + '\')" >下架</a>';
+                            }
+                            if (canRemove && (status === 0 || status === 4)) {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer" onclick="removeConfig(\'' + id + '\')" >删除</a>';
+                            }
+
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function (data) {
+                    $dataGrid.datagrid('unselectAll');
+                    $dataGrid.datagrid('clearSelections');
+                    $dataGrid.datagrid("fixRowHeight");
+                    CommonUtil.buttonStyle();
+                },
+                onLoadError: function(data) {
+                },
+                detailFormatter: function(index, row) {
+                },
+                onExpandRow: function(index, row) {
+                },
+            });
+        }
+
+        let addConfig = function () {
+            openPage(0);
+        }
+        let editConfig = function (id) {
+            openPage(id);
+        }
+
+        const getFormUrl = '@Url.Action(ActionName.RecommendInfo.GetRedCustomerForm, ControllerName.RecommendInfo)';
+        let openPage = function (id) {
+            var queryString = "id=" + id;
+            MainPage_PostMessage("openSubPage", getFormUrl, queryString);
+        }
+
+        const auditUrl = '@Url.Action(ActionName.RecommendInfo.AuditRedCustomer, ControllerName.RecommendInfo)';
+        let auditConfig = function (id, isApprove) {
+            $.messager.confirm('确认', '是否确定审核该推荐企业相关记录?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(auditUrl, { id: id, isApprove: isApprove }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '推荐企业审核已成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '推荐企业审核失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+
+        const takeOffUrl = '@Url.Action(ActionName.RecommendInfo.TakeOffRedCustomer, ControllerName.RecommendInfo)';
+        let takeOffConfig = function (id) {
+            $.messager.confirm('确认', '是否确定下架该推荐企业相关记录?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(takeOffUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+
+        const removeUrl = '@Url.Action(ActionName.RecommendInfo.RemoveRedCustomer, ControllerName.RecommendInfo)';
+        let removeConfig = function (id) {
+            $.messager.confirm('确认', '是否确定删除该推荐企业相关记录?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').datagrid('clearSelections');
+                                $('#datagrid').datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '推荐企业及相关属性已成功移除。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '推荐企业及相关属性已成功移除失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        }
+    </script>
+}
+

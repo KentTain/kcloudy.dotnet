@@ -1,0 +1,229 @@
+﻿<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="kcloudy.com" />
+    <meta name="author" content="tianchangjun@outlook.com" />
+    <title>Step For EasyUI</title>
+    <link href="../../lib/jquery-easyui/themes/metro/easyui.css" rel="stylesheet" />
+    <link href="../../lib/jquery-easyui/themes/icon.css" rel="stylesheet" />
+    <link href="../../lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <link href="../../css/common.css" rel="stylesheet" />
+    <link href="../../css/step.css" rel="stylesheet" />
+    <style>
+        .datagrid-row td {
+            text-align: center !important;
+        }
+
+        .datagrid-btable > tbody > tr:nth-child(odd) {
+            background-color: #f5f5f5;
+        }
+
+        .datagrid-btable > tbody > tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+
+        .table.table-bordered.datagrid-btable,
+        .table.table-bordered.datagrid-itable {
+            width: 99%;
+            margin: 5px;
+            color: #444;
+        }
+
+            .table.table-bordered.datagrid-itable tr td {
+                color: #444;
+                /*border: 1px solid #f0f0f0;*/
+            }
+    </style>
+</head>
+
+<body style="margin:0px;">
+    <div class="easyui-layout" style="width:100%;">
+        <div class="app-item" style="width:80%;margin:10px auto;height:70px;">
+            <ol class="ui-step ui-step-3">
+                <li class="step-active">
+                    <div class="ui-step-line"></div>
+                    <div class="ui-step-cont">
+                        <span class="ui-step-cont-number">1</span>
+                        <span class="ui-step-cont-text status">流程基本信息</span><br />
+                    </div>
+                </li>
+                <li>
+                    <div class="ui-step-line"></div>
+                    <div class="ui-step-cont">
+                        <span class="ui-step-cont-number">2</span>
+                        <span class="ui-step-cont-text status">流程定义</span><br />
+                    </div>
+                </li>
+                <li class="step-end">
+                    <div class="ui-step-line"></div>
+                    <div class="ui-step-cont">
+                        <span class="ui-step-cont-number">3</span>
+                        <span class="ui-step-cont-text status">确认完成</span><br />
+                    </div>
+                </li>
+            </ol>
+            <div class="app-doing"></div>
+        </div>
+
+        <div id="tab-1" class="easyui-panel" title="流程基本信息">
+            <form class="easyui-form" method="post" id="saveform" action="">
+                <table class="table table-bordered table-form tr-col2">
+                    <tbody>
+                        <tr>
+                            <td><label class="required"></label><label for="Code">流程编码：</label></td>
+                            <td>
+                                <input id="Code" name="Code" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%'" readonly="readonly"
+                                       value="" />
+                            </td>
+                            <td><label class="required"></label><label for="Version">流程版本：</label></td>
+                            <td>
+                                <input id="Version" name="Version" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%'" readonly="readonly"
+                                       value="" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label class="required"></label><label for="CategoryId">流程类型：</label></td>
+                            <td>
+                                <input id="CategoryId" name="CategoryId" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%'"
+                                       value="" />
+                            </td>
+                            <td><label class="required"></label><label for="Name">流程名称：</label></td>
+                            <td>
+                                <input id="Name" name="Name" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%'"
+                                       value="" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label class="required"></label><label for="Description">流程描述：</label></td>
+                            <td colspan="3">
+                                <input id="Description" name="Description" class="easyui-textbox"
+                                       data-options="multiline:true" style="height: 120px; width: 100%;"
+                                       value="">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+            <div style="text-align:center;padding:5px">
+                <a href="javascript:void(0)" class="easyui-linkbutton" onclick="stepTo(2)"
+                   data-options="iconCls:'fa fa-chevron-right',iconAlign:'right'">下一步</a>
+            </div>
+        </div>
+
+        <div id="tab-2" class="easyui-panel" title="流程定义">
+            <table class="table table-bordered table-form tr-col2">
+                <tbody>
+                    <tr>
+                        <td><label class="required"></label><label for="Code">流程编码：</label></td>
+                        <td>
+                            <input id="Code" name="Code" class="easyui-validatebox easyui-textbox"
+                                   data-options="width:'100%'" readonly="readonly"
+                                   value="" />
+                        </td>
+                        <td><label class="required"></label><label for="Version">流程版本：</label></td>
+                        <td>
+                            <input id="Version" name="Version" class="easyui-validatebox easyui-textbox"
+                                   data-options="width:'100%'" readonly="readonly"
+                                   value="" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label class="required"></label><label for="CategoryId">流程类型：</label></td>
+                        <td>
+                            <input id="CategoryId" name="CategoryId" class="easyui-validatebox easyui-textbox"
+                                   data-options="width:'100%'"
+                                   value="" />
+                        </td>
+                        <td><label class="required"></label><label for="Name">流程名称：</label></td>
+                        <td>
+                            <input id="Name" name="Name" class="easyui-validatebox easyui-textbox"
+                                   data-options="width:'100%'"
+                                   value="" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label class="required"></label><label for="Description">流程描述：</label></td>
+                        <td colspan="3">
+                            <input id="Description" name="Description" class="easyui-textbox"
+                                   data-options="multiline:true" style="height: 140px; width: 100%;" readonly="readonly"
+                                   value="">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="text-align:center;padding:5px">
+                <a href="javascript:void(0)" class="easyui-linkbutton" onclick="stepTo(1)"
+                   data-options="iconCls:'fa fa-chevron-left'">上一步</a>
+                <a href="javascript:void(0)" class="easyui-linkbutton" onclick="stepTo(3)"
+                   data-options="iconCls:'fa fa-chevron-right',iconAlign:'right'">下一步</a>
+            </div>
+        </div>
+
+        <div id="tab-3" class="easyui-panel" title="确认成功">
+            <div style="text-align: center;margin-top: 90px;">
+                <i class="layui-icon layui-circle" style="color: white;font-size:30px;font-weight:bold;background: #52C41A;padding: 20px;line-height: 80px;">&#xe605;</i>
+                <div style="font-size: 24px;color: #333;font-weight: 500;margin-top: 30px;">
+                    流程创建成功
+                </div>
+            </div>
+            <div style="text-align:center;padding:5px">
+                <a href="javascript:void(0)" class="easyui-linkbutton" onclick="stepTo(2)"
+                   data-options="iconCls:'fa fa-chevron-left'">上一步</a>
+                <a href="javascript:void(0)" class="easyui-linkbutton"
+                   data-options="iconCls:'fa fa-floppy-o'">完成</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../../lib/jquery/dist/jquery.min.js"></script>
+    <script src="../../lib/jquery/dist/jquery.extension.js"></script>
+    <script src="../../lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script src="../../lib/jquery-easyui/jquery.easyui.min.js"></script>
+    <script src="../../lib/jquery-easyui/jquery.easyui.extension.js"></script>
+    <script src="../../lib/jquery-easyui/locale/easyui-lang-zh_CN.js"></script>
+    <script src="../../js/com.easyui.extension.js"></script>
+    <script src="../../js/common/com.common.js"></script>
+    <script src="../../js/com.global.js"></script>
+    <script src="../../js/mainTabs.js"></script>
+
+    <!--组件初始化-->
+    <script type="text/javascript">
+        $(function () {
+            $("#tab-1").panel('open', true);
+            $("#tab-2").panel('close', true);
+            $("#tab-3").panel('close', true);
+        })
+
+        let stepTo = function (index) {
+            var currentIndex = index - 1;
+            let $app = $('.app-item')
+            let stepContents = ["流程基本信息", "流程定义", "确认完成"];
+            for (let key in stepContents) {
+                let iKey = parseInt(key);
+                //var stepContent = stepContents[key];//获得元素的值
+                if (iKey == currentIndex) {
+                    $('li:eq(' + iKey + ')', $app).removeClass('step-done').removeClass('step-reject').addClass('step-active');
+                    $("#tab-" + (iKey + 1)).panel('open', true);
+                    //$("#tab-" + (iKey + 1)).panel().fadeIn(2000);
+                } else if (iKey < currentIndex) {
+                    $('li:eq(' + iKey + ')', $app).removeClass('step-active').removeClass('step-reject').addClass('step-done');
+                    $("#tab-" + (iKey + 1)).panel('close', true);
+                    //$("#tab-" + (iKey + 1)).panel().fadeOut(2000);
+                } else {
+                    $('li:eq(' + iKey + ')', $app).removeClass('step-active').removeClass('step-reject').removeClass('step-done');
+                    $("#tab-" + (iKey + 1)).panel('close', true);
+                    //$("#tab-" + (iKey + 1)).panel().fadeOut(2000);
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>

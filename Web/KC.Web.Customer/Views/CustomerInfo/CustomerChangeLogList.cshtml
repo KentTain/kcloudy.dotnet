@@ -1,0 +1,158 @@
+﻿@using KC.Web.Customer.Constants
+@using KC.Web.Extension
+
+@{
+    ViewBag.Title = "客户变更日志";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    var id = ViewBag.CustomerId;
+}
+<div id="toolbar">
+    <div>
+        <!--配置管理-保存配置-->
+        @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+        {
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addDatabasePool()">添加</a>
+        }
+        <!--配置管理-保存配置-->
+        @*@if ((await AuthorizationService.AuthorizeAsync(User, "420BFA23-BAC5-4EA2-88D9-A5D060A0C600")).Succeeded)*@
+        {
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editDatabasePool()">编辑</a>
+        }
+        <!--配置管理-删除配置-->
+        @*@if ((await AuthorizationService.AuthorizeAsync(User, "51DE1887-5C57-4C17-984D-F23456499652")).Succeeded)*@
+        {
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeDatabasePool()">删除</a>
+        }
+    </div>
+
+    <div>
+        开始时间：<input type="text" class="mydatepick" id="startTime" onfocus="WdatePicker({maxDate: '#F{$dp.$D(\'endTime\')}' })" readonly="readonly" style="cursor: pointer; width: 150px; height: 21px;">
+        结束时间： <input type="text" class="mydatepick" id="endTime" onfocus="WdatePicker({ minDate: '#F{$dp.$D(\'startTime\')}' })" readonly="readonly" style="cursor: pointer; width: 150px; height: 21px;">
+        <div id="divSearchMenu" class="easyui-menu" style="width:120px">
+            <div data-options="name:'AttributeName',selected:true">变更属性名称</div>
+            <div data-options="name:'Operator'">操作人</div>
+        </div>
+        <input id="txtSearchbox" class="easyui-searchbox" style="width:300px" />
+    </div>
+</div>
+
+@section scripts
+    {
+    <script src="~/js/My97DatePicker/WdatePicker.js"></script>
+    <script type="text/javascript">
+        var customerId = @id;
+        var defaultGuid = 0;
+        //move to com.common.js
+        $(function() {
+            //开始时间
+            $('#startTime').bind('keydown', function(e) {
+                if (e.keyCode === 13)
+                    searchData();
+            });
+
+            //结束时间
+            $('#endTime').bind('keydown', function(e) {
+                if (e.keyCode === 13)
+                    searchData();
+            });
+            InitDataGrid();
+        });
+        var loadDataUrl = '@Url.Action(ActionName.CustomerInfo.LoadCustomerChangeLogList, ControllerName.CustomerInfo)';
+        var getFormUrl = '@Url.Action(ActionName.CustomerInfo.CustomeChangeLogForm, ControllerName.CustomerInfo)';
+        var saveFormUrl = '@Url.Action(ActionName.CustomerInfo.EditCustomeChangeLog, ControllerName.CustomerInfo)';
+        var removeUrl = '@Url.Action(ActionName.CustomerInfo.RemoveCustomeChangeLog, ControllerName.CustomerInfo)';
+
+        function InitDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                //view: detailview,
+                url: loadDataUrl + '?customerId=' + customerId,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#toolbar',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                columns: [
+                    [
+                        //{ field: 'customerName', title: '客户名称', width: 100, align: 'left' },
+                        { field: 'attributeName', title: '变更属性名称', width: 100, align: 'left' },
+                        { field: 'oldValue', title: '变更前数据', width: 100, align: 'left' },
+                        { field: 'newValue', title: '变更后数据', width: 150, align: 'left' },
+                        //{ field: 'operatorId', title: '操作人ID', width: 100, align: 'left' },
+                        { field: 'operator', title: '操作人', width: 100, align: 'left' },
+                        { field: 'operateDate', title: '变更时间', width: 100, align: 'left', formatter: FormatterUtil.DateTimeFormatter },
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+
+                },
+                onLoadSuccess: function(data) {
+
+                },
+                onLoadError: function() {
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                }
+            });
+
+            $('#txtSearchbox').searchbox({
+                menu: '#divSearchMenu',
+                prompt: '请输入查询值',
+                searcher: searchData
+            });
+        }
+
+        function searchData(value, name) {
+            $('#datagrid').datagrid('unselectAll');
+            $('#datagrid').datagrid('load',
+            {
+                "searchKey": name,
+                "searchValue": value,
+                "startTime": $("#startTime").val(),
+                "endTime": $("#endTime").val()
+            });
+        }
+
+        function removeDatabasePool() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row && row.length != 1) {
+                $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行删除！', 2000);
+                return;
+            }
+            if (row) {
+                $.messager.confirm('系统提示', '是否确定删除该条记录?', function(r) {
+                    if (r) {
+                        $.post(removeUrl, { id: row.id }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                                }
+                            } else {
+                                $.data.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        }, 'json');
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter('错误消息', "请选择数据", 1000);
+            }
+        }
+    </script>
+}
+
+
+
+
+

@@ -1,0 +1,122 @@
+﻿@using KC.Web.Message.Constants
+@model KC.Service.DTO.Message.NewsBulletinCategoryDTO
+@{
+    Layout = null;
+}
+
+<form class="easyui-form" method="POST" id="saveform" action="@Url.Action(ActionName.NewsBulletin.SaveCategory, ControllerName.NewsBulletin)">
+    @Html.AntiForgeryToken()
+    <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.TreeCode)
+    @Html.HiddenFor(model => model.Leaf)
+    @Html.HiddenFor(model => model.Level)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label for="reviewcategory">上级分类：</label></td>
+                <td>
+                    @if (Model.ParentId.HasValue && (Model.ParentId.Value == 0 || Model.ParentId.Value == -1))
+                    {
+                        <select class="easyui-combotree" id="ParentId" name="ParentId"
+                                data-options="width:240,editable: false, required:true,"
+                                value="@Model.ParentId" panelHeight="auto" readonly="true" />
+                    }
+                    else
+                    {
+
+                        <select class="easyui-combotree" id="ParentId" name="ParentId"
+                                data-options="width:240,editable: false, required:true,"
+                                value="@Model.ParentId" panelHeight="auto" />
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><label for="reviewcategory">类型：</label></td>
+                <td>
+                    @if (Model.IsEditMode 
+                        || (Model.ParentId.HasValue && Model.ParentId != 0 && Model.ParentId != -1))
+                    {
+                        <select id="Type" name="Type" class="easyui-combobox"
+                                data-options="width:240,editable: false, required:true,"
+                                asp-items="ViewBag.TypeList" panelHeight="auto" readonly="true"></select>
+                    }
+                    else
+                    {
+                        <select id="Type" name="Type" class="easyui-combobox"
+                                data-options="width:240,editable: false, required:true,"
+                                asp-items="ViewBag.TypeList" panelHeight="auto"></select>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="text">分类名称：</label></td>
+                <td>
+                    <input id="Text" name="Text" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:240,validType:['length[2,100]','isSpace',
+                           'existName[\'@Url.Action(ActionName.NewsBulletin.ExistCategoryName, ControllerName.NewsBulletin)\',\'@Model.ParentId\',\'@Model.IsEditMode\',\'@Model.Text\',\'系统已存在该分类名称\']']"
+                           value="@(null != Model ? Model.Text : null)">
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Index">排序：</label></td>
+                <td>
+                    <input id="Index" name="Index" class="easyui-numberspinner easyui-textbox"
+                           data-options="required:true,width:240,height:24,min:1,max:100"
+                           value="@(null != Model ? Model.Index : 0)">
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Title">描述：</label></td>
+                <td>
+                    <input class="easyui-textbox" id="Comment" name="Comment"
+                           data-options="multiline:true,width:240,height:80"
+                           value="@(null != Model ? Model.Description : "")">
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</form>
+<script>
+
+    $(function () {
+        $('.textbox').bind('blur', function () {
+            $(this).validatebox('enableValidation').validatebox('validate');
+        });
+
+        $('#ParentId').combotree({
+            url: '@Url.Action(ActionName.NewsBulletin.LoadCategoryTree, ControllerName.NewsBulletin)',
+            queryParams: {
+                pType: "@Model.Type",
+                excludeId: "@Model.Id",
+                selectedId: "@Model.ParentId",
+                hasAll: false,
+                hasRoot: true,
+                maxLevel: 2
+            },
+            required: true,
+            editable: false,
+            valueField: 'id',
+            textField: 'text',
+            cache: false,
+            onLoadSuccess: function (node, data) {
+                $('#ParentId').combotree('tree').tree('expandAll');
+                let categoryId = '@(Model != null ? Model.ParentId : 0)';
+                if (categoryId != "0") {
+                    $('#ParentId').combotree('setValues', categoryId);
+                } else if (data != null && data.length > 0) {
+                    //默认选中第一个
+                    $('#ParentId').combotree('setValue', { id: data[0].id, text: data[0].text });
+                }
+            }
+        });
+    });
+</script>

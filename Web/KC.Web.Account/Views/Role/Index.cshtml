@@ -1,0 +1,306 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Account.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    ViewBag.Title = "角色权限管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    @*角色菜单管理-角色菜单管理*@
+    var canMenuInRole = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "C9385B3E-4FCA-46E7-ABFA-5EE6042F8787")).Succeeded)
+    {
+        canMenuInRole = true;
+    }
+    @*角色权限管理-角色权限管理*@
+    var canPermissionInRole = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "0DE8B69B-75BD-42AC-B0F1-C957F52FF021")).Succeeded)
+    {
+        canPermissionInRole = true;
+    }
+    @*角色用户管理-角色用户管理*@
+    var canUserInRole = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "F448F3D1-47D9-4066-9A42-D405F311C309")).Succeeded)
+    {
+        canUserInRole = true;
+    }
+    @*角色用户管理-角色详情*@
+    var canRoleDetail = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "0C53ECAA-D62D-4EAD-9419-A6F904857E85")).Succeeded)
+    {
+        canRoleDetail = true;
+    }
+}
+
+<div id="toolbar">
+    <div>
+        @*角色管理-保存角色数据*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "D1ADCD2E-DDAE-420E-BFC8-E4EE08EAFDB5")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addMenu()">新增</a>
+        }
+        @*角色管理-保存角色数据*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "D1ADCD2E-DDAE-420E-BFC8-E4EE08EAFDB5")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editMenu()">编辑</a>
+        }
+        @*角色管理-删除角色数据*@
+        @if ((await AuthorizationService.AuthorizeAsync(User, "6759EA9B-4F19-4A17-ACFF-0FED6CFFEF12")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeMenu()">删除</a>
+        }
+        @*<span style="display: none;">
+                <select id="searchAppId" name="searchAppId" class="easyui-combobox"
+                            data-options="width:200,editable: false, required:true,"
+                            asp-items="ViewBag.AppliationList" panelHeight="auto"></select>
+            </span>*@
+    </div>
+
+    <div>
+        <input id="searchbox" class="easyui-textbox" data-options="prompt:'请输入角色名称'">
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+        @*<a id="closeMenuInRoleBtn" class="easyui-linkbutton" style="margin-left: 5px" onclick="closeMenuInRole()" iconCls="icon-close" href="javascript:void(0)">关闭角色菜单页面</a>*@
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        //使用JavaScript脚本控制按钮是否显示
+        var canMenuInRole = '@canMenuInRole' === 'True';
+        var canPermissionInRole = '@canPermissionInRole' === 'True';
+        var canUserInRole = '@canUserInRole' === 'True';
+        var canRoleDetail = '@canRoleDetail' === 'True';
+        $(function() {
+            InitTreeDataGrid();
+        });
+
+        function refreshSearch() {
+            $("#searchbox").searchbox('setValue', '');
+            //$("#searchAppId").combobox('setValue', '');
+            $datagrid.datagrid('reload')
+        }
+
+        var $datagrid = $('#datagrid');
+        var loadDataUrl = '@Url.Action(ActionName.Role.GetRoleListResult, ControllerName.Role)';
+        function InitTreeDataGrid() {
+            $datagrid.datagrid({
+                url: loadDataUrl,
+                method: 'POST',
+                idField: 'roleId',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                toolbar: "#toolbar",
+                //toolbar: [{ text: document.getElementById('toolbar') }],
+                columns: [[
+                    { field: 'roleId', title: 'ID', width: 10, align: 'left', hidden: true },
+                    { field: 'roleName', title: '角色代码', width: 130, align: 'left',
+                        formatter: function (value, row, index) {
+                            var roleId = row.roleId;
+                            var roleName = row.roleName;
+                            var isSystemRole = row.isSystemRole;
+                            var tdContext = roleName;
+                            //if (canRoleDetail)
+                                tdContext = "<a style='cursor:pointer' onclick=openRolePage('" + roleId + "','detail'," + isSystemRole + ")>" + roleName + "</a>";
+                            return tdContext;
+                        }},
+                    { field: 'displayName', title: '角色名称', width: 120, align: 'left' },
+                    { field: 'isSystemRole', title: '是否为系统角色', width: 80, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                    { field: 'businessTypeString', title: '归属业务', width: 80, align: 'left' },
+                    { field: 'description', title: '描述', width: 160, align: 'left' },
+                    { field: 'E', title: "操作", width: 320, align: 'left',
+                        formatter: function (value, row, index) {
+                            var roleId = row.roleId;
+                            var isSystemRole = row.isSystemRole;
+                            var tdContext = '<div class="actions">';
+                            if (canMenuInRole)
+                                tdContext += "<a class='btnContacts' style='cursor:pointer' onclick=openRolePage('" + roleId + "','menu'," + isSystemRole + ")>编辑角色菜单</a>  ";
+                            if (canPermissionInRole)
+                                tdContext += "<a class='btnContacts' style='cursor:pointer' onclick=openRolePage('" + roleId + "','permission'," + isSystemRole + ")>编辑角色权限</a>  ";
+                            if (canUserInRole)
+                                tdContext += "<a class='btnContacts' style='cursor:pointer' onclick=openRolePage('" + roleId + "','user'," + isSystemRole + ")>编辑角色用户</a>";
+                            return tdContext + '</div>';
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                    param.name=$("#searchbox").searchbox("getValue");
+                    //param.searchAppliction=$("#searchAppId").combobox('getValue');
+                },
+                onLoadSuccess: function (data) {
+                    $(".btnContacts").linkbutton({ iconCls: 'fa fa-user' });
+                    $datagrid.datagrid('fixRowHeight')
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+        function searchData(value, name) {
+            $datagrid.datagrid('unselectAll');
+            $datagrid.datagrid('load', {
+                "name": name
+                //"searchAppliction": $('#searchAppId').combobox('getValue')
+            });
+        }
+        function addMenu() {
+            opentForm("", false,'新增角色');
+        }
+        function editMenu() {
+            var row = $datagrid.datagrid('getSelected');
+            if (row) {
+                if (row.IsSystemRole) {
+                    $.messager.showErrorTopCenter('系统提示', '系统角色无法编辑！', 2000);
+                    return;
+                }
+                opentForm(row.roleId, true,'编辑角色');
+            } else {
+                $.messager.showErrorTopCenter('系统提示', '请选择需要编辑的数据', 1000);
+            }
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.Role.GetRoleForm, ControllerName.Role)';
+        var saveFormUrl = '@Url.Action(ActionName.Role.EditRole, ControllerName.Role)';
+        function opentForm(id, bl,title) {
+            var dialog = $.easyui.showDialog({
+                title: title,
+                width: 410,
+                height: 280,
+                modal: true,
+                topMost: false,
+                //enableSaveButton: false,//更改按钮隐藏
+                href: getFormUrl + "?id=" + id + "&bl=" + bl,
+                //iniframe: false,
+                //autoVCenter: true,
+                //autoHCenter: true,
+                //maximizable: true,
+                //autoRestore: true,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $datagrid.datagrid('clearSelections');
+                                        $datagrid.datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function() {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        var removeUrl = '@Url.Action(ActionName.Role.RomoveRole, ControllerName.Role)';
+        function removeMenu() {
+            var row = $datagrid.datagrid('getSelected');
+            if (row) {
+                if (row.isSystemRole) {
+                    $.messager.showErrorTopCenter('系统提示', '系统角色无法删除', 2000);
+                    return;
+                }
+                $.messager.confirm('系统提示', '确认要删除选中行?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在处理，请稍等...' });
+                        $.post(removeUrl,
+                            { roleId: row.roleId },
+                            function(data) {
+                                $.easyui.loaded();
+                                if (data.success) {
+                                    console.log(data);
+                                    if (data.result) {
+                                        $datagrid.datagrid('clearSelections');
+                                        $datagrid.datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '角色下面还分配有相关的用户，请移除关联用户后再重试！');
+                                }
+                            }, 'json');
+                    }
+                });
+            } else {
+                $.messager.showErrorTopCenter('系统提示', '请选择需要删除的数据', 1000);
+            }
+        }
+
+        var menuInRoleUrl = '@Url.Action(ActionName.Role.MenuInRole, ControllerName.Role)';
+        var permissionInRoleUrl = '@Url.Action(ActionName.Role.PermissionInRole, ControllerName.Role)';
+        var userInRoleUrl = '@Url.Action(ActionName.Role.UserInRole, ControllerName.Role)';
+        var roleDetailUrl = '@Url.Action(ActionName.Role.RoleDetail, ControllerName.Role)';
+        function openRolePage(id, type, isSystemRole) {
+            var url = '';
+            var queryString = "roleId=" + id + "&isSystemRole=" + isSystemRole;
+            if (type == "menu") {
+                url = menuInRoleUrl;
+                //showMaxDialog('角色菜单', url);
+            } else if (type == "permission") {
+                url = permissionInRoleUrl;
+                //showMaxDialog('角色权限', url);
+            } else if (type == "user") {
+                url = userInRoleUrl;
+                //showMaxDialog('角色用户', url);
+            } else if (type == "detail") {
+                url = roleDetailUrl;
+                //showMaxDialog('角色用户', url);
+            }
+
+            MainPage_PostMessage("openSubPage", url, queryString);
+        }
+
+        //关闭某个子选项卡
+        var closeMenuInRoleUrl = '@Url.Action(ActionName.Role.MenuInRole, ControllerName.Role)';
+        function closeMenuInRole() {
+            MainPage_PostMessage("closeSubPage", closeMenuInRoleUrl);
+        }
+
+        var existRoleNameUrl = '@Url.Action(ActionName.Role.ExistRoleName, ControllerName.Role)';
+        function existRoleName(id) {
+            $.post(existRoleNameUrl, { id: id, roleName: $("#RoleName").val() }, function (data) {
+                if (data) {
+                    $.messager.showInfoTopCenter('系统提示', '角色名称【' + $("#RoleName").val() + '】已存在,请重新输入。');
+                    $("#RoleName").val("");
+                }
+            }, 'json');
+        }
+    </script>
+}
+

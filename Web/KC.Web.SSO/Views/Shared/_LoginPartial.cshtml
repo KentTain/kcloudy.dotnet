@@ -1,0 +1,22 @@
+@using Microsoft.AspNetCore.Identity
+@using KC.Model.Account
+
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div style="width: 166%;height:80px;">
+        <a href="@(ViewBag.AccWebDomain)" style="float:left;display:inline-block;">@ViewBag.userDisplayName</a>
+        <p style="float:left;display:inline-block;">&nbsp;&nbsp;/&nbsp;&nbsp;</p>
+        <a href="@(ViewBag.AccWebDomain)Account/SignOut?ReturnUrl=/Main/Index?showCarousel=0">×¢Ïú</a>
+    </div>
+}
+else
+{
+    <div style="width: 120px;height:80px;">
+        <a href="@(ViewBag.AccWebDomain)Main/Index" style="float:left;display:inline-block;">µÇÂ¼</a>
+        <p style="float:left;display:inline-block;">&nbsp;&nbsp;/&nbsp;&nbsp;</p>
+        <a href="/Account/RegisterForDesign">×¢²á</a>
+    </div>
+}

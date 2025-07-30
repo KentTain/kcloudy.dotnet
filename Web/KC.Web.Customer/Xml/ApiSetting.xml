@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.WebApi.Customer</name>
+    </assembly>
+    <members>
+        <member name="M:KC.WebApi.Customer.Controllers.CustomerApiController.ImportCustomersFromOtherTenant(System.Collections.Generic.List{KC.Service.DTO.Customer.CustomerInfoDTO})">
+            <summary>
+            第三方Api导入客户信息
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Customer.Controllers.CustomerApiController.ExistTenantService">
+            <summary>
+            测试接口是否存在
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

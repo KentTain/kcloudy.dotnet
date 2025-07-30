@@ -1,0 +1,1065 @@
+﻿
+@model KC.Service.DTO.Contract.ContractTemplateValueDTO
+@using KC.Service.DTO.Contract
+@{
+
+    Layout = "~/Views/Shared/_Layout_ContractTemplateView.cshtml";
+    var ContractTemplateOrderDTO = ViewBag.ContractTemplateOrderDTO as ContractTemplateOrderDTO;
+    if (ContractTemplateOrderDTO == null)
+    {
+        ContractTemplateOrderDTO = new ContractTemplateOrderDTO();
+    }
+}
+
+
+<input type="hidden" value="@ViewBag.Id" name="Id" />
+<div>
+    <p style="text-align:right;padding-right: 100pt;">
+        <span style="font-size:16px;line-height:120%;font-family: 楷体;color:black">合同编号：</span>
+        <span style="text-decoration:underline;">
+            <span style="color:gray">
+                @if (ViewBag.contractNo != null)
+                {
+                    @Html.Raw(ViewBag.contractNo);
+                }
+                else
+                {
+                    @Html.Raw("_______________________________");
+                }
+            </span>
+        </span>
+    </p>
+    <p style="text-align:center;line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="text-align:center;line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="text-align:center;line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="text-align:center;line-height:120%"><strong><span style="font-size: 48px;line-height:120%;font-family: 黑体">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="text-align:center;line-height:120%"><strong><span style="font-size:29px;line-height:120%;font-family:黑体;color:black">融资租赁合同</span></strong></p>
+    <p style="text-align:center;line-height:120%"><strong><span style="font-size: 19px;line-height:120%;font-family: 黑体">&nbsp;</span></strong></p>
+    <p style="text-align:center;line-height:120%"><strong><span style="font-size: 16px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="text-align:center;line-height:120%"><strong><span style="font-size: 16px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="text-indent:169px;line-height:120%">
+        <strong>
+            <span style="font-size:19px;line-height:120%;font-family:黑体;color:black">
+                出租人：
+                <span style="text-decoration:underline;">
+                    @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.VendorName))
+                    {
+                        @Html.Raw(ContractTemplateOrderDTO.VendorName);
+                    }
+                    else
+                    {
+                        @Html.Raw("___________________________________");
+                    }
+                </span>
+            </span>
+        </strong>
+    </p>
+    <p style="text-indent:169px;line-height:120%">
+        <strong>
+            <span style="font-size:19px;line-height:120%;font-family:黑体;color:black">
+                承租人：
+                <span style="text-decoration:underline;">
+                    @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CustomerName))
+                    {
+                        @Html.Raw(ContractTemplateOrderDTO.CustomerName);
+                    }
+                    else
+                    {
+                        @Html.Raw("___________________________________");
+                    }
+                </span>
+            </span>
+        </strong>
+    </p>
+    <p style="text-align:center;line-height:150%"><strong><span style="font-size: 24px;line-height:150%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="">
+        <strong><span style="font-size:19px;font-family:仿宋">出 租 人：</span></strong>
+        <span style="font-size:19px;">
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.VendorName))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.VendorName)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("______________________")
+            }
+            （以下简称<strong>“甲方”</strong>）
+        </span>
+    </p>
+    <p style="">
+        <strong><span style="font-size:19px;font-family:仿宋">公司地址：</span></strong>
+        <span style="font-size:19px;">
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.VendorAddress1))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.VendorAddress1)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("________________________________")
+            }
+        </span>
+    </p>
+    <p style="">
+        <strong><span style="font-size:19px;font-family:仿宋">法人代表：</span></strong>
+        <span style="font-size:19px;">
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.JiaLegal))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.JiaLegal)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("________________________________")
+            }
+        </span>
+    </p>
+    <p style="line-height:120%"><strong><span style="font-size: 24px;line-height:120%;font-family: 仿宋_GB2312">&nbsp;</span></strong></p>
+    <p style="">
+        <strong><span style="font-size:19px;font-family:仿宋">承 租 人：</span></strong>
+        <span style="font-size:19px;">
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CustomerName))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.CustomerName)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("______________________")
+            }
+            （以下简称<strong>“乙方”</strong>）
+        </span>
+    </p>
+    <p>
+        <strong><span style="font-size:19px;font-family:仿宋">公司地址：</span></strong>
+        <span style="font-size:19px;">
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CustomerAddress1))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.CustomerAddress1)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("________________________________")
+            }
+        </span>
+    </p>
+    <p style="">
+        <strong><span style="font-size:19px;font-family:仿宋">法人代表：</span></strong>
+        <span style="font-size:19px;">
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.YiLegal))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.YiLegal)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("________________________________")
+            }
+        </span>
+    </p>
+    <p style="margin-top:10px;text-indent:28px;line-height:120%"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">上列甲、乙双方根据《中华人民共和国合同法》之规定，经平等协商，就融资租赁相关事宜达成如下协议：</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第一条　合同说明</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">甲方根据乙方的需要和委托，完全按照乙方提供的租赁标的物的名称、品质、规格、数量和金额等要求，向甲方指定的供应商购进第二条规定的租赁标的物出租给乙方，并由乙方承租使用。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第二条　租赁标的物</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">租赁标的物的名称、品质、规格、数量和价格如下：</span></p>
+    <div style="text-align:center">
+        <table cellspacing="0" cellpadding="0" style="border-collapse:collapse; margin:0 auto; width:500pt">
+            <tbody>
+                <tr style="height:37.3pt">
+                    <td style="border-bottom:#808080 solid 0.75pt; border-left:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:72.9pt"><p style="font-size:9pt; ; margin:0pt; text-align:center"><span style="color:#808080; font-family:楷体; font-size:9pt; font-weight:bold">货 物</span></p><p style="font-size:9pt; ; margin:0pt; text-align:center"><span style="color:#808080; font-family:楷体; font-size:9pt; font-weight:bold">名 称</span></p></td>
+                    <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt;  padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:82.55pt"><p style="font-size:9pt; ; margin:0pt; text-align:center; text-indent:15.75pt"><span style="color:#808080; font-family:楷体; font-size:9pt; font-weight:bold">单价（含税）</span></p><p style="font-size:9pt; ; margin:0pt; text-align:center"><span style="color:#808080; font-family:楷体; font-size:9pt">（单位</span><span style="color:#808080; font-family:楷体; font-size:9pt">：</span><span style="color:#808080; font-family:楷体; font-size:9pt">人民币/</span><span style="color:#808080; font-family:楷体; font-size:9pt">元</span><span style="color:#808080; font-family:楷体; font-size:9pt">）</span></p></td>
+                    <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt;  padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:37.6pt"><p style="font-size:9pt; ; margin:0pt; text-align:center"><span style="color:#808080; font-family:楷体; font-size:9pt; font-weight:bold">数量</span></p></td>
+                    <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt;  padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:38.8pt"><p style="font-size:9pt; ; margin:0pt; text-align:center"><span style="font-family:楷体; font-size:9pt; font-weight:bold">&nbsp;</span></p><p style="font-size:9pt; ; margin:0pt; text-align:center"><span style="color:#808080; font-family:楷体; font-size:9pt; font-weight:bold">规格型号</span></p></td>
+                    <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt;  padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:38.8pt"><p style="font-size:9pt; ; margin:0pt; text-align:center"><span style="color:#808080; font-family:楷体; font-size:9pt; font-weight:bold">备品</span></p></td>
+                    <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt;  padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:31.75pt"><p style="font-size:9pt; ; margin:0pt; text-align:center"><span style="color:#808080; font-family:楷体; font-size:9pt; font-weight:bold">单位</span></p></td>
+                    <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; border-top:#808080 solid 0.75pt;  padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:70.3pt"><p style="font-size:9pt; ; margin:0pt; text-align:center; text-indent:15.75pt"><span style="color:#808080; font-family:楷体; font-size:9pt; font-weight:bold">金额（含税</span><span style="color:#808080; font-family:楷体; font-size:9pt; font-weight:bold">）</span></p><p style="font-size:9pt; ; margin:0pt; text-align:center"><span style="color:#808080; font-family:楷体; font-size:9pt">（单位</span><span style="color:#808080; font-family:楷体; font-size:9pt">：</span><span style="color:#808080; font-family:楷体; font-size:9pt">人民币/</span><span style="color:#808080; font-family:楷体; font-size:9pt">元</span><span style="color:#808080; font-family:楷体; font-size:9pt">）</span></p></td>
+                </tr>
+
+                @if (ContractTemplateOrderDTO.Goodslist != null && ContractTemplateOrderDTO.Goodslist.Any())
+                {
+                    foreach (var item in ContractTemplateOrderDTO.Goodslist)
+                    {
+                        <tr>
+                            <td style="border-bottom:#808080 solid 0.75pt; border-left:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:72.9pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt">@item.PartDescription</span></p></td>
+                            <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:82.55pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt"></span><span style="color:#808080; font-family:宋体; font-size:10.5pt">@item.UnitPriceStr</span></p></td>
+                            <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:37.6pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt">@item.SalesQuantityStr</span></p></td>
+                            <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:38.8pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="font-family:宋体; font-size:10.5pt">@item.OfferingModel</span></p></td>
+                            <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:38.8pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt">@item.SparePartsStr</span></p></td>
+                            <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:31.75pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt">@item.Unit</span></p></td>
+                            <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:70.3pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt"></span><span style="color:#808080; font-family:宋体; font-size:10.5pt">@item.AmountStr</span></p></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr style="height: 30px;">
+                        <td style="border-bottom:#808080 solid 0.75pt; border-left:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:72.9pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt"> </span></p></td>
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:82.55pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt"></span><span style="color:#808080; font-family:宋体; font-size:10.5pt"> </span></p></td>
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:37.6pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt"></span></p></td>
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:38.8pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="font-family:宋体; font-size:10.5pt"></span></p></td>
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:38.8pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt"></span></p></td>
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:31.75pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt"></span></p></td>
+                        <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:70.3pt"><p style="font-size:10.5pt; ; margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10.5pt"></span><span style="color:#808080; font-family:宋体; font-size:10.5pt"></span></p></td>
+                    </tr>
+                }
+
+                <tr style="height:29.85pt">
+                    <td style="border-bottom:#808080 solid 0.75pt; border-left:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:72.9pt"><p style="font-size:10.5pt; ; margin:0pt; text-align:center"><span style="color:#808080; font-family:楷体; font-size:10.5pt; font-weight:bold">总金额(大写)：</span></p></td>
+                    <td colspan="2" style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:130.95pt">
+                        <p style="font-size:14pt; ; margin:0pt">
+                            <span style="color:#808080; font-family:仿宋; font-size:14pt">
+                                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.DocNetAmountStr))
+                                {
+                                    @Html.Raw("人民币" + ContractTemplateOrderDTO.DocNetAmountStr);
+                                }
+                            </span>
+                        </p>
+                    </td>
+                    <td colspan="3" style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:130.95pt"><p style="font-size:10.5pt; ; margin:0pt; text-align:center"><span style="color:#808080; font-family:楷体; font-size:10.5pt; font-weight:bold">总金额(小写)：</span></p></td>
+                    <td style="border-bottom:#808080 solid 0.75pt; border-right:#808080 solid 0.75pt; padding-left:5.03pt; padding-left:5.03pt; padding-right:5.03pt; vertical-align:top; width:70.3pt">
+                        <p style="margin:0pt">
+                            <span style="color:#808080; font-family:宋体; font-size:10.5pt">
+                                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.DocNetAmount))
+                                {
+                                    @Html.Raw(ContractTemplateOrderDTO.DocNetAmount);
+                                }
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <p style="margin-top:10px;text-indent:28px;line-height:120%">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            乙方同意支付设备租金及有关费用共计人民币 <span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.RepayPlanAmount))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.RepayPlanAmount);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>元（大写
+            <span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.RepayPlanAmountStr))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.RepayPlanAmountStr);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>）。
+        </span>
+    </p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第三条　租赁标的物的购买、交货、验收、交货地点和使用地点、瑕疵处理。</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">1. 购买：甲方与乙方以及乙方选择的供应商共同签订《买卖合同（融资租赁业务）》，由甲方按乙方对设备的选择向供应商购买设备（租赁标的物），供应商在设备交付乙方后，向甲方交付物流运单和租赁标的物发票等单据，乙方须向甲方交付《租赁物交付与验收证明书》等单据。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">租赁标的物在途风险或有其他质量、短缺等问题由乙方负责与供应商联系解决，甲方可予以协助但不承担任何经济责任。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">2．交货：租赁标的物由供应商交付甲方指定的交货地点或直接向乙方交货，乙方不得拒收；乙方须配合供应商完成租赁物接收工作，并向供应商交付经签字盖章的收货单、租赁物交付证明等单据。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">3．乙方收货（或使用）地点：</span></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            4．验收：租赁标的物交付后，乙方应在
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="DeliveryDayIn" value="@Model.DeliveryDayIn" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.DeliveryDayIn)
+                </span>
+            }
+            个工作日内检查租赁标的物，并将盖有乙方公章的《租赁物交付与验收证明书》等单据交给甲方。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            如果在
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="HandleDay" value="@Model.HandleDay" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.HandleDay)
+                </span>
+            }
+            个工作日内乙方未按前项规定向甲方交付验收单据的，视为租赁标的物已在完整、良好状态下由乙方验收完毕。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5．租赁标的物瑕疵处理：如果供应商延迟租赁物交货或乙方在验收时发现租赁标的物的品质、规格、数量有不符、不良或瑕疵等情况，由供应商负责，乙方直接向供应商主张权利，甲方不承担赔偿责任，乙方承诺不向甲方追索。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">前述情况下，并不构成免除乙方按约支付租金义务的抗辩，不影响甲方行使收取租金的权利。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第四条　租期</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            租期为
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="LeaseTerm" value="@Model.LeaseTerm" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.LeaseTerm)
+                </span>
+            }
+            年。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">收货日期：为乙方收到设备或签收提单、送货单等单据之日；</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">验收日期：以《租赁物交付与验收证明书》落款日期为准。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">起租日期：以供应商将设备交付于乙方之日起算。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第五条　租金</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            1.总租金为人民币<span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.RepayPlanAmount))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.RepayPlanAmount);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>元（大写： <span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.RepayPlanAmountStr))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.RepayPlanAmountStr);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>）。在租赁期内，首付款为人民币<span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.AdvanceCharge))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.AdvanceCharge);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>元（大写： <span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.AdvanceChargeStr))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.AdvanceChargeStr);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>），保证金（定金性质）为人民币<span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CautionMoney))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.CautionMoney);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>元（大写： <span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CautionMoneyStr))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.CautionMoneyStr);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>），
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">《租金支付表》如下：</span></p>
+    <div style="text-align:center;">
+        <table cellspacing="0" cellpadding="0" style="border-collapse:collapse;width:400pt;text-align: center;">
+            <tbody>
+                <tr style="height:20.25pt">
+                    <td colspan="5" style="border:#000000 solid 0.75pt;padding-left:4.9pt; padding-right:4.9pt; vertical-align:middle; width:341.2pt"><p style="margin:0pt; text-align:center"><a name="RANGE_A1_E17"><span style="color:#808080; font-family:宋体; font-size:16pt; font-weight:bold">租金支付表</span></a></p></td>
+                </tr>
+                <tr style="height:14.25pt">
+                    <td colspan="2" style="border-bottom:#000000 solid 0.75pt; border-left:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:4.9pt; padding-right:5.03pt; vertical-align:middle; width:119.05pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:宋体; font-size:10pt">还款企业</span></p></td>
+                    <td colspan="3" style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:5.4pt; padding-right:4.9pt; vertical-align:middle; width:211.35pt">
+                        <p style="margin:0pt; text-align:center">
+                            <span style="color:#808080; font-family:宋体; font-size:10pt">
+                                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CustomerName))
+                                {
+                                    @Html.Raw(ContractTemplateOrderDTO.CustomerName);
+                                }
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr style="height:14.25pt">
+                    <td colspan="2" style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;border-left:#000000 solid 0.75pt;padding-left:4.9pt; padding-right:5.03pt; vertical-align:middle; width:119.05pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:宋体; font-size:10pt">首付款</span></p></td>
+                    <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;padding-left:5.4pt; padding-right:5.4pt; vertical-align:middle; width:93.25pt">
+                        <p style="margin:0pt; text-align:center">
+                            <span style="color:#808080; font-family:宋体; font-size:10pt">
+                                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.AdvanceCharge))
+                                {
+                                    @Html.Raw(ContractTemplateOrderDTO.AdvanceCharge);
+                                }
+
+                            </span>
+                        </p>
+                    </td>
+                    <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:5.03pt; padding-right:5.4pt; vertical-align:middle; width:61.95pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:宋体; font-size:10pt"> 保证金 </span></p></td>
+                    <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:5.03pt; padding-right:4.9pt; vertical-align:middle; width:34.55pt">
+                        <p style="margin:0pt; text-align:center">
+                            <span style="color:#808080; font-family:宋体; font-size:10pt">
+                                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CautionMoney))
+                                {
+                                    @Html.Raw(ContractTemplateOrderDTO.CautionMoney);
+                                }
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr style="height:14.25pt">
+                    <td colspan="2" style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;border-left:#000000 solid 0.75pt;padding-left:4.9pt; padding-right:5.03pt; vertical-align:middle; width:119.05pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:宋体; font-size:10pt">支付方式</span></p></td>
+                    <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;padding-left:5.4pt; padding-right:5.4pt; vertical-align:middle; width:93.25pt">
+                        <p style="margin:0pt; text-align:center">
+                            <span style="color:#808080; font-family:宋体; font-size:10pt">按以下日期支付</span>
+                        </p>
+                    </td>
+                    <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:5.03pt; padding-right:5.4pt; vertical-align:middle; width:61.95pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:宋体; font-size:10pt"> 分期期数 </span></p></td>
+                    <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:5.03pt; padding-right:4.9pt; vertical-align:middle; width:34.55pt">
+                        <p style="margin:0pt; text-align:center">
+                            <span style="color:#808080; font-family:宋体; font-size:10pt">
+                                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.StagingNum))
+                                {
+                                    @Html.Raw(ContractTemplateOrderDTO.StagingNum);
+                                }
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr style="height:14.25pt">
+                    <td rowspan="2" style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;border-left:#000000 solid 0.75pt;padding-left:4.9pt; padding-right:5.03pt; vertical-align:middle; width:22.85pt"><p style="margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10pt">期次</span></p></td>
+                    <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;padding-left:5.4pt; padding-right:5.03pt; vertical-align:middle; width:85.4pt"><p style="margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10pt"> 支付时间</span></p></td>
+                    <td colspan="3" rowspan="2" style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;padding-left:5.03pt; padding-right:5.03pt; vertical-align:middle; width:93.25pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:宋体; font-size:10pt">每期应付</span></p></td>
+                </tr>
+                <tr style="height:14.25pt">
+                    <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;padding-left:5.4pt; padding-right:5.03pt; vertical-align:middle; width:85.4pt"><p style="margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10pt">（年/月/日）</span></p></td>
+                </tr>
+                @if (ContractTemplateOrderDTO.RepaymentPlanlist != null && ContractTemplateOrderDTO.RepaymentPlanlist.Any())
+                {
+                    foreach (var item in ContractTemplateOrderDTO.RepaymentPlanlist)
+                    {
+                        <tr style="height:14.25pt">
+                            <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;border-left:#000000 solid 0.75pt;padding-left:4.9pt; padding-right:5.03pt; vertical-align:middle; width:22.85pt"><p style="margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10pt">@item.TheTerm</span></p></td>
+                            <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:5.4pt; padding-right:5.03pt; vertical-align:middle; width:85.4pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:'Times New Roman'; font-size:10pt">@item.PayTime</span></p></td>
+                            <td colspan="3" style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:5.4pt; padding-right:5.03pt; vertical-align:middle; width:93.25pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:宋体; font-size:10pt">&yen;@item.EachPeriod</span></p></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr style="height:14.25pt">
+                        <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;border-left:#000000 solid 0.75pt;padding-left:4.9pt; padding-right:5.03pt; vertical-align:middle; width:22.85pt"><p style="margin:0pt"><span style="color:#808080; font-family:宋体; font-size:10pt"></span></p></td>
+                        <td style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:5.4pt; padding-right:5.03pt; vertical-align:middle; width:85.4pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:'Times New Roman'; font-size:10pt"></span></p></td>
+                        <td colspan="3" style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:5.4pt; padding-right:4.9pt; vertical-align:middle; width:107.3pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:宋体; font-size:10pt"></span></p></td>
+                    </tr>
+                }
+
+                <tr style="height:14.25pt">
+                    <td colspan="2" style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt;border-left:#000000 solid 0.75pt; padding-left:4.9pt; padding-right:5.03pt; vertical-align:middle; width:119.05pt"><p style="margin:0pt; text-align:center"><span style="color:#808080; font-family:宋体; font-size:10pt">总计</span></p></td>
+                    <td colspan="3" style="border-bottom:#000000 solid 0.75pt; border-right:#000000 solid 0.75pt; padding-left:5.4pt; padding-right:5.03pt; vertical-align:middle; width:93.25pt">
+                        <p style="margin:0pt; text-align:center">
+                            <span style="color:#808080; font-family:宋体; font-size:10pt">
+                                &yen;@if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.RepayPlanAmount))
+                                {
+                                    @Html.Raw(ContractTemplateOrderDTO.RepayPlanAmount);
+                                }
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            2.租金支付方式：
+            <span style="text-decoration:underline;" class="TransactionType">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.TransactionType))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.TransactionType);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">3.乙方须向甲方指定的下列账户支付设备租金，除非甲方书面同意，乙方向该账户以外的其他账户支付行为无效，不能免除支付义务。</span></p>
+    <p style="text-indent:72px;">
+        <span style="font-size:19px;;font-family:宋体">
+            开户银行：
+            @if (ViewBag.type == 1)
+            {
+                <input type="text" style="width:200px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="OpenBank" value="@Model.OpenBank" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.OpenBank)
+                </span>
+            }
+        </span>
+    </p>
+    <p style="text-indent:72px;">
+        <span style="font-size:19px;;font-family:宋体">
+            帐&nbsp;&nbsp;号：
+            @if (ViewBag.type == 1)
+            {
+                <input type="text" style="width:200px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="BankAccount" value="@Model.BankAccount" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.BankAccount)
+                </span>
+            }
+        </span>
+    </p>
+    <p style="text-indent:72px;">
+        <span style="font-size:19px;;font-family:宋体">
+            户&nbsp;&nbsp;名：
+            @if (ViewBag.type == 1)
+            {
+                <input type="text" style="width:200px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="BankAccountName" value="@Model.BankAccountName" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.BankAccountName)
+                </span>
+            }
+        </span>
+    </p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第六条　租金的担保</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            1．本合同签订时，乙方须向甲方支付双方商定的履约保证金【定金性质】人民币<span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.AdvanceCharge))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.AdvanceCharge);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>元（大写：<span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.AdvanceChargeStr))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.AdvanceChargeStr);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>）作为履行本合同的担保。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            履约保证金不计利息，在租赁期满时归还乙方或规定为抵扣一部分租金。乙方违反本合同任何条款时，该保证金甲方不予退还，并保留向乙方追究违约责任的权利。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            2．乙方法定代表人<span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.YiLegal))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.YiLegal);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>（身份证号:<span style="text-decoration:underline;">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.YiLegalNO))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.YiLegalNO);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>)为本合同乙方的保证人，承担连带担保责任；
+        </span>
+    </p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第七条　租赁标的物的灭失及毁损</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">1．在本合同期限内，乙方承担租赁标的物灭失或毁损的风险。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">2．如租赁标的物灭失或毁损，乙方应立即通知甲方且选择下列方式负责处理相关事宜并由乙方负担一切费用。</span></p>
+    <p style="line-height:120%;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">(1)将租赁物件复原或修理至完全正常使用之状态。</span></p>
+    <p style="line-height:120%;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">(2)更换与租赁物件同等状态、性能的物件</span></p>
+    <p style="line-height:120%;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">(3)乙方向保险公司进行保险索赔，并协助保险公司启动对应理赔程序。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">无论乙方选择以上何种方式，原租金支付计划不变。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第八条　保险</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            1．自起租日开始之前
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="RentingDay" value="@Model.RentingDay" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.RentingDay)
+                </span>
+            }
+            个工作日内，由乙方以甲方的名义对租赁标的物投保，保险公司由甲方指定；保险应包括第三者责任险和财产险（保险期必须足以覆盖租赁期限），以应付自然灾害所引起的租赁标的物的毁损风险，并使之在租赁期限内持续有效。保险费由乙方负担，保险受益人为甲方。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            2.投保后乙方须在
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="Day" value="@Model.Day" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.Day)
+                </span>
+            }
+            工作日内将保险单等凭证交付甲方。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">3.保险事故发生后，乙方根据甲方授权向保险公司进行保险索赔，并协助保险公司启动对应理赔程序，如保险金不足以赔偿甲方损失（损失包括但不限于乙方应付甲方的剩余租金、律师费等全部损失），乙方须承担赔偿责任（按第七条执行）。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第九条　租赁物抵押登记</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            在租赁物交付后
+            @if (ViewBag.type == 1)
+            {
+                <input type="number"class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="BreakDay" value="@Model.BreakDay" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.BreakDay)
+                </span>
+            }
+            日内，甲方（出租人）授权乙方（承租人）将租赁物抵押在甲方名下并办理登记。
+        </span>
+    </p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第十条　权利和义务</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">1．在租赁期内租赁标的物的所有权属于甲方，乙方对租赁标的物只有使用权。乙方不得在租期内对租赁标的物进行销售、转让、转租、分租、抵押、投资或采取其它任何侵犯租赁标的物所有权的行为。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">2．租期内租赁标的物由乙方使用，乙方有义务合理和适宜地保护租赁标的物，并对由于乙方自己的过失或疏忽或由乙方可防止的任何第三人的行为造成的对租赁标的物的灭失或损害负有赔偿责任。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">3．为了保证租赁标的物的正常使用和运转，乙方负责对租赁标的物按技术要求进行正常的、适时的维修和保养。维修和保养所发生的费用均由乙方自付。如需更换其零件，在未得到甲方书面同意时，应只用设备原制造厂所供应的零件更换。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">租期内，租赁标的物无论发生任何事故（包括但不限于乙方使用该设备对第三人造成损害等情况）均由乙方负责解决，与甲方无关，乙方并不能因此而免除向甲方支付租金的义务。</span></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            4．甲方有权对租赁标的物的使用地点及使用情况进行检查，乙方应为甲方的工作提供方便。租期内，乙方每
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="InvestiHandleDay" value="@Model.InvestiHandleDay" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.InvestiHandleDay)
+                </span>
+            }
+            日应向甲方汇报设备使用情况，并提供乙方财务报表，向甲方报告经营情况。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">5．租期内，乙方不得以任何形式明示或暗示其对租赁标的物具有所有权和处分权，如乙方在此期间由于债务纠纷或依法破产，乙方应向法院、债权人或清算委员会申请对租赁标的物不具有所有权，亦不得以租赁标的物充做诉讼保证金或抵偿债务，同时必须及时报告甲方。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">6．租赁期满后，本合同租赁标的物按留购方式处理</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray"><strong>留购：</strong>甲方同意按合同附表所列的留购货价（留购货价为租赁标的物残值或合同约定价）将租赁标的物售予乙方</span></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            留购货价（人民币）：小写：
+            @if (ViewBag.type == 1)
+            {
+                <input id="lghj" type="number" class="easyui-numberbox number2" data-options="validType:'length[1,11]',min:1,max:9999999,precision:2,formatter:function(value){if(value > 0)return Number(value);else return ''}" style="width:150px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="PenaltyMoney" value="@Model.PenaltyMoney" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.PenaltyMoney)
+                </span>
+            }元（大写：
+            @if (ViewBag.type == 1)
+            {
+                <span style="text-decoration:underline;" class="DeliveryMode">
+                    @Model.DeliveryMode
+                </span>
+                <input id="DeliveryMode" type="hidden" name="DeliveryMode" value="@Model.DeliveryMode" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.DeliveryMode)
+                </span>
+            }）
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            支付方式：<span style="text-decoration:underline">
+                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.SOTypeName))
+                {
+                    @Html.Raw(ContractTemplateOrderDTO.SOTypeName);
+                }
+                else
+                {
+                    @Html.Raw("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+                }
+            </span>。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">全部实际租金和留购货价以及其他款项付清后，甲方将租赁标的物的所有权转移给乙方。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第十一条　违约责任</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            1.乙方不按约定交付租金，则须按每逾期一日向甲方支付当期租金的
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number2" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="PenaltyDayMoney" value="@Model.PenaltyDayMoney" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.PenaltyDayMoney)
+                </span>
+            }
+            ％作为罚息；若乙方发生一期未付，甲方有权要求乙方提前支付全部租金；乙方连续
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="RectificDay" value="@Model.RectificDay" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.RectificDay)
+                </span>
+            }
+            个月未履行交付租金义务，甲方有权取回租赁物。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">2．如乙方不支付租金或违反本合同其他条款，甲方有权要求乙方即时付清全部租金和其他费用，并且有权处置租赁标的物，所得款项抵作乙方应付租金及逾期利息，不足部分应由乙方赔偿。虽然甲方采取前述措施，并不因之免除本合同规定的乙方其他义务。</span></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            3.乙方违反本合同第五条租金支付义务，甲方有权单方解除合同，乙方应在接到解除通知后
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="ChangeContractDay" value="@Model.ChangeContractDay" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.ChangeContractDay)
+                </span>
+            }
+            日内向甲方或甲方指定方归还租赁物；或由甲方（甲方之授权人）行使取回权，乙方不得阻挠、干扰甲方行使权利，因此产生的全部费用由乙方承担，甲方保留追究乙方其他法律责任的权利。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">4.乙方违约，甲方可依据本合同第六条第一款处理保证金并向保证人主张权利（此权利可由甲方授权他人行使）。行使权利所产生的全部费用（包括但不限于拖车费、交通费、律师费等）及损失由乙方承担。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第十二条　甲方权利的转让和抵押</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">本合同期内，甲方有权将本合同赋予甲方全部或部分权利转让给第三人，或提供租赁标的物作为抵押，但不得影响乙方在本合同项下的权利和义务。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第十三条　租赁标的物所有权的转移</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">乙方向甲方付清全部租金及其他款项，包括向甲方支付留购价后，由甲方向乙方出具《<span style="text-decoration:underline">租赁物所有权转移证明书</span>》，租赁标的物的所有权即转归乙方所有。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第十四条　声明及保证</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">一、甲方声明、保证：</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">1．甲方为依法设立并合法存续的企业，有权签署并有能力履行本合同。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">2．甲方签署和履行本合同所需的一切手续均已办妥并合法有效。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">3．在签署本合同时，任何法院、仲裁机构、行政机关或监管机构均未作出任何足以对甲方履行本合同产生重大不利影响的判决、裁定、裁决或具体行政行为。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">4．甲方为签署本合同所需的内部授权程序均已完成，本合同的签署人是甲方的法定代表人或授权代表人。本合同生效后即对合同双方具有法律约束力。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">二、乙方声明、保证：</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">1．乙方为依法设立并合法存续的企业，有权签署并有能力履行本合同。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">2．乙方签署和履行本合同所需的一切手续均已办妥并合法有效。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">3．在签署本合同时，任何法院、仲裁机构、行政机关或监管机构均未作出任何足以对乙方履行本合同产生重大不利影响的判决、裁定、裁决或具体行政行为。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">4．乙方为签署本合同所需的内部授权程序均已完成，本合同的签署人是乙方的法定代表人或授权代表人。本合同生效后即对合同双方具有法律约束力。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第十五条　保密</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            双方保证对从另一方取得且无法自公开渠道获得的商业秘密（技术信息、经营信息及其他商业秘密）予以保密。未经该商业秘密的原提供方同意，一方不得向任何第三方泄露该商业秘密的全部或部分内容。但法律、法规另有规定或双方另有约定的除外。保密期限为
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="SecrecyPeriod" value="@Model.SecrecyPeriod" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.SecrecyPeriod)
+                </span>
+            }
+            年。
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">一方违反上述保密义务的，应向守约方承担相应的违约责任并赔偿由此造成的损失。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第十六条　不可抗力</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">本合同所称不可抗力是指不能预见、不能克服、不能避免并对一方当事人造成重大影响的客观事件，包括但不限于自然灾害如洪水、地震、火灾和风暴等以及社会事件如战争、动乱、政府行为等。</span></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            如因不可抗力事件的发生导致合同无法履行时，遇不可抗力的一方应立即将事故情况书面告知另一方，并应在
+            @if (ViewBag.type == 1)
+            {
+                <input type="number" class="number0" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="Rescheduling" value="@Model.Rescheduling" onmousewheel="return false;" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.Rescheduling)
+                </span>
+            }
+            天内，提供事故详情及合同不能履行或者需要延期履行的书面资料，双方认可后协商终止合同或暂时延迟合同的履行。
+        </span>
+    </p>
+    <p style="margin-top:10px;text-indent: 28px;"><strong><span style="font-size:19px;font-family:黑体;color:gray">第十七条　通知</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">1．根据本合同需要发出的全部通知以及双方的文件往来及与本合同有关的通知和要求等，必须用书面形式，可采用包括但不限于电子邮件、传真、快递、当面送交等方式传递。</span></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">2．各方通讯地址及联系人如下：</span></p>
+    <p style="text-indent:28px;">
+        <span style="font-size:19px;font-family:宋体;color:gray">
+            （1）甲方：
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CustomerName))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.CustomerName)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("_________________")
+            }
+            &nbsp;指定联系人：
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CustomerContactPerson))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.CustomerContactPerson)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("_________________")
+            }
+
+        </span>
+    </p>
+    <p style="text-indent:74px;">
+        <span style="font-size:19px;font-family:宋体;color:gray">
+            电话：
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CustomerContactPhone))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.CustomerContactPhone)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("_________________")
+            }
+            &nbsp;电子邮箱：
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.VendorContactEmail))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.VendorContactEmail)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("_________________")
+            }
+            ；
+        </span>
+    </p>
+    <p style="text-indent:28px;">
+        <span style="font-size:19px;font-family:宋体;color:gray">
+            （2）乙方：
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.VendorName))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.VendorName)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("_________________")
+            }
+            &nbsp;指定联系人：
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.VendorContactPerson))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.VendorContactPerson)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("_________________")
+            }
+
+        </span>
+    </p>
+    <p style="text-indent:74px;">
+        <span style="font-size:19px;font-family:宋体;color:gray">
+            电话：
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.VendorContactPhone))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.VendorContactPhone)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("_________________")
+            }
+            &nbsp;电子邮箱：
+            @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.ShipToContactEmail))
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(ContractTemplateOrderDTO.ShipToContactEmail)
+                </span>
+            }
+            else
+            {
+                @Html.Raw("_________________")
+            }；
+        </span>
+    </p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">3．一方变更通知或通讯地址，应自变更之日起5个工作日内，以书面形式通知对方；否则，由未通知方承担由此而引起的相应责任。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;line-height:120%"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第十八条　争议的处理</span></strong></p>
+    <p style="line-height:120%;text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">1.本合同受中华人民共和国法律管辖并按其进行解释。</span></p>
+    <p style="line-height:120%;text-indent: 28px;">
+        <span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">
+            2．本合同在履行过程中发生的争议，由双方当事人协商解决，也可由有关部门调解；协商或调解不成的，按下列第
+            @if (ViewBag.type == 1)
+            {
+                <input type="text" maxlength="1" style="width:50px;border: 0;border-bottom: 1px solid #000;text-align: center;border-radius: 0;" name="DisputeType" value="@Model.DisputeType" />
+            }
+            else
+            {
+                <span style="text-decoration:underline;">
+                    @Html.Raw(Model.DisputeType)
+                </span>
+            }
+            种方式解决：
+        </span>
+    </p>
+    <p style="text-indent: 28px;"><span style="font-size:19px;font-family:宋体;color:gray">a．提交深圳仲裁委员会仲裁；</span></p>
+    <p style="text-indent: 28px;"><span style="font-size:19px;font-family:宋体;color:gray">b．依法向合同签定地人民法院起诉。</span></p>
+    <p style="margin-top:10px;text-indent: 28px;"><strong><span style="font-size:19px;line-height:120%;font-family:黑体;color:gray">第十九条　解释</span></strong></p>
+    <p style="text-indent: 28px;"><span style="font-size:19px;line-height:120%;font-family:宋体;color:gray">本合同的理解与解释应依据合同目的和文本原义进行，本合同的标题仅是为了阅读方便而设，不应影响本合同的解释。</span></p>
+    <p style="text-indent: 28px;"><strong><span style="font-size:19px;font-family:黑体;color:gray">第二十条　补充</span></strong></p>
+    <p style="text-indent: 28px;">
+        <span style="font-size:19px;;font-family:宋体;color:gray">1、其他约定事项：</span>
+        <span style="font-size:19px;;font-family:宋体;color:gray;text-decoration:underline;">
+            @if (ViewBag.type == 1)
+            {
+                <textarea maxlength="5000" style="height: 260px; margin: 0px;max-width:697px;width:697px;font-size:19px;;font-family: 宋体;color:gray" id="remark" name="Remark">@Model.Remark</textarea>
+            }
+            else
+            {
+                @Html.Raw(Model.Remark)
+            }
+        </span>
+    </p>
+    <p style="text-indent: 28px;"><span style="font-size:19px;font-family:宋体;color:gray">2、未尽事宜，甲乙双方可以另行达成书面补充协议。</span></p>
+    <p style="text-indent: 28px;"><strong><span style="font-size:19px;font-family:黑体;color:gray">第二十一条　合同效力</span></strong></p>
+    <p style="text-indent: 28px;"><span style="font-size: 19px;font-family: 宋体;color:gray">本合同自双方加盖公章后生效。</span></p>
+
+    <p style="line-height:120%"><strong><span style=";font-family:宋体;color:gray">&nbsp;</span></strong></p>
+    <div style="text-align:center">
+        <table cellspacing="0" cellpadding="0" style="border-collapse:collapse; margin:0 auto; width:500pt">
+            <tbody>
+                <tr style="height:37.3pt">
+                    <td style="">
+                        <p style="line-height:120%; margin:0pt; text-align:left;font-size: 19px;">
+                            <span style="color:gray;font-family: 仿宋;">出租人：</span>
+                            <span style="color:gray;font-family: 仿宋;text-decoration:underline;" class="CustomerName">
+                                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.VendorName))
+                                {
+                                    @Html.Raw(ContractTemplateOrderDTO.VendorName);
+                                }
+                                else
+                                {
+                                    @Html.Raw("________________________");
+                                }
+                            </span>
+                        </p>
+                    </td>
+                    <td style="">
+                        <p style="line-height:120%; margin:0pt;text-align:left;font-size: 19px;">
+                            <span style="color:gray;font-family: 仿宋;">承租人：</span>
+                            <span style="color:gray;font-family: 仿宋;text-decoration:underline;" class="VendorName">
+                                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CustomerName))
+                                {
+                                    @Html.Raw(ContractTemplateOrderDTO.CustomerName);
+                                }
+                                else
+                                {
+                                    @Html.Raw("________________________");
+                                }
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+                <tr style="height:37.3pt">
+                    <td style="">
+                        <p style=" line-height:120%; margin:0pt;text-align:left;font-size: 19px;"><span style="color:gray;font-family: 仿宋;">出租人电子签章处</span></p>
+                    </td>
+                    <td style="">
+                        <p style=" line-height:120%; margin:0pt; text-align:left;font-size: 19px;"><span style="color:gray;font-family: 仿宋;">承租人电子签章处</span></p>
+                    </td>
+                </tr>
+                <tr style="height:37.3pt">
+                    <td style="">
+                        <p style=" line-height:120%; margin:0pt;text-align:left;font-size: 19px;">
+                            <span style="color:gray;font-family: 仿宋;">
+                                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CustomerName))
+                                {
+                                    @Html.Raw(System.DateTime.UtcNow.AddHours(8).ToString("yyyy年 MM月 dd日"));
+                                }
+                                else
+                                {
+                                    @Html.Raw(" 年 月 日");
+                                }
+                            </span>
+                        </p>
+                    </td>
+                    <td style="">
+                        <p style=" line-height:120%; margin:0pt;text-align:left;font-size: 19px;">
+                            <span style="color:gray;font-family: 仿宋;">
+                                @if (!string.IsNullOrEmpty(ContractTemplateOrderDTO.CustomerName))
+                                {
+                                    @Html.Raw(System.DateTime.UtcNow.AddHours(8).ToString("yyyy年 MM月 dd日"));
+                                }
+                                else
+                                {
+                                    @Html.Raw(" 年 月 日");
+                                }
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

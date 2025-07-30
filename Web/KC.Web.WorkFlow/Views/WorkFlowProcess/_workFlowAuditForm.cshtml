@@ -1,0 +1,168 @@
+﻿@using KC.Web.Workflow.Constants
+@using KC.Framework.Extension
+@model KC.Service.DTO.Workflow.WorkflowExecuteData
+
+<form class="easyui-form" method="post" id="auditform" action="@Url.Action(ActionName.WorkflowProcess.AuditWorkflowTask, ControllerName.WorkflowProcess)">
+    @Html.AntiForgeryToken()
+    <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+    @*@Html.HiddenFor(model => model.Id)*@
+    @Html.HiddenFor(model => model.WorkflowDefId)
+    @Html.HiddenFor(model => model.WorkflowDefCode)
+    @Html.HiddenFor(model => model.WorkflowDefVersion)
+    @Html.HiddenFor(model => model.WorkflowDefName)
+
+    @Html.HiddenFor(model => model.ExecuteUserId)
+    @Html.HiddenFor(model => model.ExecuteUserName)
+    @Html.HiddenFor(model => model.ExecuteDateTime)
+    @Html.HiddenFor(model => model.TaskId)
+    @Html.HiddenFor(model => model.TaskType)
+    @Html.HiddenFor(model => model.NotifyUserIds)
+    @Html.HiddenFor(model => model.NotifyUserNames)
+
+    @Html.HiddenFor(model => model.AgreeUserIds)
+    @Html.HiddenFor(model => model.AgreeUserNames)
+    @Html.HiddenFor(model => model.DisagreeUserIds)
+    @Html.HiddenFor(model => model.DisagreeUserNames)
+    @Html.HiddenFor(model => model.UnProcessUserIds)
+    @Html.HiddenFor(model => model.UnProcessUserNames)
+    @Html.HiddenFor(model => model.AllUserIds)
+    @Html.HiddenFor(model => model.AllUserNames)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label for="TaskCode">任务编号：</label></td>
+                <td>
+                    <input id="TaskCode" name="TaskCode" class="easyui-textbox" value="@Model.TaskCode" style="width: 290px;" readonly="readonly">
+
+                </td>
+            </tr>
+            <tr>
+                <td><label for="TaskName">任务名称：</label></td>
+                <td>
+                    <input id="TaskName" name="TaskName" class="easyui-textbox" value="@Model.TaskName" style="width: 290px;" readonly="readonly">
+
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="AllUserNames">审核人：</span>
+                    </div>
+                </td>
+                <td>
+                    @Html.HiddenFor(m => m.AllUserIds)
+                    <input id="AllUserNames" name="AllUserNames" class="easyui-textbox"
+                           data-options="width:250"
+                           value="@(null != Model ? Model.AllUserNames : string.Empty)" />
+                    <a href="javascript:void(0)" onclick="selectUserForm(this)" class="easyui-linkbutton"
+                       data-options="iconCls:'fa fa-cog'">设置</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="ExecuteStatus">是否同意：</span>
+                    </div>
+                </td>
+                <td>
+                    @Html.HiddenFor(model => model.ExecuteStatus)
+                    <input id="auditStatus1" class="easyui-radiobutton" name="auditStatus" value="1" label="同意" data-options="labelPosition:'after',labelWidth:60,checked:true" />
+                    <input id="auditStatus2" class="easyui-radiobutton" name="auditStatus" value="2" label="退回" data-options="labelPosition:'after',labelWidth:60" />
+                    @*<input id="auditStatus3" class="easyui-radiobutton" name="auditStatus" value="3" label="撤回" data-options="labelPosition:'after',labelWidth:60" />
+                        <input id="auditStatus4" class="easyui-radiobutton" name="auditStatus" value="4" label="取消" data-options="labelPosition:'after',labelWidth:60" />
+                        <input id="auditStatus5" class="easyui-radiobutton" name="auditStatus" value="5" label="中止" data-options="labelPosition:'after',labelWidth:60" />*@
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="ExecuteRemark">审核意见：</span>
+                    </div>
+                </td>
+                <td>
+                    <input id="ExecuteRemark" name="ExecuteRemark" class="easyui-textbox"
+                           data-options="multiline:true," style="width:290px;height: 120px"
+                           value="@(null != Model ? Model.ExecuteRemark : string.Empty)" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <span for="a">上传附件：</span>
+                    </div>
+                </td>
+                <td>
+                    @Html.HiddenFor(m => m.ExecuteFileBlob)
+                    <div class="fileUploaderEditor" style="display: flex;">
+                        <div id="fileList" class="webUploader-file-single"></div>
+                        <a id="fileUploader" href="javascript:void(0)" class="easyui-linkbutton"
+                           iconcls="fa fa-pencil">选择</a>
+                    </div>
+                    <label style="padding: 3px;">
+                        文件个数：1个；
+                        文件大小：@KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize M<br />
+                        文件格式：@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt
+                    </label>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+
+<script>
+
+$(function () {
+    $('.textbox').bind('blur', function () {
+        $(this).validatebox('enableValidation').validatebox('validate');
+    });
+
+    defaultInitFileUploader('ExecuteFileBlob', 'fileUploader', 'fileList', fileSetting, false);
+});
+
+function selectUserForm() {
+    let roleId = '@KC.Framework.Tenant.RoleConstants.AdminRoleId';
+    let organization = new OrganizationVM();
+
+    let selectUserIds = $.string.arrayFromCommaDelimitedStrings($('#AllUserIds').val());
+    let selectUserNames = $.string.arrayFromCommaDelimitedStrings($('#AllUserNames').textbox('getValue'));
+    organization.InitializeData({
+        type: 4,                  //7(1+2+4): 组织+角色+用户
+        title: "审核人设置",
+        orgIds: [],               //需要查询的组织Id列表
+        roleIds: [],             //需要查询的角色Id列表
+        exceptOrgIds: [],                   //需要排除的部门Id列表
+        exceptRoleIds: [],                  //需要排除的角色Id列表
+        selectOrgCodes: null,     //已选中的组织Id列表
+        selectOrgNames: null,     //已选中的组织名称列表
+        selectRoleIds: null,       //已选中的角色Id列表
+        selectRoleNames: null,   //已选中的角色名称列表
+        selectUserIds: selectUserIds,       //已选中的人员Id列表
+        selectUserNames: selectUserNames,   //已选中的人员名称列表
+        selectExceptUserIds: null,
+        selectExceptUserNames: null,
+        isSingleSelect: false,
+        referenceId: null,
+        callback: function (data) {
+            //debugger;
+            let orgs = data.orgs;
+            let roles = data.roles;
+            let users = data.users;
+            let exceptUsers = data.exceptUsers;
+            let selOrgCodes = $.array.toCommaSeparatedStringByFilter(orgs, function (r) { return r.organizationCode; });
+            let selOrgNames = $.array.toCommaSeparatedStringByFilter(orgs, function (r) { return r.text; });
+            let selRoleIds = $.array.toCommaSeparatedStringByFilter(roles, function (r) { return r.roleId; });
+            let selRoleNames = $.array.toCommaSeparatedStringByFilter(roles, function (r) { return r.displayName; });
+            let selUserIds = $.array.toCommaSeparatedStringByFilter(users, function (r) { return r.userId; });
+            let selUserNames = $.array.toCommaSeparatedStringByFilter(users, function (r) { return r.displayName; });
+            let selExceptUserIds = $.array.toCommaSeparatedStringByFilter(exceptUsers, function (r) { return r.userId; });
+            let selExceptUserNames = $.array.toCommaSeparatedStringByFilter(exceptUsers, function (r) { return r.displayName; });
+            $('#AllUserIds').val(selUserIds);
+            $('#AllUserNames').textbox('setValue', selUserNames);
+        }
+    });
+}
+
+</script>
+

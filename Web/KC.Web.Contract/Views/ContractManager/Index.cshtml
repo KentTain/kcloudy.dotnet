@@ -1,0 +1,489 @@
+﻿@using KC.Web.Constants
+@using KC.Enums.Contract
+@using KC.Web.Contract.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "合同管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+
+    <!--合同管理-企业合同分页权限：Index-->
+    var isMyContract = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "473B720E-2E8B-402D-80FF-271C4D3F52FB")).Succeeded)
+    {
+        isMyContract = true;
+    }
+    <!--合同管理-创建合同/编辑合同：EditContract-->
+    var isEditContract = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "6EBC4456-AECB-41AE-B17A-B9B666D13CF2")).Succeeded)
+    {
+        isEditContract = true;
+    }
+    <!--合同管理-审核合同：ComfirmContract-->
+    var isComfirmContract = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "DB4A5E79-3DFD-42F3-A73E-14108FCE040C")).Succeeded)
+    {
+        isComfirmContract = true;
+    }
+    <!--合同管理-删除合同：RemoveCurrencySignService-->
+    var isRemoveCurrencySignService = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "23A6964A-9B2D-4322-BC6A-EC8076E3CC14")).Succeeded)
+    {
+        isRemoveCurrencySignService = true;
+    }
+    <!--合同管理-作废合同：AbandonedContract-->
+    var isAbandonedContract = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "23A6964A-9B2D-4322-BC6A-EC8076E3CC14")).Succeeded)
+    {
+        isAbandonedContract = true;
+    }
+    <!--合同管理-退回合同：RetutrnContract-->
+    var isRetutrnContract = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "23A6964A-9B2D-4322-BC6A-EC8076E3CC14")).Succeeded)
+    {
+        isRetutrnContract = true;
+    }
+    <!--合同管理-查看详情：Details-->
+    var isDetails = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "23A6964A-9B2D-4322-BC6A-EC8076E3CC14")).Succeeded)
+    {
+        isDetails = true;
+    }
+    <!--合同管理-签署：IsSeal-->
+    var isSeal = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "23A6964A-9B2D-4322-BC6A-EC8076E3CC14")).Succeeded)
+    {
+        isSeal = true;
+    }
+    <!--合同管理-日志：CommonLog-->
+    var isLog = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "23A6964A-9B2D-4322-BC6A-EC8076E3CC14")).Succeeded)
+    {
+        isLog = true;
+    }
+    <!--合同管理-同步：SynchronousCurrencySignData-->
+    var isSync = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "23A6964A-9B2D-4322-BC6A-EC8076E3CC14")).Succeeded)
+    {
+        isSync = true;
+    }
+}
+
+<div id="tab_Index" class="theme-tab-blue-block theme-tab-unradius">
+    @if (isMyContract)
+    {
+        <div title="企业合同" data-id="0" data-options="refreshable:false">
+            <div class="search-filter">
+                <div class="easyui-panel" style="margin:5px 0px;border:none" id="pl_ContractType">
+                    <a href="#" onclick="ClickType()" id="all" class="easyui-linkbutton" data-options="toggle:true,group:'g1',selected:true">全部合同</a>
+                    <a href="#" onclick="ClickType(0)" id="electronic" class="easyui-linkbutton" data-options="toggle:true,group:'g1'">通用合同</a>
+                    <a href="#" onclick="ClickType(1)" id="accountStatement" class="easyui-linkbutton" data-options="toggle:true,group:'g1'">对账单合同</a>
+                    <a href="#" onclick="ClickType(3)" id="seller" class="easyui-linkbutton" data-options="toggle:true,group:'g1'">销售合同</a>
+                    <a href="#" onclick="ClickType(4)" id="purchase" class="easyui-linkbutton" data-options="toggle:true,group:'g1'">采购合同</a>
+                    <a href="#" onclick="ClickType(5)" id="agreement" class="easyui-linkbutton" data-options="toggle:true,group:'g1'">协议合同</a>
+                    <a href="#" onclick="ClickType(6)" id="pay" class="easyui-linkbutton" data-options="toggle:true,group:'g1'">放款合同</a>
+                </div>
+
+                <div>
+                    @if (isEditContract)
+                    {
+                        <a href="#" onclick="showDetails(addUrl,'新建合同')" class="easyui-linkbutton" data-options="iconCls:'fa fa-plus'">新建合同</a>
+                    }
+
+                    <input id="startTime" class="easyui-datebox" editable="false" style="width:120px;" />
+                    <span class="input-group-addon">到</span>
+                    <input id="endTime" class="easyui-datebox" editable="false" style="width:120px;" />
+
+                    @Html.DropDownList("Status", (IEnumerable<SelectListItem>)ViewBag.StatusList, new Dictionary<string, object>
+                    {
+                        { "class","easyui-combobox" },
+                        { "id", "Status" },
+                        { "data-options","editable: false, required:true" },
+                        { "panelHeight","auto" },
+                        { "style", "width:120px" }
+                    })
+
+                    <input class="easyui-textbox" style="width: 200px;" id="search" data-options="prompt:'请输入合同标题、编号或创建者'" />
+
+                    <a href="#" onclick="searchMenu()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                    <a href="#" onclick="refresh();" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+                </div>
+            </div>
+            <table id="dataGrid_0"></table>
+        </div>
+    }
+
+    <div title="个人合同" data-id="1" data-options="refreshable:false">
+        <table id="dataGrid_1"></table>
+    </div>
+
+</div>
+
+@section styles{
+    <link href="~/css/upload.css" rel="stylesheet" />
+    <link href="~/css/purchasedemand.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.css" rel="stylesheet" />
+    @*main*@
+    <style type="text/css">
+        .btn-link-font {
+            color: dodgerblue;
+            margin-right: 8px;
+        }
+    </style>
+    @*partial*@
+    <style type="text/css">
+        .list {
+            height: 30px;
+            line-height: 30px;
+            padding: 10px;
+        }
+
+        .pagination_Partial {
+            cursor: pointer;
+            background-color: #eeeeee;
+        }
+
+            .pagination_Partial li {
+                display: inline;
+                margin: 5px;
+            }
+
+        .pagination_Partial-info {
+            margin: 0 10px 0 0;
+        }
+    </style>
+}
+
+@section scripts{
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+
+    <script src="~/js/pdf.js/pdf.js"></script>
+    <script src="~/js/pdf.js/pdf.worker.js"></script>
+    <script src="~/js/pdf.js/drag.js"></script>
+
+    <script type="text/javascript">
+
+        var $dg = null, $toolbar = '', $url = '', $params, $columns, $dialog = null, $contractType = null;
+
+        var canadd = '@isEditContract' === 'True';
+        var canDetails = '@isDetails' === 'True';
+        var canComfirm = '@isComfirmContract' === 'True';
+        var canretutrn = '@isRetutrnContract' === 'True';
+        var canIsSeal = '@isSeal' === 'True';
+        var canRemove = '@isRemoveCurrencySignService' === 'True';
+        var canAbandoned = '@isAbandonedContract' === 'True';
+        var canLog = '@isLog' === 'True';
+        var canSync = '@isSync' === 'True';
+
+
+        $(function () {
+            $('#tab_Index').tabs({
+                border: false,
+                fit: true,
+                onSelect: function (title, index) {
+                    DisplayDataGrid(index);
+                }
+            });
+        });
+
+        var addUrl = '@Url.Action(ActionName.ContractManager.SaveContract, ControllerName.ContractManager)';
+        var DetailsUrl = '@Url.Action(ActionName.ContractManager.Details, ControllerName.ContractManager)?Id=';
+        var GetMyContract = "@Url.Action(ActionName.ContractManager.GetContractPageList, ControllerName.ContractManager)";
+        function DisplayDataGrid(index) {
+            $dg = $("#dataGrid_" + index);
+            switch (index) {
+                case 0:
+                    $params = {};
+                    $toolbar = '.search-filter';
+                    $columns = [[
+                        { field: 'contractTitle', title: '合同标题', width: 200, align: 'center', formatter: ShowTips },
+                        { field: 'contractNo', title: '合同编号', width: 200, align: 'center', formatter: ShowTips },
+                        { field: 'typeStr', title: '合同类型', width: 100, align: 'center' },
+                        { field: 'userName', title: '创建者', width: 150, align: 'center' },
+                        { field: 'createdDateString', title: '创建时间', width: 180, align: 'center' },
+                        { field: 'statuStr', title: '合同状态', width: 100, align: 'center' },
+                        {
+                            field: 'id', title: '操作', width: 200, align: 'center', formatter: function  (value, rowData, rowIndex) {
+                                var url = DetailsUrl + value;
+                                var str = '';
+                                if (canDetails) {
+                                    str += '<a class="btn-link-font" onclick="showDetails(\'' + url + '\',\'' + rowData.contractTitle + '详情\')">查看详情</a>';
+                                }
+                                if (rowData.isEdit && canadd) {
+                                    var editUrl = addUrl + '&contractId=' + rowData.id + '&reid=' + rowData.referenceId;;
+                                    str += '<a class="btn-link-font" onclick="showDetails(\'' + editUrl + '\',\'编辑合同：' + rowData.contractTitle + '\')">编辑</a>';
+                                }
+                                if (canComfirm) {
+                                    if (rowData.isComfirmFrist) {
+                                        str += '<a class="btn-link-font" onclick="showDetails(\'' + url + '&opt=@ContractOpt.FirstReview\',\'审核合同：' + rowData.contractTitle + '\')">审核<a>';
+                                    }
+                                    if (rowData.isComfirm) {
+                                        str += '<a class="btn-link-font" onclick="showDetails(\'' + url + '&opt=@ContractOpt.Review\',\'审核合同：' + rowData.contractTitle + '\')">审核</a>';
+                                    }
+                                }
+                                if (canretutrn && rowData.isReturn) {
+                                    str += '<a class="btn-link-font" onclick="showDetails(\'' + url + '&opt=@ContractOpt.Withdraw\',\'退回合同：' + rowData.contractTitle + '\')">退回</a>';
+                                }
+                                if (canIsSeal && rowData.isSign) {
+                                    str += '<a class="btn-link-font" onclick="showDetails(\'' + url + '&opt=@ContractOpt.Sign\',\'签署合同：' + rowData.contractTitle + '\')">签署</a>';
+                                }
+                                if (rowData.isRelieve && canRemove) {
+                                    str += '<a class="btn-link-font" onclick="showDetails(\'' + url + '&opt=@ContractOpt.Delete\',\'删除合同：' + rowData.contractTitle + '\')">删除</a>';
+                                }
+                                if (rowData.isRelieveAll && canAbandoned) {
+                                    if (rowData.isLast) {
+                                        str += '<a class="btn-link-font" onclick="showDetails(\'' + url + '&opt=@ContractOpt.LastDiscard\',\'作废合同：' + rowData.contractTitle + '\')">作废<a>';
+                                    } else {
+                                        str += '<a class="btn-link-font" onclick="showDetails(\'' + url + '&opt=@ContractOpt.Discard\',\'作废合同：' + rowData.contractTitle + '\')">作废</a>';
+                                    }
+                                }
+                                if (rowData.hasLogs && canLog) {
+                                    str += '<a class="btn-link-font" onclick="OpenLogForm(\'' + rowData.id + '\',\'合同日志：' + rowData.contractTitle + '\')">日志<a>';
+                                }
+                                return str;
+                            }
+                        }
+                    ]];
+                    break;
+                case 1:
+                    $params = { customerType: 1 };
+                    $toolbar = '';
+                    $columns = [[
+                        { field: 'contractTitle', title: '合同标题', width: 200, align: 'center', formatter: ShowTips },
+                        { field: 'contractNo', title: '合同编号', width: 200, align: 'center', formatter: ShowTips },
+                        { field: 'typeStr', title: '合同类型', width: 100, align: 'center' },
+                        { field: 'userName', title: '创建者', width: 150, align: 'center' },
+                        { field: 'createdDateString', title: '创建时间', width: 180, align: 'center', },
+                        { field: 'ctatuStr', title: '合同状态', width: 100, align: 'center' },
+                        {
+                            field: 'id', title: '操作', width: 200, align: 'center', formatter: function (value, rowData, rowIndex) {
+                                var url = DetailsUrl + value;
+                                var str = "";
+                                if (canDetails) {
+                                    str += '<a class="btn-link-font" onclick="showDetails(\'' + url + '\',\'' + rowData.contractTitle + '详情\')">查看详情</a>';
+                                }
+                                if (canIsSeal && rowData.isSign) {
+                                    str += '<a class="btn-link-font"  onclick="showDetails(\'' + url + '&opt=@ContractOpt.Sign\',\'签署合同：' + rowData.contractTitle + '\')">签署</a>';
+                                }
+                                if (rowData.hasLogs && canLog) {
+                                    str += '<a class="btn-link-font" onclick="OpenLogForm(\'' + rowData.id + '\',\'合同日志：' + rowData.contractTitle + '\')">日志<a>';
+                                }
+                                return str;
+                            }
+                        }
+                    ]];
+                    break;
+            }
+            $url = GetMyContract;
+            InitDataGrid($url, $params, $columns, $toolbar, index);
+        }
+
+        function InitDataGrid(url, params, columns, toolbar, index) {
+            $dg.datagrid({
+                url: url,
+                method: 'get',
+                idField: 'id',
+                border: false,
+                cls: 'theme-panel-blue',
+                treeField: 'contractNo',
+                striped: true,
+                queryParams: params,
+                pagination: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: true,
+                fit: true,
+                showFooter: true,
+                columns: columns,
+                onBeforeLoad: function (param) {
+                    if (index == 0) {
+                        param.key = $("#search").val().trim();
+                        param.contracttype = $contractType;
+                        param.contractStatu = $("input[name='contractStatu']").val();
+                        param.startTime = $("#startTime").val();
+                        param.endTime = $("#endTime").val();
+                        $dg.datagrid('unselectAll');
+                    }
+                },
+                onLoadSuccess: function (data) {
+                },
+                onLoadError: function (data) {
+                    $.messager.showErrorTopCenter('错误消息', data.responseJSON.Message, 2000);
+                },
+                toolbar: toolbar
+            });
+        }
+
+        function ShowTips(value) {
+            //style='cursor: pointer;'
+            return "<span title='" + value + "'>" + value + "</span>";
+        }
+
+        function ClickType(type) {
+            $contractType = type;
+            DisplayDataGrid(0);
+        }
+
+        function searchMenu() {
+            var $start = $("#startTime").datebox('getValue');
+            var $end = $("#endTime").datebox('getValue');
+            if ($start > $end && $end != "") {
+                $.messager.showErrorTopCenter('错误消息', '开始时间不能大于结束时间', 2000);
+                return;
+            }
+            var pg = $dg.datagrid('getPager');
+            $(pg).pagination('select', 1);
+        }
+
+        function refresh() {
+            //$("#contracttype").combobox('setValue', '-1');
+            $("#search").searchbox('setValue', '');
+            $("#contractStatu").combobox('setValue', '');
+            $("#startTime").datebox("setValue", '');
+            $("#endTime").datebox("setValue", '');
+            var pg = $dg.datagrid('getPager');
+            $(pg).pagination('select', 1);
+        }
+
+        var addContractUrl = '@Url.Action(ActionName.ContractManager.SaveContract, ControllerName.ContractManager)';
+        function showDetails(url, title) {
+            $dialog = $('<div></div>').dialog({
+                title: title,//'操作合同',
+                fit: true,
+                cache: false,
+                href: url,
+                border: false,
+                iniframe: false,
+                buttons: [
+                    {
+                        text: '取消',
+                        handler: function () {
+                            $.messager.confirm('系统提示', '是否取消当前操作', function (flag) {
+                                if (flag) {
+                                    $dialog.dialog('close');
+                                }
+                            });
+                        }
+                    }
+                ],
+                onClose: function () {
+                    $dialog.dialog("destroy");
+                    $dg.datagrid("reload");
+                    //重置添加/编辑的url，避免重复拼接
+                    addUrl = addContractUrl;
+                }
+            });
+        }
+
+    </script>
+
+    @*日志*@
+    <script>
+        var $dgLog;
+        var logUrl = '@Url.Action(ActionName.ContractManager.CommonLog, ControllerName.ContractManager)';
+        function OpenLogForm(contractGroupId, title) {
+            $diaLog = $('<div></div>').dialog({
+                title: title,
+                width: 900,
+                height: 490,
+                modal: true,
+                topMost: false,
+                href: logUrl,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onClose: function () {
+                    $diaLog.dialog('destroy');
+                    $dg.datagrid("reload");
+                },
+                onLoad() {
+                    InitialLogListData(contractGroupId);
+                }
+            });;
+        }
+
+        var loadLogListUrl = '@Url.Action(ActionName.ContractManager.LoadContractGroupLogs, ControllerName.ContractManager)';
+        function InitialLogListData(contractGroupId) {
+            var columns = [[
+                { field: 'operator', title: '操作人', width: '10%', align: 'center' },
+                { field: 'operateDateStr', title: '操作日期', width: '20%', align: 'center' },
+                { field: 'remark', title: '操作内容', width: '20%', align: 'center' },
+                { field: 'typeStr', title: '同步结果', width: '10%', align: 'center' },
+                {
+                    field: 'contractGroupId', title: '操作', width: '25%', align: 'center', halign: 'center',
+                    formatter: function (value, data, index) {
+                        var tdContext = '';
+                        if (canSync) {
+                            if (data.type == 1) {//错误日志
+                                if (data.toPlatFormContractGroup == 2) {
+                                    tdContext += '<a href="#"  onclick="synchronousData(\'' + value + '\',0,0)" style="color: dodgerblue;">同步</a>';
+                                } else if (data.contractGroupProgress != 0) {
+                                    tdContext += '<a href="#"  onclick="synchronousData(\'' + value + '\',' + data.contractGroupProgress + ',' + data.processLogId + ')" style="color: dodgerblue;">同步</a>';
+                                }
+                            }
+                        }
+                        return tdContext;
+                    }
+                }
+            ]];
+            InitialLogListTable("#table-log", loadLogListUrl, columns, contractGroupId);
+        }
+        function InitialLogListTable(id, url, columns, contractGroupId) {
+            var postData = {
+                contractGroupId: contractGroupId,
+            };
+            $dgLog = $(id).datagrid({
+                url: url,
+                queryParams: postData,
+                method: 'get',
+                idField: 'id',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                pagination: true,
+                height: 300,
+                pageSize: 10,
+                pageList: [10, 20, 30, 50],
+                showFooter: true,
+                columns: columns,
+                onLoad: function () { },
+            });
+        }
+
+        var synchronousUrl = '@Url.Action(ActionName.ContractManager.SynchronousCurrencySignData, ControllerName.ContractManager)';
+        function synchronousData(contractGroupId, contractGroupProgress, processLogId) {
+            $.messager.confirm('系统提示', '确认同步这步操作吗？', function (flag) {
+                if (flag) {
+                    $.easyui.loading({ msg: '正在同步数据，请稍等...' });
+                    var postData = {
+                        contractGroupProgress: contractGroupProgress,
+                        contractGroupId: contractGroupId,
+                        processLogId: processLogId
+                    };
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: synchronousUrl,
+                        data: postData,
+                        success: function (data) {
+                            if (data.result) {
+                                $.messager.showInfoTopCenter('系统提示', "数据同步成功！", 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1500);
+                            }
+                            $('#table-log').datagrid('reload');
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

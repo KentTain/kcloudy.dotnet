@@ -1,0 +1,296 @@
+﻿@using KC.Web.Contract.Constants
+@model KC.Service.DTO.Contract.ElectronicPersonDTO
+@{
+    ViewBag.Title = "创建印章";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+@section styles{
+    <style>
+        /*tr {
+            height: 60px;
+        }*/
+
+        .basicTable td:nth-child(odd) {
+            width: 140px;
+            background-color: #F5F5F5;
+            text-align: right;
+        }
+
+        .basicTable {
+            width: 90%;
+            border-collapse: collapse;
+        }
+
+            .basicTable td {
+                padding: 5px;
+                border: 1px solid #ddd;
+            }
+
+        .btnUploadPdf, .btnUploadPdf1 {
+            height: 34px;
+            padding: 0;
+        }
+
+            .btnUploadPdf .webuploader-pick, .btnUploadPdf1 .webuploader-pick {
+                height: 34px;
+                background: 0 0;
+                padding-top: 6px;
+            }
+
+            .btnUploadPdf label, .btnUploadPdf1 label {
+                margin: 0;
+            }
+
+        .downloadPdf, .downloadPdf1 {
+            display: none;
+            float: left;
+            margin-right: 20px;
+            line-height: 30px;
+        }
+
+        .uploadPdfProgress, .uploadPdfProgress1 {
+            display: none;
+            margin-top: 5px;
+        }
+
+        #PdfName1, #PdfName {
+            min-width: 100px;
+        }
+
+        .input-group {
+            width: 100%;
+        }
+
+        .basicTable {
+            width: 100%;
+        }
+    </style>
+}
+<div id="main_content" class="maincontainer">
+    <!--  cell -->
+    <div class="cell">
+        <form id="personal_form">
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(model => model.UserId)
+            <table class="dialog-form-table basicTable">
+                <tbody>
+                    <tr>
+                        <td style="width:  25%;"> <label>当前印章状态：</label></td>
+                        <td colspan="2">
+                            <label id="tips" style="color: red"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:  25%;"><label>姓名：</label></td>
+                        <td>
+                            @if (string.IsNullOrEmpty(Model.UserName))
+                            {
+                                <a style="color: red">尚未认证</a>
+                            }
+                            else
+                            {
+                                <label>@Model.UserName</label>
+                            }
+                        </td>
+                        <td rowspan="3" style="text-align:center">
+                            <img id="signImg" title="印章示例图" src="~/images/persontemplate.png" style="width: 234px;height:234px;margin-left: 5px" />
+                            <br />
+                            <label>印章示例图</label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="width:  25%;"><label>身份证号码：</label></td>
+                        <td>
+                            @if (string.IsNullOrEmpty(Model.IdentityNumber))
+                            {
+                                <a style="color: red">尚未认证</a>
+                            }
+                            else
+                            {
+                                <label id="idcard"></label>
+                                <a style="color: red" onclick="GetIdCard(this)" href="javascript:void(0)">点击查看身份证号码</a>
+                            }
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="width:  25%;"><label>手机号码：</label></td>
+                        <td>
+                            @if (string.IsNullOrEmpty(Model.Mobile))
+                            {
+                                <a style="color: red">尚未认证</a>
+                            }
+                            else
+                            {
+                                <label>@Model.Mobile</label>
+                            }
+                        </td>
+                    </tr>
+                    @*<tr>
+                            <td><label>图形验证码: </label></td>
+                            <td>
+                                <input type="text" data-options="required:true,width:200" class="easyui-textbox" id="VerificationCode" name="VerificationCode" />
+                                @Html.MvcCaptcha(new MvcCaptchaOptions { ValidationInputBoxId = "VerificationCode", CaptchaImageContainerId = "captchaImage", Width = 140 })
+                                <div id="captchaImage"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td> <label>手机验证码: </label></td>
+                            <td>
+                                <input type="text" class="easyui-textbox" data-options="required:true,width:200" id="MobileCode" name="MobileCode" />
+                                <a role="button" style="margin-left:10px;" onclick="sendPhoneCode();" class="easyui-linkbutton sendPhoneCode" href="javascript:void(0)"><span class="default">获取短信验证码</span><span class="sending"></span></a>
+                            </td>
+                        </tr>*@
+                    <tr>
+                        <td colspan="3">
+                            <div style="text-align:left;font-size: 15px">
+                                <input type="checkbox" id="IsAgree-0" onclick="return false;" name="IsAgree" /> <label for="IsAgree-0">同意：</label> <a onclick="ElectronicSignatureServiceClause(0)" href="javascript:void(0)" style="text-decoration:underline;  cursor: pointer;" id="read">E签宝电子签章服务条款</a>   <br />
+                                <label> 特别提醒：</label>您在注册本电子签章时所提交的全部资料均真实、合法、有效，如所填基本信息有任何变更，应及时在本系统中做相应更改，否则，由此引起的全部法律后果（包括本合同签署所产生的法律责任）由您自行承担。
+                                <br />
+
+                                若操作遇到问题，请联系客服。客服电话：400-788-8586（工作日8:30-18:00）
+                            </div>
+                            <br />
+                            <input type="button" onclick="DeleteAccount()" style="margin-left: 20px; width: 120px" id="btn_DeleteAccount" class="btn btn-primary" value="注销印章" data-loading-text="注销中..." />
+                            <input type="button" onclick="SubmitSeal(0)" style=" margin-left: 280px;width:120px" id="btn_submit" class="btn btn-primary" value=" 提 交  " data-loading-text="提交中..." />
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </form>
+    </div>
+</div>
+
+<script>
+    var IsAgree = false, isRegister = true;
+    var esignUrl = '@Url.Action(ActionName.ElectronicSign.GetElectronicSignServiceClause, ControllerName.ElectronicSign)';
+    function ElectronicSignatureServiceClause(type) {
+        $.get(esignUrl, { antiCaching: (new Date()).getTime() }, function (response) {
+            var index = layer.alert(response,
+                {
+                    title: '“e签宝”注册协议',
+                    closeBtn: 1,
+                    area: ['850px', '450px'],
+                    btn: ['我已阅读并同意该条款', '不同意'],
+                    yes: function (d) {
+                        if (type == 1) {
+                            $("#IsAgree-" + type).prop('checked', true);
+                            IsAgree = true;
+                        }
+                        layer.close(index);
+                    },
+                    btn2: function () {
+                        if (type == 1) {
+                            $("#IsAgree-" + type).prop('checked', false);
+                            IsAgree = false;
+                        }
+                    }
+                });
+        });
+    }
+
+    var deleteUrl = '@Url.Action(ActionName.ElectronicSign.DeletePersonAccount, ControllerName.ElectronicSign)';
+    function DeleteAccount() {
+        var index = layer.alert("注销成功后该印章无法被使用，是否确认注销？",
+            {
+                title: '注销印章',
+                closeBtn: 1,
+                btn: ['确认', '取消'],
+                yes: function (d) {
+                    $.easyui.loading({ msg: '正在注销数据，请稍等•••' });
+                    $.ajax({
+                        url: deleteUrl,
+                        type: "post",
+                        success: function (data) {
+                            $.easyui.loaded();
+                            if (data.success) {
+                                layer.alert(data.message, { icon: 1, offset: ['200px'], title: '系统提示', time: 5000 });
+                                window.location.reload();
+                            } else {
+                                layer.alert(data.message, { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                            }
+                        },
+                        error: function () {
+                            window.tipError({ msg: "错误代码500" });
+                        },
+                        complete: function () {
+                            dialog.close();
+                        }
+                    });
+                    layer.close(index);
+                },
+                btn2: function () {
+                }
+            });
+    }
+
+    var submitSeal = '@Url.Action(ActionName.ElectronicSign.SubmitSeal, ControllerName.ElectronicSign)';
+    var submitSealPhone = '@Url.Action(ActionName.ElectronicSign.SubmitSealPhone, ControllerName.ElectronicSign)';
+    function SubmitSeal(obj) {
+        var Agree = $("#IsAgree-0")[0].checked;
+        if (!Agree) {
+            layer.alert("请同意并阅读E签宝电子签章服务条款", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+        if (!IsAgree) {
+            layer.alert("请仔细阅读并同意E签宝电子签章服务条款", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+        var Mobile = $("#Mobile").val().trim();
+        if (Mobile == "") {
+            layer.alert("请输入正确的手机号码", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+        var reg = /^1\d{10}$/;
+        if (!reg.test(Mobile)) {
+            layer.alert("手机号码格式不正确", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+
+        layer.alert('审核成功后将自动生成企业印章，是否提交审核',
+        {
+            icon: 1,
+            closeBtn: 0,
+            offset: ['200px'],
+            title: '系统提示',
+            btn: ['确认', '取消'],
+            yes: function () {
+                //确认合同
+                $.easyui.loading({ msg: '正在提交数据，请稍等•••' });
+                $.ajax({
+                    url: obj > 0 ? submitSealPhone : submitSeal,
+                    type: "post",
+                    data: { "mobile": Mobile, code: $("#MobileCode").val(), blobId: blobId, IdCade: blobId1 },
+                    success: function (data) {
+                        $.easyui.loaded();
+                        if (data.success) {
+                            layer.alert(data.message, { icon: 1, offset: ['200px'], title: '系统提示', time: 3000 });
+                            window.location.reload();
+                        } else {
+                            layer.alert(data.message, { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                        }
+                    },
+                    error: function () {
+                        layer.alert("错误代码500", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+            }
+        });
+    }
+
+    var GetIdCardUrl = "@Url.Action("GetIdCard", ControllerName.ElectronicSign)";
+    function GetIdCard(obj) {
+        $.get(GetIdCardUrl, function (response) {
+            if (response) {
+                $('#idcard').html(response);
+                $(obj).hide();
+            }
+        });
+    }
+</script>

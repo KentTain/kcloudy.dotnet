@@ -1,0 +1,767 @@
+﻿@using KC.Web.App.Constants
+@using Microsoft.AspNetCore.Authorization
+@model KC.Service.DTO.App.AppSettingDTO
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "新增/编辑应用配置";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--开发配置管理-保存应用属性配置-->
+    var canSaveProperty = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "25F11F2A-C036-4BD9-9D12-542DBCED501D")).Succeeded)
+    {
+        canSaveProperty = true;
+    }
+    <!--开发配置管理-删除应用属性配置-->
+    var canDeleteProperty = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "B78D5C65-AF93-492A-BF8E-B9014062B72C")).Succeeded)
+    {
+        canDeleteProperty = true;
+    }
+}
+@section styles{
+    <style>
+        input[readonly] {
+            background-color: #EEEEEE !important;
+        }
+
+        #datagrid .datagrid-header td, .datagrid-body td, .datagrid-footer td {
+            text-align: center;
+        }
+    </style>
+}
+<div class="easyui-layout" data-options="width:'98%'">
+    <div class="easyui-panel" data-options="width:'100%'" title="配置信息">
+        <form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.AppSetting.SaveAppSetting, ControllerName.AppSetting)">
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(model => model.IsEditMode)
+            @Html.HiddenFor(model => model.PropertyId)
+            @Html.HiddenFor(model => model.ApplicationName)
+            @Html.HiddenFor(model => model.IsDeleted)
+            @Html.HiddenFor(model => model.CreatedBy)
+            @Html.HiddenFor(model => model.CreatedName)
+            @Html.HiddenFor(model => model.CreatedDate)
+            @Html.HiddenFor(model => model.ModifiedBy)
+            @Html.HiddenFor(model => model.ModifiedName)
+            @Html.HiddenFor(model => model.ModifiedDate)
+            @Html.HiddenFor(model => model.CanEdit)
+            @Html.HiddenFor(model => model.IsRequire)
+            <table class="table table-bordered table-form tr-col2">
+                <tbody>
+                    <tr>
+                        <td><label class="required">*</label><label for="Code">配置编码：</label></td>
+                        <td>
+                            <input asp-for="@Model.Code" class="easyui-validatebox easyui-textbox"
+                                   data-options="required:true,readonly:@Json.Serialize(Model.IsEditMode),width:'100%', prompt:'请输入配置编码',
+                                        validType:['length[2,100]','isSpace','existAppSet[0, @Json.Serialize(Model.IsEditMode), \'@Model.Code\']']" />
+                        </td>
+                        <td><label class="required">*</label><label for="ApplicationId">所属应用：</label></td>
+                        <td>
+                            <input asp-for="@Model.ApplicationId" class="easyui-validatebox easyui-textbox"
+                                   data-options="required:true,readonly:false,width:'100%'" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label class="required">*</label><label for="Name">配置名称：</label></td>
+                        <td>
+                            <input asp-for="@Model.Name" class="easyui-validatebox easyui-textbox"
+                                   data-options="required:true,readonly:@Json.Serialize(Model.IsEditMode),width:'100%', prompt:'请输入配置名称',
+                                        validType:['length[2,100]','isSpace','existAppSet[0, @Json.Serialize(Model.IsEditMode), \'@Model.Name\']']" />
+                        </td>
+                        <td><label class="required">*</label><label for="DisplayName">配置显示名：</label></td>
+                        <td>
+                            <input asp-for="@Model.DisplayName" class="easyui-validatebox easyui-textbox"
+                                   data-options="required:true,width:'100%', prompt:'请输入配置显示名',
+                                        validType:['length[2,200]','isSpace']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label for="Description">描述：</label></td>
+                        <td>
+                            <textarea asp-for="@Model.Description" rows=5 class="textarea textbox easyui-validatebox"
+                                      style="height: 80px;width: 100%;">@(null != Model ? Model.Description : "")</textarea>
+                        </td>
+                        <td><label for="Index">排序：</label></td>
+                        <td>
+                            <input asp-for="@Model.Index" class="easyui-numberspinner easyui-textbox"
+                                   data-options="required:true,width:'100%',min:1,max:100" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+    <div class="easyui-panel" title="配置属性信息" data-options="width:'100%',height: 400">
+        <div id="toolbarPlan">
+            <div class="panel-title required" style="margin-top:5px;">
+                属性定义（双击编辑表单）
+            </div>
+
+            <div>
+                <!--应用配置列表-保存应用配置属性定义-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "25F11F2A-C036-4BD9-9D12-542DBCED501D")).Succeeded)
+                {
+                    <a href="javascript:void(0)" onclick="addEditRow()" class="easyui-linkbutton"
+                       data-options="iconCls:'fa fa-plus'">新增</a>
+                }
+            </div>
+        </div>
+        <table id="datagrid"></table>
+    </div>
+    <div style="height:50px;">
+    </div>
+    <div class="bottom">
+        <!--新增/编辑应用配置定义-保存应用配置定义-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "9C65146A-A0BE-4E15-A6C7-C3FDCF897121")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton btnSave" iconcls="fa fa-plus" onclick="saveForm()">保存</a>
+        }
+    </div>
+</div>
+@section scripts
+    {
+    <!--组件初始化-->
+    <script type="text/javascript">
+    $.extend($.fn.validatebox.defaults.rules, {
+        existAppSet: {
+            validator: function (value, param) {
+                if ($.string.isNullOrWhiteSpace(value))
+                    return true;
+
+                let type = param[0];
+                let isEdit = param[1];
+                let url = type === 0
+                    ? '@Url.Action(ActionName.AppSetting.ExistAppSetCode, ControllerName.AppSetting)'
+                    : '@Url.Action(ActionName.AppSetting.ExistAppSetName, ControllerName.AppSetting)';
+                let orginalName = param[2];
+
+                let flag = true;
+                let postData = {};
+                postData.id = @Model.PropertyId;
+                postData.appId = $(appDataGridId).val();
+                postData.isEditMode = isEdit;
+                postData.orginalName = orginalName;
+                postData.name = value;
+                $.ajax({
+                    async: false,
+                    type: 'POST',
+                    dataType: 'json',
+                    url: url,
+                    data: postData,
+                    success: function (data) {
+                        if (data.success) {
+                            flag = !data.result;
+                        } else {
+                            flag = false;
+                        }
+                    }
+                });
+                return flag;
+            },
+            message: '该应用已存在该配置名称！'
+        }
+    });
+
+    let appData = null;
+    let isEditModel = @Json.Serialize(Model.IsEditMode);
+    $(function () {
+        appData = loadAllApplications();
+
+        InitAppComboGrid(appData);
+
+        InitDataGrid();
+
+        //initSwitchButton('sbIsRequire', 'IsRequire', @Json.Serialize(Model.IsRequire));
+        //initSwitchButton('sbCanEdit', 'CanEdit', @Json.Serialize(Model.CanEdit));
+    })
+
+    let initSwitchButton = function (sbButtonId, hiddenValId, isChecked, callback) {
+        $('#' + sbButtonId).switchbutton({
+            checked: isChecked,
+            onChange: function (checked) {
+                $('#' + hiddenValId).val(checked);
+                if (callback)
+                    callback(checked);
+            }
+        });
+    }
+
+    //获取应用列表数据
+    const loadAllApplicationsUrl = '@Url.Action(ActionName.Application.LoadAllApplications, ControllerName.Application)';
+    let loadAllApplications = function () {
+        let models = null;
+        $.ajax({
+            async: false,
+            url: loadAllApplicationsUrl,
+            type: "get",
+            dataType: "json",
+            contentType: "application/json;charset=UTF-8",
+            //contentType:"application/x-www-form-urlencoded;charset=UTF-8",
+            //data: postData,
+            success: function (data) {
+                models = data;
+            },
+            complete: function () {
+            }
+        });
+        return models;
+    };
+
+    const appDataGridId = '#ApplicationId';
+    const selectAppId = '@Model.ApplicationId';
+    let InitAppComboGrid = function(data){
+        $(appDataGridId).combogrid({
+            //method: 'get',
+            //url: loadAllApplicationsUrl,
+            mode: 'local',
+            data: data,
+            idField: 'applicationId',
+            textField: 'applicationName',
+            required: true,
+            editable: true,
+            fit: true,
+            striped: true,
+            nowrap: true,
+            fitColumns: true,
+            columns: [
+                [
+                    { field: 'applicationId', title: 'Id', hidden: true },
+                    { field: 'applicationCode', title: '应用编码', width: 80 },
+                    { field: 'applicationName', title: '应用名称', width: 200 },
+                ]
+            ],
+            onSelect: function (index, row) {
+                $('#Name').textbox("validate");
+            },
+            onChange: function (q, row) {
+                searchAppComboGrid(this, q, ['applicationCode','applicationName']);
+            },
+            onShowPanel: function () {
+                $(this).combogrid('grid').datagrid('loadData', appData);
+            }
+        });
+
+        //默认选中第一个
+        if (selectAppId) {
+            $(appDataGridId).combogrid("setValue", selectAppId);
+        } else if (appData && appData.length && !isEditModel) {
+            let firstApp = appData[0];
+            let appId = firstApp.applicationId;
+            $(appDataGridId).combogrid("setValue", appId);
+        }
+    };
+
+    //根据条件筛选ComboGrid本地数据
+    // thisComboGrid：combogrid对象
+    // inputValue：用户输入
+    // searchList：需要进行模糊搜索的列名的数组
+    let searchAppComboGrid = function (thisComboGrid, inputValue, searchList) {
+        let ele = $(thisComboGrid);
+        ele.combogrid('grid').datagrid('loadData', []);
+        if (inputValue === "") {
+            ele.combogrid('grid').datagrid('loadData', appData);
+            return;
+        }
+        let rows = [];
+        $.each(appData, function (i, obj) {
+            for (let p in searchList) {
+                let v = obj[searchList[p]];
+                if (!!v && v.toString().indexOf(inputValue) >= 0) {
+                    rows.push(obj);
+                    break;
+                }
+            }
+        });
+        if (rows.length === 0) {
+            ele.combogrid('grid').datagrid('loadData', []);
+            return;
+        }
+        ele.combogrid('grid').datagrid('loadData', rows);
+        };
+
+    </script>
+    <!--应用配置属性表单-->
+    <script type="text/javascript">
+    const $datagrid = $('#datagrid');
+    const canSaveProperty = @Json.Serialize(canSaveProperty);
+    const canDeleteProperty = @Json.Serialize(canDeleteProperty);
+    let loadDataGridDataUrl = '@Url.Action(ActionName.AppSetting.LoadAppSettingPropertyList, ControllerName.AppSetting)';
+    function InitDataGrid() {
+        let dataTypeList = [{"value": "0", "text": "字符串"}, {"value": "1", "text": "布尔型"},
+            {"value": "2", "text": "整型"}, {"value": "3", "text": "数值型"},
+            { "value": "4", "text": "时间日期" }, { "value": "5", "text": "文本" },
+            { "value": "6", "text": "富文本" }, { "value": "7", "text": "文件" },
+            { "value": "8", "text": "图片" }, {"value": "10", "text": "列表"}];//json格式
+
+        let settingId = $('#PropertyId').val();
+        if (undefined === settingId || null === settingId || "" === settingId)
+            settingId = 0;
+        $datagrid.datagrid({
+            url: loadDataGridDataUrl + "?settingId=" + settingId,
+            method: 'get',
+            idField: 'propertyAttributeId',
+            toolbar: '#toolbarPlan',
+            striped: true,
+            fitColumns: true,
+            rowNumbers: true,
+            singleSelect: true,
+            selectOnCheck: true,
+            checkOnSelect: true,
+            nowrap: false,
+            fit: true,
+            pagination: false,
+            showFooter: false,
+            columns: [[
+                //{ field: 'propertyAttributeId', title: 'Id', width: 60, checkbox: true },
+                {
+                    field: 'name', title: '属性名称', width: 120, align: 'left',
+                    editor: {
+                        type: 'textbox',
+                        options: {
+                            text: true,
+                            required: true,
+                        }
+                    }
+                },
+                {
+                    field: 'displayName', title: '属性显示名', width: 140, align: 'left',
+                    editor: {
+                        type: 'textbox',
+                        options: {
+                            text: true,
+                            required: true,
+                        }
+                    }
+                },
+                {
+                    field: 'dataType', title: '数据类型', width: 100, align: 'left',
+                    formatter: function (value, row, index) {
+                        if (value === undefined || value === null || value === '') {
+                            return "";
+                        }
+                        switch (value) {
+                            case 0:
+                            case "0":
+                                return "字符串";
+                            case 1:
+                            case "1":
+                                return "布尔型";
+                            case 2:
+                            case "2":
+                                return "整型";
+                            case 3:
+                            case "3":
+                                return "数值型";
+                            case 4:
+                            case "4":
+                                return "时间日期型";
+                            case 5:
+                            case "5":
+                                return "文本";
+                            case 6:
+                            case "6":
+                                return "富文本";
+                            case 7:
+                            case "7":
+                                return "文件";
+                            case 8:
+                            case "8":
+                                return "图片";
+                            case 10:
+                            case "10":
+                                return "列表";
+                        }
+                    },
+                    editor: {
+                        type: 'combobox',
+                        options: {
+                            data: dataTypeList,
+                            valueField: "value",
+                            textField: "text",
+                            editable: false,
+                            panelHeight: 'auto',
+                            required: true
+                        }
+                    }
+                },
+                {
+                    field: 'isRequire', title: '是否必填', width: 80, align: 'center',
+                    formatter: FormatterUtil.BoolFormatter,
+                    editor: {
+                        type: 'checkbox',
+                        align: 'center',
+                        options: {
+                            off: '0',
+                            on: '1',
+                        }
+                    }
+                },
+                {
+                    field: 'canEdit', title: '是否能编辑', width: 80, align: 'center',
+                    formatter: FormatterUtil.BoolFormatter,
+                    editor: {
+                        type: 'checkbox',
+                        align: 'center',
+                        options: {
+                            off: '0',
+                            on: '1',
+                        }
+                    }
+                },
+                {
+                    field: 'index', title: '排序', width: 40, align: 'center', hidden: true,
+                    editor: {
+                        type: 'numberspinner',
+                        options: {
+                            min: 0,
+                            max: 999,
+                        }
+                    }
+                },
+                {
+                    field: 'ext1', title: '下拉列表接口地址', width: 400, align: 'left',
+                    editor: {
+                        type: 'textbox',
+                        options: {
+                            text: true,
+                            required: false,
+                            readonly: true
+                        }
+                    }
+                },
+                {
+                    field: 'operator', title: '操作', width: 200, align: 'center',
+                    formatter: function (value, row, index) {
+                        let propertyId = row.propertyAttributeId;
+                        let propertyName = row.name;
+                        let canEdit = row.canEdit;
+                        if (propertyId === undefined || propertyId === null || propertyId === "")
+                            propertyId = "";
+                        //debugger;
+                        let tdContext = '';
+                        if (canSaveProperty) {
+                            tdContext += '<a class="btnUp" style="cursor:pointer" onclick="sortIndex(this, \'' + index + '\', \'up\')" >上移</a>';
+                            tdContext += '<a class="btnDown" style="cursor:pointer" onclick="sortIndex(this, \'' + index + '\', \'down\')" >下移</a>';
+                        }
+                        if (canDeleteProperty && canEdit) {
+                            tdContext += '<a class="btnDelete" style="cursor:pointer" onclick="removeField(this, \'' + propertyId + '\')" >删除</a>';
+                        }
+                        return tdContext;
+                    }
+                }
+            ]],
+            onBeforeLoad: function (param) {
+            },
+            onLoadSuccess: function (data) {
+                CommonUtil.buttonStyle();
+                $datagrid.datagrid('unselectAll');
+                $datagrid.datagrid('clearSelections');
+                $datagrid.datagrid('fixRowHeight');
+            },
+            onLoadError: function () {
+            },
+            onSelect: function (index, row) {
+                //$datagrid.datagrid('unselectAll');
+                //$datagrid.datagrid('clearSelections');
+                //$(".datagrid-row-selected").removeClass("datagrid-row-selected");
+            },
+            onDblClickRow: function (index, row) {
+                if (row.id !== 0) {
+                    $(this).datagrid('beginEdit', index);
+
+                    //处理数据类型
+                    initDataTypeOnChange(index);
+
+                    //设置数据类型的下拉值
+                    let edDataType = getRowEdit(index, 'dataType');
+                    if (edDataType && edDataType.target) {
+                        $(edDataType.target).combobox('select', row.dataType);
+                    }
+
+                    // 默认设置是否能编辑为true；否则，是否能编辑为false；
+                    let edCanEdit = getRowEdit(index, 'canEdit');
+                    if (edCanEdit && edCanEdit.target) {
+                        $(edCanEdit.target).prop("checked", true);
+                        $(edCanEdit.target).val('1');
+                        $(edCanEdit.target).change(function () {
+                            $(this).val(this.checked ? '1' : '0');
+                        });
+                    }
+                }
+            },
+            onBeforeEdit: function (index, row) {
+                //let tt = $(this).datagrid('getColumnOption', 'specName'); //通过列名获得此列
+                //tt.editor = {type:'textarea'}; //设置此列的编辑属性 如果禁用编辑 则设置 tt.editor={}
+
+                row.editing = true;
+            },
+            onAfterEdit: function (index, row, changes) {
+                row.editing = false;
+            },
+            onCancelEdit: function (index, row) {
+                row.editing = false;
+                $(this).datagrid('cancelEdit', index);
+            },
+            onEndEdit: function (index, row) {
+                //debugger;
+                //console.log('--onEndEdit---row.isPrimaryKey: ' + row.isPrimaryKey + '---row.isNotNull: ' + row.isNotNull + '---row.isUnique: ' + row.isUnique);
+            }
+        });
+    }
+
+    // 处理数据类型OnChange事件过程：
+    //  设置默认值；
+    let initDataTypeOnChange = function (index) {
+        let edDataType = getRowEdit(index, 'dataType');
+        if (edDataType && edDataType.target) {
+            $(edDataType.target).combobox({
+                onSelect: function (record) {
+                    //单击的编辑对象向上一直朝找，找到正在编辑的行的索引：index
+                    let currentEditRowIndex = getRowIndex(this);
+
+                    //数据类型为：字符串、整形时，是否主键是否可以使用
+                    let dataType = record.value;
+                    let isList = dataType === 10 || dataType === '10';
+                    console.log(currentEditRowIndex + '--DataType combobox onChange isList: ' + isList);
+                    // 可以设置主键时，是否主键可用，否则不可用
+                    let edApiUrl = getRowEdit(index, 'ext1');
+                    if (edApiUrl && edApiUrl.target) {
+                        if (isList) {
+                            $(edApiUrl.target).textbox({ 'required': true, 'readonly': false});
+                        } else {
+                            $(edApiUrl.target).textbox({ 'required': false, 'readonly': true });
+                        }
+                    }
+                }
+            });
+        }
+    };
+
+    //上下移动
+    let sortIndex = function (target, index, type) {
+        if ("up" == type) {
+            if (index != 0) {
+                var toup = $datagrid.datagrid('getData').rows[index];
+                var todown = $datagrid.datagrid('getData').rows[index - 1];
+                $datagrid.datagrid('getData').rows[index] = todown;
+                $datagrid.datagrid('getData').rows[index - 1] = toup;
+                $datagrid.datagrid('refreshRow', index);
+                $datagrid.datagrid('refreshRow', index - 1);
+                $datagrid.datagrid('selectRow', index - 1);
+            }
+        } else if ("down" == type) {
+            var rows = $datagrid.datagrid('getRows').length;
+            if (index != rows - 1) {
+                var todown = $datagrid.datagrid('getData').rows[index];
+                var toup = $datagrid.datagrid('getData').rows[index + 1];
+                $datagrid.datagrid('getData').rows[index + 1] = todown;
+                $datagrid.datagrid('getData').rows[index] = toup;
+                $datagrid.datagrid('refreshRow', index);
+                $datagrid.datagrid('refreshRow', index + 1);
+                $datagrid.datagrid('selectRow', index + 1);
+            }
+        }
+        CommonUtil.buttonStyle();
+    }
+    //获取DataGrid的行编辑器
+    let getRowEdit = function (index, fieldName) {
+        return $datagrid.datagrid('getEditor', {index: index, field: fieldName});
+    };
+    //获取行索引
+    let getRowIndex = function (target) {
+        let tr = $(target).closest('tr.datagrid-row');
+        return parseInt(tr.attr('datagrid-row-index'));
+    };
+
+    let editIndex = undefined;
+    let isEndEditing = function (dgId) {
+        if (editIndex === undefined) {
+            return true
+        }
+        if ($datagrid.datagrid('validateRow', editIndex)) {
+            $datagrid.datagrid('endEdit', editIndex);
+            editIndex = undefined;
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    //新增一行
+    let addEditRow = function () {
+        let rowIndex = 0;
+        let defId = $('#propertyId').val();
+        let defCode = $('#code').val();
+        $datagrid.datagrid('insertRow', {
+            index: rowIndex,   // 索引从0开始
+            row: {
+                'appSettingId': defId,
+                'appSettingCode': defCode,
+                'dataType': 0,  //String：字符串
+                'canEdit': true,
+                'isProviderAttr': false
+            }
+        });
+        $datagrid.datagrid('selectRow', rowIndex);
+        $datagrid.datagrid('beginEdit', rowIndex);
+
+        //处理数据类型
+        initDataTypeOnChange(rowIndex);
+
+        //默认设置数据类型为下拉框第一项
+        let edDataType = getRowEdit(rowIndex, 'dataType');
+        if (edDataType && edDataType.target) {
+            let data = $(edDataType.target).combobox('getData');
+            if (data.length > 0) {
+                $(edDataType.target).combobox('select', data[0].value);
+            }
+        }
+
+        // 定位到自动名称
+        let edName = getRowEdit(rowIndex, 'name');
+        if (edName && edName.target) {
+            $(edName.target).focus();
+        }
+
+        editIndex = rowIndex;
+        CommonUtil.buttonStyle();
+    };
+    //取消编辑
+    let rejectEditRow = function () {
+        $datagrid.datagrid('rejectChanges');
+        editIndex = undefined;
+    };
+    //获取列表数据
+    let getFieldData = function () {
+        let fields = [];
+        let defId = $('#PropertyId').val();
+        let defCode = $('#Code').val();
+        let rows = $datagrid.datagrid('getRows');
+        for (let i = 0; i < rows.length; i++) {
+            let row = rows[i];
+            let isEditing = row.editing;
+            let isValid = $datagrid.datagrid('validateRow', i);
+            if (isValid && isEditing) {
+                console.log(row.name + '--getFieldData---row.canEdit: ' + row.canEdit + '---row.isRequire: ' + row.isRequire);
+                //关闭第i行的编辑
+                $datagrid.datagrid('selectRow', i).datagrid('endEdit', i);
+            }
+
+            let field = {};
+            field.appSettingId = defId;
+            field.appSettingCode = defCode;
+            field.propertyAttributeId = row.propertyAttributeId;
+            field.dataType = row.dataType;
+            field.name = row.name;
+            field.displayName = row.displayName;
+            field.value = row.value;
+            field.ext1 = row.ext1;
+            field.ext2 = row.ext2;
+            field.ext3 = row.ext3;
+            field.description = row.description;
+            field.canEdit = row.canEdit === true || row.canEdit === '1' ? true : false;
+            field.isRequire = row.isRequire === true || row.isRequire === '1' ? true : false;
+            field.index = i + 1;
+            field.isDeleted = row.isDeleted === true || row.isDeleted === '1' ? true : false;
+            field.createdBy = row.createdBy;
+            field.createdName = row.createdName;
+            field.createdDate = row.createdDate;
+
+            fields.push(field);
+        }
+        return fields;
+    };
+
+    //删除应用配置属性定义
+    const removeFieldUrl = '@Url.Action(ActionName.AppSetting.RemoveAppSettingProperty, ControllerName.AppSetting)';
+    let removeField = function (target, id) {
+        let rowIndex = getRowIndex(target);
+        if (id === undefined || id === null || id === "" || id === 0) {
+            $datagrid.datagrid('deleteRow', rowIndex);
+            return;
+        } else {
+            $datagrid.datagrid('deleteRow', rowIndex);
+            return;
+        }
+        $.messager.confirm('确认', '是否确定删除该应用配置属性定义?', function (r) {
+            if (r) {
+                $.easyui.loading({msg: '正在保存数据，请稍等...'});
+                $.post(removeFieldUrl, {id: id}, function (data) {
+                    if (data.success) {
+                        if (data.result) {
+                            $datagrid.datagrid('clearSelections');
+                            $datagrid.datagrid('reload'); // reload the user data
+                            $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                        }
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                    }
+                    $.easyui.loaded();
+                }, 'json');
+            }
+        })
+            .panel('move', {right: '', top: document.body.scrollTop, bottom: ''});
+    }
+    </script>
+    <!--保存应用配置定义-->
+    <script type="text/javascript">
+    const formId = "#saveform";
+    const indexUrl = '@Url.Action(ActionName.Index, ControllerName.AppSetting)';
+    const saveFormUrl = '@Url.Action(ActionName.AppSetting.SaveAppSetting, ControllerName.AppSetting)';
+    let saveForm = function () {
+        //验证
+        let validate = $(formId).form("enableValidation").form("validate");
+        if (!validate) {
+            let errorMsg = '';
+            let invalidComps = $(formId).find(".validatebox-invalid");
+            $.each(invalidComps, function (i, invalidComp) {
+                errorMsg += 'id=' + invalidComp.id + ', ';
+            });
+            console.error("---验证失败的组件Id：" + errorMsg);
+            return;
+        }
+
+        var g = $(appDataGridId).combogrid('grid');
+        var r = g.datagrid('getSelected');
+        //debugger;
+        //获取表单数据
+        let formData = $(formId).form("getData");
+        formData.ApplicationName = r.applicationName;
+        formData.PropertyAttributeList = getFieldData();
+
+        let postData = AddAntiForgeryToken(formData);
+        //console.log(postData);
+        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+        $.ajax({
+            async: true,
+            url: saveFormUrl,
+            type: 'POST',
+            dataType: 'json',
+            data: postData,
+            success: function (data) {
+                if (data.success) {
+                    if (data.result) {
+                        $('#IsEditMode').val('true');
+                        //$.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        MainPage_PostMessage("refreshPage", indexUrl);
+                        setTimeout("closePage()", 50);
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message);
+                    }
+                } else {
+                    $.messager.showInfoTopCenter('系统提示', data.message);
+                }
+            },
+            complete: function () {
+                $.easyui.loaded();
+            }
+        });
+    }
+
+    const getSettingFormUrl = '@Url.Action(ActionName.AppSetting.GetAppSetDefForm, ControllerName.AppSetting)';
+    let closePage = function () {
+        MainPage_PostMessage("closeSubPage", getSettingFormUrl);
+    };
+    </script>
+}

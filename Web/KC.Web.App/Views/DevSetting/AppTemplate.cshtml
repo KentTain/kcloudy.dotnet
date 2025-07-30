@@ -1,0 +1,206 @@
+﻿@using KC.Web.App.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "开发模板管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--开发配置管理-新增/编辑开发模板-->
+    var canEdit = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "52732D56-F6FA-4F29-A35D-E3D7443582CD")).Succeeded)
+    {
+        canEdit = true;
+    }
+    <!--开发配置管理-删除开发模板-->
+    var canRemove = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "E825AC32-CCE3-4110-B542-66B33D87AFA1")).Succeeded)
+    {
+        canRemove = true;
+    }
+}
+
+<div class="easyui-layout" data-options="fit:true">
+    <div id="toolbar">
+        <div>
+            <!--开发配置管理-新增/编辑开发模板-->
+            @if ((await AuthorizationService.AuthorizeAsync(User, "52732D56-F6FA-4F29-A35D-E3D7443582CD")).Succeeded)
+            {
+                <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="openForm(0)">新增</a>
+            }
+        </div>
+
+        <div>
+            <input id="txtTemplateName" class="easyui-textbox" data-options="prompt:'请输入Template地址'">
+            <a href="#" onclick="reloadDataGrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+            <a href="#" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+        </div>
+    </div>
+    <table id="datagrid"></table>
+</div>
+
+@section scripts
+    {
+    <!--组件初始化-->
+    <script type="text/javascript">
+        $(function () {
+            InitDataGrid();
+        });
+
+        let initSwitchButton = function (sbButtonId, hiddenValId, isChecked, callback) {
+            $('#' + sbButtonId).switchbutton({
+                checked: isChecked,
+                onChange: function (checked) {
+                    $('#' + hiddenValId).val(checked);
+                    if (callback)
+                        callback(checked);
+                }
+            });
+        }
+    </script>
+    <!--Template仓库-->
+    <script type="text/javascript">
+    const canEdit = @Json.Serialize(canEdit);
+    const canRemove = @Json.Serialize(canRemove);
+
+    let $dataGrid = $('#datagrid');
+    const loadDataUrl = '@Url.Action(ActionName.DevSetting.LoadAppTemplateList, ControllerName.DevSetting)';
+    function InitDataGrid() {
+        $dataGrid.datagrid({
+            url: loadDataUrl,
+            method: 'get',
+            idField: 'id',
+            toolbar: '#toolbar',
+            striped: true,
+            fitColumns: true,
+            rowNumbers: true,
+            singleSelect: true,
+            nowrap: false,
+            fit: true,
+            pagination: true,
+            pageSize: 20,
+            pageList: [20, 40, 60, 100],
+            showFooter: false,
+            columns: [[
+                { field: 'id', title: 'Id', width: 80, align: 'left', hidden: true },
+                { field: 'name', title: '名称', width: 140, align: 'left' },
+                { field: 'typeString', title: '类型', width: 120, align: 'left' },
+                { field: 'version', title: '版本', width: 60, align: 'left' },
+                { field: 'isPlatform', title: '是否平台模板', width: 80, align: 'center', formatter: FormatterUtil.BoolFormatter },
+                { field: 'gitAddress', title: 'git地址', width: 300, align: 'left' },
+                {
+                    field: 'operator', title: '操作', width: 220, align: 'center',
+                    formatter: function (value, row, index) {
+                        let id = row.id;
+                        var tdContext = '';
+                        if (canEdit && !isPlatform)
+                            tdContext += '<a href="##" class="btnEdit" style="cursor:pointer" onclick="openForm(\'' + id + '\')">编辑</a>';
+                        if (canRemove && !isPlatform) {
+                            tdContext += '<a href="##" class="btnDelete" style="cursor:pointer" onclick="removeTemplate(\'' + id + '\')">删除</a>';
+                        }
+
+                        return tdContext;
+                    }
+                }
+            ]],
+            onBeforeLoad: function (param) {
+                /*var bId = $("#txtBId").val();
+                var AllSearchKey = $("#txtAllSearchKey").val();
+                param.bId = bId;
+                param.AllSearchKey = AllSearchKey;*/
+            },
+            onLoadSuccess: function (data) {
+                CommonUtil.buttonStyle();
+                $dataGrid.datagrid("fixRowHeight");
+            },
+            onLoadError: function () {
+            }
+        });
+    }
+
+    let refreshSearch = function () {
+        $("#txtTemplateName").textbox('setValue', '');
+        reloadDataGrid();
+    };
+    let reloadDataGrid = function () {
+        $dataGrid.datagrid("load", {
+            name: $("#txtTemplateName").textbox("getValue"),
+        });
+    };
+
+    const getFormUrl = '@Url.Action(ActionName.DevSetting.GetAppTemplateForm, ControllerName.DevSetting)';
+    const saveFormUrl = '@Url.Action(ActionName.DevSetting.SaveAppTemplate, ControllerName.DevSetting)';
+    let openForm = function (id) {
+        var dialog = $.easyui.showDialog({
+            title: "保存数据",
+            width: 640,
+            height: 580,
+            href: getFormUrl + "?id=" + id,
+            modal: true,
+            topMost: false,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onSave: function (d) {
+                var validate = d.form("enableValidation").form("validate");
+                if (validate) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: saveFormUrl,
+                        data:AddAntiForgeryToken(d.form("getData")),
+                        success: function (data) {
+                            if (data.success) {
+                                d.window('close');
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                    return false;
+                } else {
+                    return false;
+                }
+            },
+            onLoad: function () {
+                var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                f.form("disableValidation").form("enableValidation");
+                return ret;
+            }
+        });
+    }
+
+    const removeUrl = '@Url.Action(ActionName.DevSetting.RemoveAppTemplate, ControllerName.DevSetting)';
+    let removeTemplate = function (id) {
+        if (id) {
+            $.messager.confirm('系统提示', '是否确定删除该条记录?', function (r) {
+                if (r) {
+                    $.post(removeUrl, { id: id }, function (result) {
+                        if (data.success) {
+                            if (data.result) {
+                                $dataGrid.datagrid('clearSelections');
+                                $dataGrid.datagrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                            }
+                        } else {
+                            $.data.showErrorTopCenter('错误消息', data.message);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+    }
+    </script>
+}

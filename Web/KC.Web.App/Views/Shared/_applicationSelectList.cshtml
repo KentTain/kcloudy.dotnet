@@ -1,0 +1,60 @@
+﻿@using KC.Web.App.Constants
+
+<div id="listToolbar" style="padding:5px;height:auto">
+    <div id="divListSearchMenu" class="easyui-menu" style="width:120px">
+        <div data-options="name:'ApplicationName',selected:true">应用程序名称</div>
+    </div>
+    <input id="txtListSearchbox" class="easyui-searchbox" style="width:300px;height:26px;" />
+</div>
+<table id="listDatagrid" title="应用列表" data-options=" iconCls: 'icon-standard-text-list-bullets'"></table>
+
+<script type="text/javascript">
+    var tenantId = '@ViewBag.TenantId';
+    var loadListDataUrl = '@Url.Action(ActionName.Application.LoadApplicationList, ControllerName.Application)';
+    $(function () {
+        InitListDataGrid();
+    });
+
+    function InitListDataGrid() {
+        $('#listDatagrid').datagrid({
+            url: loadListDataUrl,
+            method: 'post',
+            idField: 'applicationId',
+            toolbar: '#listToolbar',
+            striped: true,
+            fitColumns: true,
+            rowNumbers: true,
+            singleSelect: false,
+            nowrap: true,
+            pagination: true,
+            fit: true,
+            columns: [[
+                { field: 'applicationId', title: '应用程序Id',  align: 'left' },
+                { field: 'applicationName', title: '应用程序名称', align: 'left' },
+                { field: 'domainName', title: '域名',  align: 'left' },
+                { field: 'description', title: '描述',  align: 'left' },
+                { field: 'createdBy', title: '创建人',  align: 'left' },
+                { field: 'createdDate', title: '创建时间',  align: 'left', formatter: FormatterUtil.DateFormatter }
+            ]],
+            onBeforeLoad: function (param) {
+                /*var bId = $("#txtBId").val();
+                var AllSearchKey = $("#txtAllSearchKey").val();
+                param.bId = bId;
+                param.AllSearchKey = AllSearchKey;*/
+            },
+            onLoadSuccess: function (data) {
+            },
+            onLoadError: function () {
+            }
+        });
+        $('#txtListSearchbox').searchbox({
+            menu: '#divListSearchMenu',
+            prompt: '请输入查询值',
+            searcher: searchListData
+        });
+    }
+
+    function searchListData(value, name) {
+        $('#listDatagrid').datagrid('load', { "searchKey": name, "searchValue": value });
+    }
+</script>

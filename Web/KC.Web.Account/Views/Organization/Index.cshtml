@@ -1,0 +1,705 @@
+﻿@using KC.Web.Constants
+@using KC.Framework.Tenant
+@using KC.Web.Account.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "组织架构管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+ <!--组织架构管理-保存组织架构-->
+    var canEditOrg = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "993C40B4-0981-4294-BDBF-E19CE7C9B392")).Succeeded)
+    {
+        canEditOrg = true;
+    }
+    <!--组织架构管理-删除组织架构-->
+    var canDeleteOrg = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "93F6DC06-6426-41DF-9DB8-C0FA0758FBB7")).Succeeded)
+    {
+        canDeleteOrg = true;
+    }
+    <!--用户管理-用户角色管理-->
+    var canRoleInUser = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "993C40B4-0981-4294-BDBF-E19CE7C9B392")).Succeeded)
+    {
+        canRoleInUser = true;
+    }
+    <!--用户管理-冻结/激活用户-->
+    var canDongJie = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "B15DDB6E-6922-4E59-AC07-D8773BB42D0A")).Succeeded)
+    {
+        canDongJie = true;
+    }
+    <!--用户管理-用户详情-->
+    var canUserDetail = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "D380A502-C702-4CEC-9B8C-D095AB427650")).Succeeded)
+    {
+        canUserDetail = true;
+    }
+    <!--用户管理-删除单个用户-->
+    var canDeleteUser = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "E617F833-311B-4B4F-A04A-EC17214D6A1B")).Succeeded)
+    {
+        canDeleteUser = true;
+    }
+    var dowonloadUrl = Url.Action(ActionName.User.DownLoadExcelTemplate, ControllerName.User);
+}
+
+<div class="easyui-layout" style="width:100%;height:100%;">
+    <div data-options="region:'west',collapsible:false" style="width:380px;padding:2px" id="roles">
+        <div id="toolbar">
+            <div>
+                
+            </div>
+
+            <div>
+                <input id="txtSearchbox" class="easyui-textbox" data-options="prompt:'请输入部门名称'" style="width: 160px;" />
+                <a href="javascript:void(0)" onclick="reloadDgOrg()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshOrgSearch()" class="easyui-linkbutton ListToolEndBtn" data-options="iconCls:'fa fa-refresh'">刷新</a>
+                <!--组织架构管理-保存组织架构-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "0EBCF1F7-3E2A-4A0E-AF90-36689ABB0AA3")).Succeeded)
+                {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addOrganization()">新增</a>
+                }
+            </div>
+        </div>
+        <table id="datagrid"></table>
+    </div>
+    <div data-options="region:'center'" style="padding: 2px;">
+        <div id="toolbarUser">
+            <div>
+                <!--用户管理-保存用户-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "55BD23BA-D892-41A0-A2D3-5E773D832E79")).Succeeded)
+                {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addUser()">新增</a>
+                }
+                <!--用户管理-保存用户-->
+                @if ((await AuthorizationService.AuthorizeAsync(User, "55BD23BA-D892-41A0-A2D3-5E773D832E79")).Succeeded)
+                {
+                    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editUser()">编辑</a>
+                }
+            </div>
+            <div>
+                @*<select id="txtPositionLevel" class="easyui-combobox" panelHeight="auto"
+                        data-options="width:120,editable: false"
+                        asp-items="ViewBag.PositionLevels"></select>*@
+                <select id="txtStatus" class="easyui-combobox" panelHeight="auto"
+                        data-options="width:120,editable: false">
+                    <option value="">请选择状态</option>
+                    <option value="1">提交审核</option>
+                    <option value="2">启用</option>
+                    <option value="3">冻结</option>
+                </select>
+
+                <input id="searchboxName" class="easyui-textbox" data-options="prompt:'请输入姓名'" style="width:100px">
+                <input id="searchboxPhone" class="easyui-textbox" data-options="prompt:'请输入手机号'" style="width:100px">
+                <input id="searchboxEmail" class="easyui-textbox" data-options="prompt:'请输入邮箱'" style="width:100px">
+                <a href="javascript:void(0)" onclick="reloadDgUser()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+                <a href="javascript:void(0)" onclick="refreshUserSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+            </div>
+        </div>
+        <table id="dgUser"></table>
+    </div>
+</div>
+@section scripts
+    {
+    @*组织架构*@
+    <script type="text/javascript">
+        $.extend($.fn.validatebox.defaults.rules, {
+            repeatTreeCode: {
+                validator: function (value) {
+                    var reg = /^[0-9a-zA-Z]+$/;
+
+                    return reg.test(value);
+                },
+                message: '请输入有效的部门代码'
+            }
+        });
+
+        let selectOrgId = '';
+        let selectOrgName;
+        $(function() {
+            InitTreeOrganization();
+
+            InitDgUser();
+        });
+
+        var canEditOrg = '@canEditOrg' === 'True';
+        var canDeleteOrg = '@canDeleteOrg' === 'True';
+        var loadDataUrl = '@Url.Action(ActionName.Organization.LoadOrganizationTree, ControllerName.Organization)';
+        var IsCheckFlag = false; //是否选中的标志
+        var rowIndexTo; //保存当前保存的是那条数据
+        function InitTreeOrganization() {
+            $('#datagrid').treegrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                queryParams: {
+                    name: null,
+                    excludeId: null,
+                    selectedId: null,
+                    hasAll: true,
+                    hasRoot: false,
+                    maxLevel: 3
+                },
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                checkOnSelect: true,
+                nowrap: false,
+                fit: true,
+                lines: true,
+                showFooter: false,
+                toolbar: "#toolbar",
+                //toolbar: [{ text: document.getElementById('toolbar') }],
+                columns: [
+                    [
+                        { field: 'id', title: '编号', width: 120, align: 'left', hidden: true },
+                        { field: 'text', title: '名称', width: 140, align: 'left' },
+                        //{ field: 'userNamesInfo', title: '下属员工', width: 240, align: 'left' },
+                        //{ field: 'businessTypeString', title: '归属业务', width: 120, align: 'left' },
+                        //{ field: 'level', title: '层级', width: 100, align: 'left' },
+                        //{ field: 'index', title: '排序', width: 100, align: 'left' },
+                        {
+                            field: 'c', title: ' 操作', width: 55,
+                            formatter: function (value, row, index) {
+                                let id = row.id;
+                                let name = row.text;
+                                let parentId = row.parentId;
+                                let parentName = row.parentName;
+                                let hasChild = row.children && row.children.length > 0;
+                                let tdContext = '';
+                                if (canEditOrg && (id != 0 && id != -1)) {
+                                    tdContext += '<a class="btnEdit" style="cursor:pointer;margin:0 5px;" onclick="editOrganization(\'' + id + '\',\'' + parentId + '\',\'' + parentName + '\')" > </a>';
+                                }
+                                if (canDeleteOrg && (id != 0 && id != -1)) {
+                                    tdContext += '<a class="btnDelete" style="cursor:pointer;margin:0 5px;" onclick="removeOrganization(\'' + id + '\',\'' + name + '\', ' + hasChild+')" > </a>';
+                                }
+                                return tdContext;
+                            }
+                        }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+
+                },
+                onLoadSuccess: function(data) {
+                    $(".btnEdit").linkbutton({ iconCls: 'fa fa-edit' });
+                    $(".btnDelete").linkbutton({ iconCls: 'fa fa-trash' });
+
+                    $('#datagrid').treegrid("fixRowHeight");
+                },
+                onLoadError: function() {
+                },
+                onSelect: function (row) {
+                    selectOrgId = row.id;
+                    selectOrgName = row.text;
+
+                    loadUserData();
+                }
+            });
+        }
+
+        function refreshOrgSearch() {
+            $('#datagrid').datagrid('unselectAll');
+            $("#txtSearchbox").searchbox('setValue', '');
+            reloadDgOrg();
+        }
+
+        function reloadDgOrg() {
+            $('#datagrid').datagrid('unselectAll');
+            $("#datagrid").treegrid("load", {
+                name: $("#txtSearchbox").searchbox("getValue")
+            });
+        }
+
+        function addOrganization() {
+            var row = $('#datagrid').treegrid('getSelected');
+            if (row) {
+                opentForm(0, row.id);
+            } else {
+                opentForm(0, 0);
+            }
+        }
+
+        function editOrganization(id, parentId, parentName) {
+            opentForm(id, parentId, parentName);
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.Organization.GetOrganizationForm, ControllerName.Organization)';
+        var saveFormUrl = '@Url.Action(ActionName.Organization.SaveOrganizationForm, ControllerName.Organization)';
+        function opentForm(id, parentId, parentName) {
+            $.easyui.showDialog({
+                title: id > 0 ? '编辑组织架构' : '新增组织架构',
+                width: 400,
+                height: 300,
+                href: getFormUrl + "?id=" + id + "&parentId=" + parentId + "&parentName=" + parentName,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var validate = d.form("enableValidation").form("validate");
+                    if (validate) {
+                        if ($("#level").val() == "4") {
+                            $.messager.showErrorTopCenter("系统提示", "此父级" +' '+$("#ParentId").val()+' ' + "不能作为父级");
+                            $("#level").val(' ');
+                            return false;
+                        }
+
+
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveFormUrl,
+                            data: AddAntiForgeryToken(d.form("getData")),
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $('#datagrid').treegrid('clearSelections');
+                                        $('#datagrid').treegrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '保存数据失败。');
+                                    }
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', data.message);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function() {
+                    $('.textbox').bind('blur', function() {
+                        $(this).validatebox('enableValidation').validatebox('validate');
+                    });
+                }
+            });
+        }
+
+        var removeUrl = '@Url.Action(ActionName.Organization.RemoveOrganization, ControllerName.Organization)';
+        function removeOrganization(id, name, hasChild) {
+            if (hasChild) {
+                $.messager.showErrorTopCenter('错误消息', '无法删除有子部门的部门，请先删除子部门后再重试。', 1000);
+                return;
+            }
+
+            $.messager.confirm('系统提示', '确认要删除组织架构：'  + name + '?', function (r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeUrl, { id: id }, function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid').treegrid('clearSelections');
+                                $('#datagrid').treegrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                        $.easyui.loaded();
+                    });
+                }
+            });
+        }
+    </script>
+
+    @*人员*@
+    <script type="text/javascript">
+        $.extend($.fn.validatebox.defaults.rules, {
+            repeatdisplayName: {
+                validator: function (value) {
+                    var reg = /\d$/;
+
+                    return !reg.test(value);
+                },
+                message: '请输入有效的姓名'
+            }
+        });
+        $.extend($.fn.validatebox.defaults.rules, {
+            repeatUserCode:{
+                validator: function (value) {
+                    var reg = /^[0-9a-zA-Z]+$/;
+
+                    return reg.test(value);
+                },
+                message: '请输入有效的用户编号'
+            }
+        });
+
+        let canDeleteUser = '@canDeleteUser' === 'True';
+        let canDongJie = '@canDongJie' === 'True';
+        let canRoleInUser = '@canRoleInUser' === 'True';
+        let canUserDetail = '@canUserDetail' === 'True';
+
+        const dgUser = '#dgUser';
+        const loadUserDataUrl = '@Url.Action(ActionName.User.LoadUserList, ControllerName.User)';
+        function InitDgUser() {
+            var $dataGrid = $(dgUser).datagrid({
+                //view: detailview,
+                url: loadUserDataUrl,
+                method: 'POST',
+                idField: 'userId',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                toolbar: "#toolbarUser",
+                columns: [[
+                    //{ field: 'memberId', title: '用户编号', width: 80, align: 'left' },
+                    {
+                        field: 'displayName', title: '姓名', width: 80, align: 'left',
+                        formatter: function (value, row, index) {
+                            var userId = row.userId;
+                            var userName = row.displayName;
+                            var tdContext = userName;
+                            if (canUserDetail)
+                                tdContext = "<a style='cursor:pointer' onclick=openUserPage('" + userId + "','userdetail')>" + userName + "</a>";
+                            return tdContext;
+                        }
+                    },
+                    //{ field: 'userName', title: '用户名', width: 80, align: 'left' },
+                    { field: 'email', title: '邮箱', width: 120, align: 'left' },
+                    { field: 'phoneNumber', title: '手机号', width: 100, align: 'left' },
+                    //{ field: 'organizationNames', title: '所属部门', width: 80, align: 'left',
+                    //    formatter: function (value, row, index) {
+                    //        if (value != undefined && value != "") {
+                    //            return value.substr(0, value.length - 1);
+                    //        }
+                    //        return value;
+                    //    }
+                    //},
+                    { field: 'positionLevelName', title: '员工类型', width: 60, align: 'left' },
+                    { field: 'status', title: '状态', width: 50,
+                        formatter: function (value, row, index) {
+                            if (value == 0) {
+                                return "<span style='color:gray;'>草稿</span>";
+                            } else if (value == 1) {
+                                return "<span style='color:yellow;'>提交审核</span>";
+                            } else if (value == 2) {
+                                return "<span style='color:green;'>启用</span>";
+                            } else if (value == 3)
+                                return "<span style='color:red;'>冻结</span>";
+                        }
+                    },
+                    {
+                        field: 'c', title: '提交/启用/冻结', width: 70,
+                        formatter: function (value, row, index) {
+                            if (canDongJie) {
+                                if (row.status == 0 || row.status == 3) {
+                                    //草稿（Draft=0）|| 冻结（Disagree=3）
+                                    return "<a class='btnContacts' style='cursor: pointer' onclick=operateUser('" + row.userId + "','提交审核')>提交审核</a>";
+                                } else if (row.status == 1) {
+                                    //提交审核（AuditPending=1）
+                                    return "<a class='btnContacts' style='cursor: pointer' onclick=operateUser('" + row.userId + "','启用')>启用</a>";
+                                } else if (row.status == 2) {
+                                    //提交审核（AuditPending=1）
+                                    return "<a class='btnContacts' style='cursor: pointer'  onclick=operateUser('" + row.userId + "','冻结')>冻结</a>";
+                                }
+                            }
+                        }
+                    },
+                    { field: 'ssss', title: '操作', width: 140, align: 'left',
+                        formatter: function (value, row, index) {
+                            var userId = row.userId;
+                            var userName = row.userName;
+
+                            var tdContext = '';
+                            if (canRoleInUser) {
+                                tdContext += '<a class="btnContacts" style="cursor:pointer" onclick="openUserPage(\'' + userId + '\', \'roleinuser\')" >分配角色</a>';
+                            }
+                            if (canDeleteUser)
+                            {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer" onclick="removeUser(\'' + userId + '\', \'roleinuser\')" >删除用户</a>';
+                            }
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function(param) {
+                    /*var bId = $("#txtBId").val();
+                    var AllSearchKey = $("#txtAllSearchKey").val();
+                    param.bId = bId;
+                    param.AllSearchKey = AllSearchKey;*/
+                },
+                onLoadSuccess: function(data) {
+                    $(".btnContacts").linkbutton({ iconCls: 'fa fa-user' });
+                    $(".btnDelete").linkbutton({ iconCls: 'fa fa-trash' });
+
+                    $dataGrid.datagrid("fixRowHeight");
+                    //checkGuidelines(pageName, function(result) {
+                    //    if (!result)
+                    //        initIntro();
+                    //});
+                },
+                onLoadError: function() {
+                }
+            });
+        }
+
+        let loadUserData = function () {
+            let stat = $('#txtStatus').combobox("getValue");
+            $.easyui.loading({ msg: '正在加载数据，请稍等...' });
+            $.ajax({
+                url: loadUserDataUrl,//所有菜单
+                data: {
+                    "page": 1,
+                    "rows": 10,
+                    "orgId": selectOrgId,
+                    "email": $("#searchboxEmail").searchbox("getValue"),
+                    "phone": $("#searchboxPhone").searchbox("getValue"),
+                    "name": $("#searchboxName").searchbox("getValue"),
+                    "status": stat,
+                    "positionLevel": null
+                },
+                async: false,
+                type: "get",
+                success: function (result) {
+                    $.easyui.loaded();
+                    $(dgUser).datagrid('loadData', result);
+                },
+                error: function () {
+                }
+            });
+        };
+
+        function refreshUserSearch() {
+            $("#searchboxEmail").searchbox('setValue', '');
+            $("#searchboxPhone").searchbox('setValue', '');
+            $("#searchboxName").searchbox('setValue', '');
+            $('#stat').combobox("setValue", '999');
+            //$("#PositionLevel").combobox('setValue', '');
+            reloadDgUser();
+        }
+        function reloadDgUser() {
+            var stat = $('#stat').combobox("getValue");
+            if ($('#stat').combobox("getValue") == "999") {
+                stat = "";
+            }
+
+            $(dgUser).datagrid("load", {
+                email: $("#searchboxEmail").searchbox("getValue"),
+                phone: $("#searchboxPhone").searchbox("getValue"),
+                name: $("#searchboxName").searchbox("getValue"),
+                statType: stat,
+                positionLevel: null
+            });
+        }
+
+        function addUser() {
+            var title = "新增用户";
+            opentUserForm('', title);
+        }
+        function editUser() {
+            var row = $(dgUser).datagrid('getSelected');
+            if (row) {
+                var title = "编辑用户";
+                opentUserForm(row.userId, title);
+            } else {
+                $.messager.showErrorTopCenter('系统提示', "请选择需要编辑的数据", 1000);
+            }
+        }
+
+        var roleInUser = '@Url.Action(ActionName.User.RoleInUser, ControllerName.User)';
+        var userDetailUrl = '@Url.Action(ActionName.User.UserDetail, ControllerName.User)';
+        function openUserPage(userId, type) {
+            var url = "";
+            var queryString = "id=" + userId;
+            if (type == "roleinuser") {
+                url = roleInUser;
+            } else if (type == "userdetail") {
+                url = userDetailUrl;
+            }
+            MainPage_PostMessage("openPage", url, queryString);
+        }
+
+        var getUserFormUrl = '@Url.Action(ActionName.User.GetUserForm, ControllerName.User)';
+        var saveUserFormUrl = '@Url.Action(ActionName.User.SaveUser, ControllerName.User)';
+        function opentUserForm(id, title) {
+            var dialog = $.easyui.showDialog({
+                title: title,
+                width: 480,
+                height: 460,
+                href: getUserFormUrl + "?id=" + id,
+                modal: true,
+                topMost: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                onSave: function(d) {
+                    var organizationName = $('#OrganizationId').combotree('getValues');
+                    var validate = d.form("enableValidation").form("validate");
+                    var postData = d.form("getData");
+                    postData['organizations'] = organizationName;
+
+                    if (validate) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.ajax({
+                            async: true,
+                            type: "post",
+                            dataType: "json",
+                            url: saveUserFormUrl,
+                            data: postData,
+                            success: function(data) {
+                                if (data.success) {
+                                    d.window('close');
+                                    if (data.result) {
+                                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                        $(dgUser).datagrid('reload');
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', data.message);
+                                    }
+                                } else {
+                                    $.messager.showInfoTopCenter('系统提示', data.message);
+                                }
+                            },
+                            complete: function() {
+                                $.easyui.loaded();
+                            }
+                        });
+                        return false;
+                    } else {
+                        return false;
+                    }
+                },
+                onLoad: function() {
+                    var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                    f.form("disableValidation").form("enableValidation");
+                    return ret;
+                }
+            });
+        }
+
+        var adminUserId = '@RoleConstants.AdminUserId';
+        var currentUserId = '@ViewBag.meUserId';
+        var freezeOrActivationUrl = '@Url.Action(ActionName.User.FreezeOrActivation, ControllerName.User)';
+        function operateUser(id, status) {
+            var adminUserId = adminUserId;
+            var meUserId = currentUserId;
+            if (id.contains(meUserId)) {
+                $.messager.showInfoTopCenter('系统提示', "无法更改用户自身的状态！", 1000);
+                return;
+            }
+            if (id.contains(adminUserId)) {
+                $.messager.showInfoTopCenter('系统提示', "无法更改系统管理员的状态！", 1000);
+                return;
+            }
+            var title = "是否确定变更该用户状态为：" + status + "？";
+            $.messager.confirm("系统提示", title,
+                function(r) {
+                    if (r) {
+                        $.ajax({
+                            url: freezeOrActivationUrl,
+                            async: true,
+                            type: 'post',
+                            dataType: 'json',
+                            data: { id: id },
+                            success: function(data) {
+                                if (data.success) {
+                                    if (data.result) {
+                                        $(dgUser).datagrid('reload');
+                                        $.messager.showInfoTopCenter('系统提示', '操作成功！', 1000);
+                                    } else {
+                                        $.messager.showErrorTopCenter('错误消息', '操作失败！');
+                                    }
+                                } else {
+                                    $(dgUser).datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', data.message);
+                                }
+                            },
+                            error: function(e) {
+                                //var error = JSON.parse(e.responseText).Message;
+                                $.easyui.loaded();
+                                $.messager.showInfoTopCenter('系统提示', '抱歉,你不具有当前操作的权限');
+                            }
+                        });
+                    }
+                });
+        }
+
+        var removeUserUrl = '@Url.Action(ActionName.User.RemoveUser, ControllerName.User)';
+        function removeUser(userId) {
+            var row = $(dgUser).datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('系统提示', '删除之后将去除该用户所有角色(所有系统)且不可恢复,是否确定删除选中数据?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUserUrl, { id: userId }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $(dgUser).datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '删除数据失败。');
+                                }
+                            } else {
+                                $.messager.showInfoTopCenter('系统提示', data.message);
+                            }
+                            $.easyui.loaded();
+                        }, 'json');
+                    }
+                });
+            }
+        }
+
+        var existUserEmailUrl = '@Url.Action(ActionName.User.ExistUserEmail, ControllerName.User)';
+        function existUserEmail(id) {
+            $.post(existUserEmailUrl, { id: id, email: $("#Email").val() }, function(data) {
+                if (data == "result") {
+                    $.messager.showInfoTopCenter('系统提示', '邮箱【' + $("#Email").val() + '】已存在,请重新输入。');
+                    $("#Email").val("");
+                }
+                if (data == "result1") {
+                    $.messager.showInfoTopCenter('系统提示', '邮箱【' + $("#Email").val() + '】正在审批中，请重新输入');
+                    $("#Email").val("");
+
+                }
+            }, 'json');
+        }
+        var existUserPhoneUrl = '@Url.Action(ActionName.User.ExistUserPhone, ControllerName.User)';
+        function existUserPhone(id) {
+            $.post(existUserPhoneUrl, { id: id, phone: $("#PhoneNumber").val() }, function(data) {
+                if (data == "result") {
+                    $.messager.showInfoTopCenter('系统提示', '手机号【' + $("#PhoneNumber").val() + '】已存在,请重新输入。');
+                    $("#PhoneNumber").val("");
+                }
+                if (data == "result1") {
+                    $.messager.showInfoTopCenter('系统提示', '手机号【' + $("#PhoneNumber").val() + '】正在审批中，请重新输入');
+                    $("#PhoneNumber").val("");
+                }
+            }, 'json');
+        }
+        var existUserNameUrl = '@Url.Action(ActionName.User.ExistUserName, ControllerName.User)';
+        function existUserName(id) {
+            $.post(existUserNameUrl, { id: id, userName: $("#UserName").val() }, function(data) {
+                    if (data == "result") {
+                        $.messager.showInfoTopCenter('系统提示', '用户名【' + $("#UserName").val() + '】已存在,请重新输入。');
+                        $("#UserName").val("");
+                    }
+                    if (data == "result1") {
+                        $.messager.showInfoTopCenter('系统提示', '用户名【' + $("#UserName").val() + '】正在审批中,请重新输入。');
+                        $("#UserName").val("");
+                    }
+                },
+                'json');
+        }
+    </script>
+}
+

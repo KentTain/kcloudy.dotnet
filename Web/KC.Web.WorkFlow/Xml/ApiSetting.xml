@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.WebApi.Workflow</name>
+    </assembly>
+    <members>
+        <member name="M:KC.WebApi.Workflow.Controllers.TestApiController.GetTenant">
+            <summary>
+            获取当前Tenant编码及名称
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Workflow.Controllers.TestApiController.GetEnv">
+            <summary>
+            获取当前环境类型
+            </summary>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:KC.WebApi.Workflow.Controllers.WorkflowApiController.GetWorkflowStartExecuteData(System.String,System.String,System.String,System.Collections.Generic.List{KC.Service.DTO.Workflow.WorkflowProFieldDTO})" -->
+        <member name="M:KC.WebApi.Workflow.Controllers.WorkflowApiController.StartWorkflow(System.String,System.String,KC.Service.DTO.Workflow.WorkflowStartExecuteData)">
+            <summary>
+            启动一个流程实例
+            </summary>
+            <param name="userId">启动人用户Id</param>
+            <param name="userDisplayName">启动人姓名</param>
+            <param name="model">流程定义中的表单数据</param>
+            <returns>流程实例的编码（可以根据此编码进行后续的查询及操作）</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:KC.WebApi.Workflow.Controllers.WorkflowApiController.GetWorkflowSubmitExecuteData(System.String,System.String,System.String)" -->
+        <member name="M:KC.WebApi.Workflow.Controllers.WorkflowApiController.SubmitWorkflow(System.String,System.String,System.String,KC.Service.DTO.Workflow.WorkflowExecuteData)">
+            <summary>
+            处理流程实例（流程过程）：Submit流程，进入下一个流程处理节点
+            </summary>
+            <param name="userId">审核人用户Id</param>
+            <param name="userDisplayName">审核人姓名</param>
+            <param name="processCode">流程实例编码（启动流程所返回的流程实例编码）</param>
+            <param name="executeData">
+                包括：表单数据（可进行表单数据更新操作）
+                    审核流程的数据对象
+            </param>
+            <returns>是否成功</returns>
+        </member>
+        <member name="M:KC.WebApi.Workflow.Controllers.WorkflowApiController.LoadUserWorkflowTasks(KC.Service.DTO.Search.WorkflowTaskSearchDTO)">
+            <summary>
+            获取用户的可执行任务列表
+            </summary>
+            <param name="searchDTO">查询条件，包括：用户Id、用户所属角色Id列表、当前用户所属部门Id列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.WebApi.Workflow.Controllers.WorkflowApiController.GetWorkflowProcessByCode(System.String)">
+            <summary>
+            根据流程实例编码，获取流程实例
+            </summary>
+            <param name="code">流程实例编码</param>
+            <returns>流程实例</returns>
+        </member>
+        <member name="M:KC.WebApi.Workflow.Controllers.WorkflowApiController.GetStartTaskByProcessCode(System.String)">
+            <summary>
+            获取流程实例的开始任务
+            </summary>
+            <param name="code">流程实例的编码</param>
+            <returns>返回开始任务的双向链表结果数据</returns>
+        </member>
+        <member name="M:KC.WebApi.Workflow.Controllers.WorkflowApiController.GetCurrentTaskByProcessCode(System.String)">
+            <summary>
+            获取流程实例的当前任务
+            </summary>
+            <param name="code">流程实例的编码</param>
+            <returns>返回当前任务的双向链表结果数据</returns>
+        </member>
+        <member name="M:KC.WebApi.Workflow.Controllers.WorkflowApiController.GetNextTaskByProcessCode(System.String)">
+            <summary>
+            获取流程实例的下一任务
+            </summary>
+            <param name="code">流程实例的编码</param>
+            <returns>返回当前任务的双向链表结果数据</returns>
+        </member>
+    </members>
+</doc>

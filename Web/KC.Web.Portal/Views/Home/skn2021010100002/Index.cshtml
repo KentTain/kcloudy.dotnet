@@ -1,0 +1,759 @@
+﻿@using KC.Web.Constants;
+@*@inject Tenant tenant*@
+@{
+    ViewBag.Title = "首页-鑫亚科技-Single";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+    /*主色调：#2d3540  Menu选中border色：#5cb85c  tab页选中border色：#5a9cf9  背景色：#ddd*/
+}
+@section styles{
+    <link href="~/css/home/V2/home.css" rel="stylesheet" />
+    <style>
+    body { font-family: "SourceHanSansCN-Regular"; -moz-user-select: none; -webkit-user-select: none; -ms-user-select: none; }
+    .main.home{margin-top:100px}
+    .category-con .bgImage.banner.home{background:url(/images/home/home-banner1.png) no-repeat center top;background-size:cover;box-sizing:border-box}
+    .category-con .bgImage.banner.price{background:url(/images/home/home-banner2.png) no-repeat center top;background-size:cover;box-sizing:border-box}
+    .category-con .bgImage.banner.price .content{padding:80px 0 0 0}
+    .category-con .bgImage.banner.customize{background:url(/images/home/home-banner3.png) no-repeat center top;background-size:cover;box-sizing:border-box}
+    .category-con .bgImage.banner.customize .content{padding:40px 0 0 0}
+    .category-con .bgImage.last{background:url(/images/home/home-banner4.png) no-repeat center top;background-size:cover;margin:0;height:660px;width:100%}
+    </style>
+}
+@section Scripts {
+
+    <script>
+
+        $(function () {
+            layui.use('carousel', function () {
+                var carousel = layui.carousel;
+                //建造实例
+                carousel.render({
+                    elem: '#divCarousel'
+                    , arrow: 'always' //始终显示箭头
+                    , width: '100%' //设置容器宽度
+                    , height: '100%'
+                    //,anim: 'updown' //切换动画方式
+                });
+
+                carousel.render({
+                    elem: '#requirement'
+                    , width: '100%' //设置容器宽度
+                    , arrow: 'always'
+                    , height: '298'
+                    , indicator: 'none'
+                });
+            });
+        });
+    </script>
+}
+
+<!-- main部分 -->
+<div class="main home main-content" layout:fragment="content">
+    <!-- Search部分 -->
+    <div class="header">
+        <div class="headerCon layui-container">
+            <div class="mallSearch">
+                <form action="" class="layui-form" novalidate>
+                    <input type="text" name="title" required lay-verify="required" autocomplete="off" class="layui-input" placeholder="请输入需要的商品">
+                    <button class="layui-btn" lay-submit lay-filter="formDemo">
+                        <i class="layui-icon layui-icon-search"></i>
+                    </button>
+                    <input type="hidden" name="" value="">
+                </form>
+            </div>
+        </div>
+        <div class="headerLayout">
+
+        </div>
+    </div>
+
+    <!-- banner部分 -->
+    <div class="category-con">
+        <!-- banner部分 -->
+        <div class="category-banner layui-container" style="padding-left:195px;">
+            <div class="layui-carousel" id="divCarousel">
+                <div carousel-item>
+                    <div class="bgImage banner home">
+
+                    </div>
+                    <div class="bgImage banner price">
+
+                    </div>
+                    <div class="bgImage banner customize">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 分类部分 -->
+        <div class="category-inner-con layui-container">
+            <div class="category-type">全部分类</div>
+            <div class="category-tab-content">
+                <div class="nav-con">
+                    <ul class="normal-nav layui-clear">
+                        <li class="nav-item">
+                            <div class="title">机床 模具 仪器 仪表</div>
+                            <p><a href="#">机床</a><a href="#">模具</a><a href="#">试验机</a><a href="#">分析仪器</a></p>
+                            <i class="layui-icon layui-icon-right"></i>
+                        </li>
+                        <li class="nav-item">
+                            <div class="title">机械 工业设备</div>
+                            <p><a href="#">通用机械</a><a href="#">橡塑机械</a><a href="#">工程建造机械</a><a href="#">生产线</a></p>
+                            <i class="layui-icon layui-icon-right"></i>
+                        </li>
+                        <li class="nav-item">
+                            <div class="title">激光设备 元器件</div>
+                            <p><a href="#">激光设备</a><a href="#">激光元器件</a></p>
+                            <i class="layui-icon layui-icon-right"></i>
+                        </li>
+                        <li class="nav-item">
+                            <div class="title">电子元件 电子器件</div>
+                            <p><a href="#">电池</a><a href="#">电源</a><a href="#">传感器</a><a href="#">连接器</a></p>
+                            <i class="layui-icon layui-icon-right"></i>
+                        </li>
+                        <li class="nav-item">
+                            <div class="title">通用机械</div>
+                            <p><a href="#">铸造机热处理设备</a><a href="#">液压机械及部件</a></p>
+                            <i class="layui-icon layui-icon-right"></i>
+                        </li>
+                        <li class="nav-item">
+                            <div class="title">医疗设备 配件</div>
+                            <p><a href="#">医疗设备</a><a href="#">医疗配件</a></p>
+                            <i class="layui-icon layui-icon-right"></i>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- requirement部分 -->
+    <div class="requirement-con">
+        <div class="layui-container">
+            <div class="title layui-row" style="text-align:center">
+                <div class="label">
+                    <p class="label">
+                        <img src="~/images/jumoon/price-title-icon-01.png" style="margin-right: 10px;">
+                        招采设备材料展示
+                        <img src="~/images/jumoon/price-title-icon-02.png" style="margin-right: 10px;">
+                    </p>
+                </div>
+
+            </div>
+        </div>
+        <div class="layui-container">
+            <div class="sk_bd">
+                <div class="layui-carousel" id="requirement">
+                    <div carousel-item>
+                        <div class="item-box">
+                            <div class="item">
+                                <a href="javascript:;"><img src="../images/equipment/home-require-1-1.jpg"></a>
+                                <div class="title">采购设备材料一</div>
+                                <div class="price">
+                                    <span class="number">2000台</span>
+                                    <span>截止2012-12-12</span>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <a href="javascript:;"><img src="../images/equipment/home-require-1-2.jpg"></a>
+                                <div class="title">采购设备材料二</div>
+                                <div class="price">
+                                    <span class="number">2000台</span>
+                                    <span>截止2012-12-12</span>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <a href="javascript:;"><img src="../images/equipment/home-require-1-3.jpg"></a>
+                                <div class="title">采购设备材料三</div>
+                                <div class="price">
+                                    <span class="number">2000台</span>
+                                    <span>截止2012-12-12</span>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <a href="javascript:;"><img src="../images/equipment/home-require-1-4.jpg"></a>
+                                <div class="title">采购设备材料四</div>
+                                <div class="price">
+                                    <span class="number">2000台</span>
+                                    <span>截止2012-12-12</span>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <a href="javascript:;"><img src="../images/equipment/home-require-1-5.jpg"></a>
+                                <div class="title">采购设备材料五</div>
+                                <div class="price">
+                                    <span class="number">2000台</span>
+                                    <span>截止2012-12-12</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="item-box">
+                            <div class="item">
+                                <a href="javascript:;"><img src="../images/equipment/home-require-2-1.jpg"></a>
+                                <div class="title">采购设备材料六</div>
+                                <div class="price">
+                                    <span class="number">2000台</span>
+                                    <span>截止2012-12-12</span>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <a href="javascript:;"><img src="../images/equipment/home-require-2-2.jpg"></a>
+                                <div class="title">采购设备材料七</div>
+                                <div class="price">
+                                    <span class="number">2000台</span>
+                                    <span>截止2012-12-12</span>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <a href="javascript:;"><img src="../images/equipment/home-require-2-3.jpg"></a>
+                                <div class="title">采购设备材料八</div>
+                                <div class="price">
+                                    <span class="number">2000台</span>
+                                    <span>截止2012-12-12</span>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <a href="javascript:;"><img src="../images/equipment/home-require-2-4.jpg"></a>
+                                <div class="title">采购设备材料九</div>
+                                <div class="price">
+                                    <span class="number">2000台</span>
+                                    <span>截止2012-12-12</span>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <a href="javascript:;"><img src="../images/equipment/home-require-2-5.jpg"></a>
+                                <div class="title">采购设备材料十</div>
+                                <div class="price">
+                                    <span class="number">2000台</span>
+                                    <span>截止2012-12-12</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- product部分 -->
+    <div class="product">
+        <div class="product-cont" style="background-color: rgba(230,230,230 ,0.1);">
+            <div class="product-title layui-container">
+                <i>1F</i><h4><a target="_blank" href="/Offering?OfferingCategory=10248&t=机床 模具 仪器 仪表" title="机床 模具 仪器 仪表">机床 模具 仪器 仪表</a></h4>
+            </div>
+            <div class="product-item layui-container layui-clear">
+                <div class="left-title">
+                    <img src="~/images/equipment/home-category-1.jpg">
+                    <h4>机床 模具 仪器 仪表</h4>
+                </div>
+                <div class="center-cont">
+                    <div class="img-box">
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-1.jpg"></a>
+                            <div class="title">产品一</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-2.jpg"></a>
+                            <div class="title">产品二</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-3.jpg"></a>
+                            <div class="title">产品三</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-4.jpg"></a>
+                            <div class="title">产品四</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="img-box">
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-1.jpg"></a>
+                            <div class="title">产品一</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-2.jpg"></a>
+                            <div class="title">产品二</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-3.jpg"></a>
+                            <div class="title">产品三</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-4.jpg"></a>
+                            <div class="title">产品四</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="right-company">
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-1.jpg">
+                        <h5>企业一</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-2.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-3.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-4.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="product-cont">
+            <div class="product-title layui-container">
+                <i>2F</i><h4><a target="_blank" href="/Offering?OfferingCategory=10248&t=机械 工业设备" title="机械 工业设备">机械 工业设备</a></h4>
+            </div>
+            <div class="product-item layui-container layui-clear">
+                <div class="left-title">
+                    <img src="~/images/equipment/home-category-2.jpg">
+                    <h4>机械 工业设备</h4>
+                </div>
+                <div class="center-cont">
+                    <div class="img-box">
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-2-1.jpg"></a>
+                            <div class="title">产品一</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-2-2.jpg"></a>
+                            <div class="title">产品二</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-2-3.jpg"></a>
+                            <div class="title">产品三</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-2-4.jpg"></a>
+                            <div class="title">产品四</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="img-box">
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-2-1.jpg"></a>
+                            <div class="title">产品一</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-2-2.jpg"></a>
+                            <div class="title">产品二</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-2-3.jpg"></a>
+                            <div class="title">产品三</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-2-4.jpg"></a>
+                            <div class="title">产品四</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="right-company">
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-1.jpg">
+                        <h5>企业一</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-2.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-3.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-4.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="product-cont" style="background-color: rgba(230,230,230 ,0.1);">
+            <div class="product-title layui-container">
+                <i>3F</i><h4><a target="_blank" href="/Offering?OfferingCategory=10248&t=激光设备 元器件" title="激光设备 元器件">激光设备 元器件</a></h4>
+            </div>
+            <div class="product-item layui-container layui-clear">
+                <div class="left-title">
+                    <img src="~/images/equipment/home-category-3.jpg">
+                    <h4>激光设备 元器件</h4>
+                </div>
+                <div class="center-cont">
+                    <div class="img-box">
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-3-1.jpg"></a>
+                            <div class="title">产品一</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-3-2.jpg"></a>
+                            <div class="title">产品二</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-3-3.jpg"></a>
+                            <div class="title">产品三</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-3-4.jpg"></a>
+                            <div class="title">产品四</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="img-box">
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-3-1.jpg"></a>
+                            <div class="title">产品一</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-3-2.jpg"></a>
+                            <div class="title">产品二</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-3-3.jpg"></a>
+                            <div class="title">产品三</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-3-4.jpg"></a>
+                            <div class="title">产品四</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="right-company">
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-1.jpg">
+                        <h5>企业一</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-2.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-3.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-4.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="product-cont">
+            <div class="product-title layui-container">
+                <i>4F</i><h4><a target="_blank" href="/Offering?OfferingCategory=10248&t=电子元件 电子器件" title="电子元件 电子器件">电子元件 电子器件</a></h4>
+            </div>
+            <div class="product-item layui-container layui-clear">
+                <div class="left-title">
+                    <img src="~/images/equipment/home-category-4.jpg">
+                    <h4>电子元件 电子器件</h4>
+                </div>
+                <div class="center-cont">
+                    <div class="img-box">
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-4-1.jpg"></a>
+                            <div class="title">产品一</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-4-2.jpg"></a>
+                            <div class="title">产品二</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-4-3.jpg"></a>
+                            <div class="title">产品三</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-4-4.jpg"></a>
+                            <div class="title">产品四</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="img-box">
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-4-1.jpg"></a>
+                            <div class="title">产品一</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-4-2.jpg"></a>
+                            <div class="title">产品二</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-4-3.jpg"></a>
+                            <div class="title">产品三</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-4-4.jpg"></a>
+                            <div class="title">产品四</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="right-company">
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-1.jpg">
+                        <h5>企业一</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-2.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-3.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-4.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="product-cont" style="background-color: rgba(230,230,230 ,0.1);">
+            <div class="product-title layui-container">
+                <i>5F</i><h4><a target="_blank" href="/Offering?OfferingCategory=10248&t=医疗设备 配件" title="医疗设备 配件">医疗设备 配件</a></h4>
+            </div>
+            <div class="product-item layui-container layui-clear">
+                <div class="left-title">
+                    <img src="~/images/equipment/home-category-1.jpg">
+                    <h4>机床 模具 仪器 仪表</h4>
+                </div>
+                <div class="center-cont">
+                    <div class="img-box">
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-1.jpg"></a>
+                            <div class="title">产品一</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-2.jpg"></a>
+                            <div class="title">产品二</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-3.jpg"></a>
+                            <div class="title">产品三</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-4.jpg"></a>
+                            <div class="title">产品四</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="img-box">
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-1.jpg"></a>
+                            <div class="title">产品一</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-2.jpg"></a>
+                            <div class="title">产品二</div>
+                            <div class="price">
+                                <span>￥49.00</span>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-3.jpg"></a>
+                            <div class="title">产品三</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                        <div class="item">
+                            <a href="javascript:;"><img src="~/images/equipment/home-product-1-4.jpg"></a>
+                            <div class="title">产品四</div>
+                            <div class="price">
+                                <span>面议</span>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="right-company">
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-1.jpg">
+                        <h5>企业一</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-2.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-3.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                    <div class="img-box">
+                        <img src="~/images/equipment/home-company-4.jpg">
+                        <h5>企业二</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- new部分 -->
+    <div class="news-cont" >
+        <div class="layui-container news-layout">
+            <div class="news_img">
+                <img src="~/images/news.jpg" style="height:100%">
+            </div>
+            <ul class="news_list">
+                <li><a title="starlu" href="/news/details/205" target="_blank">starlu</a></li>
+                <li><a title="唯品会" href="/news/details/201" target="_blank">唯品会</a></li>
+                <li><a title="分分" href="/news/details/196" target="_blank">分分</a></li>
+                <li><a title="标题" href="/news/details/187" target="_blank">标题</a></li>
+                <li><a title="tesst" href="/news/details/179" target="_blank">tesst</a></li>
+                <li><a title="20180111新闻" href="/news/details/176" target="_blank">20180111新闻</a></li>
+                <li><a title="最后一轮3" href="/news/details/173" target="_blank">最后一轮3</a></li>
+                <li><a title="香港金融行业的冲击" href="/news/details/166" target="_blank">香港金融行业的冲击</a></li>
+                <li><a title="（行业新闻、热门推荐、网站公告也是如此）" href="/news/details/163" target="_blank">（行业新闻、热门推荐、网站公告也是如此）</a></li>
+                <li><a title="春节活动来袭" href="/news/details/162" target="_blank">春节活动来袭</a></li>
+                <li><a title="元旦活动来袭" href="/news/details/161" target="_blank">元旦活动来袭</a></li>
+                <li><a title="愚人节活动来袭" href="/news/details/156" target="_blank">愚人节活动来袭</a></li>
+                <li><a title="中秋节活动来袭" href="/news/details/155" target="_blank">中秋节活动来袭</a></li>
+                <li><a title="劳动节活动来袭" href="/news/details/154" target="_blank">劳动节活动来袭</a></li>
+                <li><a title="国庆节活动来袭" href="/news/details/152" target="_blank">国庆节活动来袭</a></li>
+                <li><a title="万圣节活动来袭" href="/news/details/151" target="_blank">万圣节活动来袭</a></li>
+            </ul>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,138 @@
+﻿@using KC.Web.Constants
+@using KC.Web.Extension
+@using KC.Web.Message.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "我的消息列表";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+<div id="toolbar">
+    <div>
+        <a id="btnStatusAll" href="javascript:void(0)" onclick="statusOnChanged('')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-calendar',width:120,selected:true">所有消息 </a>
+        <a id="btnStatusUnRead" href="javascript:void(0)" onclick="statusOnChanged('0')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-calendar',width:120">未读消息 </a>
+        <a id="btnStatusRead" href="javascript:void(0)" onclick="statusOnChanged('1')" class="easyui-linkbutton l-group" data-options="toggle:true,group:'g1',iconCls:'fa fa-calendar',width:120">已读消息</a>
+    </div>
+    <div>
+        <input id="txtTitle" class="easyui-textbox" data-options="width:260,prompt:'请输入标题'">
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton ListToolStartBtn" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="refreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+
+@section styles{
+
+}
+
+@section scripts{
+    <!--组件初始化-->
+    <script type="text/javascript">
+        var selectStatus = '@ViewBag.selectStatus';
+        $(function () {
+            //debugger;
+            if (selectStatus) {
+                switch (selectStatus) {
+                    case '0':
+                        $('#btnStatusUnRead').linkbutton('select');
+                        break;
+                    case '1':
+                        $('#btnStatusRead').linkbutton('select');
+                        break;
+                    default:
+                        $('#btnStatusAll').linkbutton('select');
+                        break;
+                }
+            }
+            InitDataGrid();
+        });
+    </script>
+
+    <!--我的消息列表-->
+    <script type="text/javascript">
+        const dataGridId = '#datagrid';
+        const loadReviewInfoUrl = '@Url.Action(ActionName.Message.LoadMyMessages, ControllerName.Message)';
+        function InitDataGrid() {
+            $(dataGridId).datagrid({
+                url: loadReviewInfoUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: '#toolbar',
+                queryParams: {
+                    status: selectStatus,
+                    title: $("#txtTitle").textbox("getValue")
+                },
+                fit: true,
+                fitColumns: true,
+                striped: true,
+                nowrap: false,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                showFooter: false,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                columns: [[
+                    {
+                        field: 'messageTitle', title: '标题', width: 150, align: 'left',
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            let tdContext = '<a href="##" style="cursor:pointer" onclick="openPage(\'' + id + '\')">' + value + '</a>';
+                            return tdContext;
+                        }
+                    },
+                    { field: 'statusString', title: '状态', width: 80, align: 'left' },
+                    { field: 'createdName', title: '创建人', width: 100, align: 'left' },
+                    { field: 'createdDate', title: '创建时间', width: 150, align: 'left', formatter: FormatterUtil.DateTimeFormatter }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $(dataGridId).datagrid('unselectAll');
+                    $(dataGridId).datagrid('clearSelections');
+                    CommonUtil.buttonStyle();
+                },
+                onClickRow: function (row) {
+                },
+                onLoadError: function () {
+                }
+            });
+        }
+
+        //状态选择
+        let statusOnChanged = function (status) {
+            if (selectStatus !== status) {
+                selectStatus = status;
+                reloadDatagrid();
+            }
+        }
+        //刷新
+        let refreshSearch = function (index) {
+            $("#txtTitle").textbox('setValue', '');
+            //$("#txtStatus").combobox('setValue', '');
+            $('#btnStatusAll').linkbutton('select');
+            selectStatus = '';
+            reloadDatagrid(index);
+        }
+        //查询
+        let reloadDatagrid = function () {
+            $(dataGridId).datagrid("reload", {
+                title: $("#txtTitle").textbox("getValue"),
+                status: selectStatus,
+                //status: $("#txtStatus").combobox("getValue")
+            });
+        }
+
+        //消息详情
+        var getPageUrl = '@Url.Action(ActionName.Message.MessageDetail, ControllerName.Message)';
+        function openPage(id) {
+            //debugger;
+            let sId = id;
+            if (id === undefined || id === null || id < 0)
+                sId = 0;
+            var queryString = "id=" + sId;
+            MainPage_PostMessage("openPage", getPageUrl, queryString);
+        }
+    </script>
+}

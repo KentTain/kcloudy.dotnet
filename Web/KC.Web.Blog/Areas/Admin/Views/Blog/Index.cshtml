@@ -1,0 +1,140 @@
+﻿@using KC.Web.Blog.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "文章管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+<div id="toolbar">
+    <div>
+        <!--文章管理-保存文章-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "686B465A-6163-48E3-A825-6137BB774688")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-plus" onclick="addConfig()">添加</a>
+        }
+        <!--文章管理-保存文章-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "686B465A-6163-48E3-A825-6137BB774688")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-pencil" onclick="editConfig()">编辑</a>
+        }
+        <!--文章管理-删除文章-->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "0A333E11-A1F3-4F70-8377-11ECC7EE5D86")).Succeeded)
+        {
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-trash" onclick="removeConfig()">删除</a>
+        }
+    </div>
+
+    <div>
+        <input id="searchbox" class="easyui-textbox" data-options="prompt:'请输入文章标题'" style="width: 300px; height: 26px;" />
+        <a href="javascript:void(0)" onclick="reloadDatagrid()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+        <a href="javascript:void(0)" onclick="RefreshSearch()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+    </div>
+</div>
+<table id="datagrid"></table>
+@section scripts
+    {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            IniDataGrid();
+        });
+
+        function RefreshSearch() {
+            $("#searchbox").searchbox('setValue', '');
+            reloadDatagrid();
+        }
+
+        function reloadDatagrid() {
+            $('#datagrid').datagrid('unselectAll');
+            $("#datagrid").datagrid("load", {
+                title: $("#searchbox").searchbox("getValue")
+            });
+        }
+
+        var loadDataUrl = '@Url.Action(ActionName.Blog.LoadBlogList, ControllerName.Blog)';
+        function IniDataGrid() {
+            var $dataGrid = $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'id',
+                toolbar: "#toolbar",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 20,
+                pageList: [20, 40, 60, 100],
+                showFooter: false,
+                columns: [
+                    [
+                        { field: 'title', title: '文章标题', width: 240, align: 'left' },
+                        { field: 'categoryName', title: '文章类型', width: 60, align: 'left' },
+                        { field: 'tags', title: '文章标签', width: 160, align: 'left' },
+                        { field: 'isTop', title: '是否置顶', width: 60, align: 'left', formatter: FormatterUtil.BoolFormatter },
+                        { field: 'createdDate', title: '创建日期', width: 80, align: 'left' }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    $(".btnAddModule").linkbutton({ plain: true, iconCls: 'fa fa-plus' });
+                },
+                onLoadError: function(data) {
+                },
+                detailFormatter: function(index, row) {
+                },
+                onExpandRow: function(index, row) {
+                },
+            });
+        }
+
+        function addConfig() {
+            openPage(0);
+        }
+        function editConfig() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                openPage(row.id);
+            } else {
+                $.messager.showErrorTopCenter('系统提示', "请选择需要编辑的数据");
+            }
+        }
+
+        var getFormUrl = '@Url.Action(ActionName.Blog.GetBlogForm, ControllerName.Blog)';
+        function openPage(id) {
+            var queryString = "id=" + id;
+            MainPage_PostMessage("openPage", getFormUrl, queryString);
+        }
+
+        var removeUrl = '@Url.Action(ActionName.Blog.RemoveBlog, ControllerName.Blog)';
+        function removeConfig() {
+            var row = $('#datagrid').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('确认', '是否确定删除该文章及相关属性记录?', function(r) {
+                    if (r) {
+                        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                        $.post(removeUrl, { id: row.id }, function(data) {
+                            if (data.success) {
+                                if (data.result) {
+                                    $('#datagrid').datagrid('clearSelections');
+                                    $('#datagrid').datagrid('reload'); // reload the user data
+                                    $.messager.showInfoTopCenter('系统提示', '文章及相关属性已成功移除。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '文章及相关属性已成功移除失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                            $.easyui.loaded();
+                        }, 'json');
+                    }
+                });
+            }
+        }
+    </script>
+}
+

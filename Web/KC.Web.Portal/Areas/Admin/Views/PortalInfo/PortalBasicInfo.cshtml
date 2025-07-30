@@ -1,0 +1,398 @@
+﻿@using KC.Web.Constants
+@using KC.Framework.Tenant
+@using KC.Web.Portal.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@model KC.Service.DTO.Portal.WebSiteInfoDTO
+@{
+    ViewBag.Title = "门户基本信息";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+
+@section styles
+    {
+    <style>
+        .table-form > tbody > tr > td:nth-child(odd) {
+            width: 20% !important;
+        }
+
+        .table-form > tbody > tr > td:nth-child(even) {
+            width: 80% !important;
+        }
+    </style>
+}
+
+@if (ViewBag.CompanyIsAuth != null && !ViewBag.CompanyIsAuth)
+{
+    <input id="hiddenAuthRedirectUrl" type="hidden" value="/Admin/CompanyInfo/Authentication" />
+    <input id="hiddenClosePageUrl" type="hidden" value="/Admin/PortalInfo/PortalBasicInfo" />
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/companyAuth-redirect.js"></script>
+}
+
+<div class="easyui-layout" style="width:99%;">
+    <form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.PortalInfo.SaveWebSiteInfo, ControllerName.PortalInfo)">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.IsEditMode)
+
+        @Html.HiddenFor(model => model.IsDeleted)
+        @Html.HiddenFor(model => model.CreatedBy)
+        @Html.HiddenFor(model => model.CreatedName)
+        @Html.HiddenFor(model => model.CreatedDate)
+        @Html.HiddenFor(model => model.ModifiedBy)
+        @Html.HiddenFor(model => model.ModifiedName)
+        @Html.HiddenFor(model => model.ModifiedDate)
+        <table class="table table-bordered table-form tr-col2">
+            <tbody>
+                <!--基本信息-->
+                <tr>
+                    <td><label class="required">*</label><label for="Name">站点名称：</label></td>
+                    <td><input id="Name" name="Name" class="easyui-validatebox easyui-textbox" data-options="required:true,width:380,prompt:'请输入站点名称',validType:{validator:['@Url.Action(ActionName.PortalInfo.ExistPortalName, ControllerName.PortalInfo, new { isEditMode = Model.IsEditMode, orginalName = Model.Name, area = ""  })','Name', '该站点名称已存在']}" value="@(null != Model ? Model.Name : string.Empty)" /></td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="ServiceDate">服务日期及时间：</label></td>
+                    <td>
+                        <input id="ServiceDate" name="ServiceDate" class="easyui-validatebox easyui-textbox" data-options="required:true,width:190,prompt:'例如：周一至周五',validType:['length[2,50]']" value="@(null != Model ? Model.ServiceDate : string.Empty)" />
+                        <input id="ServiceTime" name="ServiceTime" class="easyui-validatebox easyui-textbox" data-options="required:true,width:190,prompt:'例如：8点至8点',validType:['length[2,50]']" value="@(null != Model ? Model.ServiceTime : string.Empty)" />
+                    </td>
+                </tr>
+                <!--网站Logo-->
+                <tr>
+                    <td>
+                        <label class="required"></label><label for="LogoImageBlob">网站Logo：</label>
+                    </td>
+                    <td>
+                        @Html.HiddenFor(model => model.LogoImage)
+                        <div class="imageUploaderEditor">
+                            <div style="display: flex;height: 110px;">
+                                <div id="imageUploaderLogo">
+                                    <a href="javascript:void(0)">
+                                        <i class="fa fa-plus-square fa-5x"></i>
+                                    </a>
+                                </div>
+                                <div id="imageListLogo" class="webUploader-image-list">
+                                </div>
+                            </div>
+                            <label style="padding: 3px;">图片个数：1个；图片格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，图片大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                            <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                        </div>
+                    </td>
+                </tr>
+                <!--微信公众号-->
+                <tr>
+                    <td>
+                        <label class="required"></label><label for="MainImageBlob">微信公众号：</label>
+                    </td>
+                    <td>
+                        @Html.HiddenFor(model => model.MainImage)
+                        <div class="imageUploaderEditor">
+                            <div style="display: flex;height: 110px;">
+                                <div id="imageUploaderMain">
+                                    <a href="javascript:void(0)">
+                                        <i class="fa fa-plus-square fa-5x"></i>
+                                    </a>
+                                </div>
+                                <div id="imageListMain" class="webUploader-image-list">
+                                </div>
+                            </div>
+                            <label style="padding: 3px;">图片个数：1个；图片格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，图片大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                            <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                        </div>
+                    </td>
+                </tr>
+
+                <!--首页轮播图-->
+                <tr>
+                    <td>
+                        <label class="required">*</label><label for="HomePageSlide">首页轮播图：</label>
+                    </td>
+                    <td>
+                        @Html.HiddenFor(model => model.HomePageSlide)
+                        <div class="imageUploaderEditor">
+                            <div style="display: flex;height: 110px;">
+                                <div id="imageUploaderHomePageSlide">
+                                    <a href="javascript:void(0)">
+                                        <i class="fa fa-plus-square fa-5x"></i>
+                                    </a>
+                                </div>
+                                <div id="imageListHomePageSlide" class="webUploader-image-list">
+                                </div>
+                            </div>
+                            <label style="padding: 3px;">图片个数：3个；图片格式：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt，图片大小：@KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize M</label>
+                            <p id="imagePreviewContainer-single" class="imagePreview"></p>
+                        </div>
+                    </td>
+                </tr>
+                <!--联系信息-->
+                <tr>
+                    <td><label class="required">*</label><label for="ContactName">联系人姓名：</label></td>
+                    <td>
+                        <input type="hidden" name="ContactId" id="ContactId" value="@(Model.ContactId)">
+                        <input id="ContactName" name="ContactName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:380,validType:'length[1,50]'" value="@(null != Model ? Model.ContactName : string.Empty)" />
+                        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="fa fa-users " onclick="selectUserForm()">选择现有人员</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="ContactQQ">联系人QQ：</label></td>
+                    <td>
+                        <input id="ContactQQ" name="ContactQQ" class="easyui-validatebox easyui-textbox" data-options="required:true,width:380,validType: ['qq']" value="@(null != Model ? Model.ContactQQ : string.Empty)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><label class="required">*</label><label for="ContactEmail">联系人邮箱：</label></td>
+                    <td><input id="ContactEmail" name="ContactEmail" class="easyui-validatebox easyui-textbox" data-options="required:true,width:380,validType: ['email']" value="@(null != Model ? Model.ContactEmail : string.Empty)" /></td>
+                </tr>
+                <tr>
+                    <td><label class="required"></label><label for="ContactTelephone">联系人电话：</label></td>
+                    <td><input id="ContactTelephone" name="ContactTelephone" class="easyui-validatebox easyui-textbox" data-options="width:380,validType:['length[0,20]']" value="@(null != Model ? Model.ContactTelephone : string.Empty)" /></td>
+                </tr>
+                <!--SEO关键字-->
+                <tr>
+                    <td><label class="required"></label><label for="KeyWord">SEO关键字：</label></td>
+                    <td>
+                        <input id="KeyWord" name="KeyWord" class="easyui-textbox" style="height: 100px; width: 100%;"
+                               data-options="multiline:true,prompt:'请输入站点SEO关键字，多个以逗号隔开'"
+                               value="@(null != Model ? Model.KeyWord : string.Empty)">
+                        <br />
+                        <label style="padding: 3px;">
+                            温馨提示：请完善相关信息，便于搜索引擎收录，关键字以逗号隔开；
+                        </label>
+                    </td>
+                </tr>
+                <!--企业详细介绍-->
+                <tr>
+                    <td><label for="CompanyInfo">企业详细介绍：</label></td>
+                    <td>
+                        <textarea id="CompanyInfo" name="CompanyInfo" style="height: 100%; width: 100%">@(null != Model ? Model.CompanyInfo : "")</textarea>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </form>
+</div>
+<div style="height: 50px;"></div>
+<div class="bottom">
+    <!--会员门户信息-保存会员门户信息-->
+    @if ((await AuthorizationService.AuthorizeAsync(User, "11006F6E-6372-4C94-B34B-4EADC7B58AF0")).Succeeded)
+    {
+        <a href="javascript:void(0)" style="width:100px;height:30px" class="easyui-linkbutton" iconcls="fa fa-floppy-o" onclick="SaveForm()">保存</a>
+    }
+</div>
+
+@await Html.PartialAsync(KC.Web.Constants.ActionNameBase.SelectUserPartial)
+
+@section scripts {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.config.js"></script>
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/ueditor/ueditor.all.min.js"></script>
+    <!--组件初始化-->
+    <script type="text/javascript">
+    let logoImageWebUploader = null;
+    let mainImageWebUploader = null;
+    let homePageSlideImageWebUploader = null;
+    let organization;
+    var fileSetting = {
+        fileNumLimit: 1,
+        postUrl: '@(ViewBag.DocWebApiDomain)Resources/Upload',
+        chunkCheckUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunkCheck',
+        chunksMergeUrl: '@(ViewBag.DocWebApiDomain)Resources/ChunksMerge',
+        fileMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.FileMaxSize,
+        fileExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.FileExt',
+        downloadFileUrl: '@(ViewBag.DocWebApiDomain)Resources/DownloadFile?id=',
+        imageMaxSize: @KC.Framework.Base.GlobalConfig.UploadConfig.ImageMaxSize,
+        imageExt: '@KC.Framework.Base.GlobalConfig.UploadConfig.ImageExt',
+        showImageUrl: '@(ViewBag.DocWebApiDomain)Resources/ShowImage?id=',
+        //isArchive：归档设置
+        //blobId：用于拷贝其他blob后，所使用新的blobId
+        params: { isArchive: true, blobId: '@(Guid.NewGuid())' }
+    };
+    //解决UEditor跨域上传问题
+    let uploadUrl = '@(ViewBag.DocWebApiDomain)Resources/Upload';
+    UE.Editor.prototype._bkGetActionUrl = UE.Editor.prototype.getActionUrl;
+    UE.Editor.prototype.getActionUrl = function (action) {
+        //debugger;
+        if (action == 'uploadimage'
+            || action == 'uploadfile'
+            || action == 'listimage'
+            || action == 'uplistfile') {
+            return uploadUrl + "?parm=" + action;
+        } else {
+            return this._bkGetActionUrl.call(this, action);
+        }
+    }
+    $(function () {
+        $('.textbox').bind('blur', function () {
+            $(this).validatebox('enableValidation').validatebox('validate');
+        });
+
+        if ($("#IsEditMode").val() == "True") {
+            $('.Name').attr('disabled', true);
+        }
+
+        organization = new OrganizationVM();
+        organization.HideDialog();
+
+        //网站Logo
+        fileSetting.fileNumLimit = 1;
+        //fileSetting.params = { isArchive: true, blobId: '@Guid.NewGuid()' };
+        logoImageWebUploader = defaultInitImageUploader('LogoImage', 'imageUploaderLogo', 'imageListLogo', fileSetting, true, function (blob) { }
+        );
+
+        //微信公众号
+        mainImageWebUploader = defaultInitImageUploader('MainImage', 'imageUploaderMain', 'imageListMain', fileSetting, true, function (blob) { }
+        );
+
+        //首页轮播图
+        fileSetting.fileNumLimit = 3;
+        homePageSlideImageWebUploader = defaultInitImageUploader('HomePageSlide', 'imageUploaderHomePageSlide', 'imageListHomePageSlide', fileSetting);
+
+        ueditorContent = UE.getEditor('CompanyInfo', {
+            serverUrl: '/Home/Upload',
+            initialFrameWidth: '100%'
+        });
+    })
+    </script>
+    <!--选人控件-->
+    <script type="text/javascript">
+        const selectUserUrl = '@Url.Action(ActionName.GetOrgsWithUsersByRoleIdsAndOrgids, ControllerName.Home, new { Area = "admin" })';
+        function selectUserForm() {
+            organization.InitializeData({
+                selectUserUrl: selectUserUrl,
+                type: 4,                  //7(1+2+4): 组织+角色+用户
+                title: "选择现有人员",
+                orgIds: [],               //需要查询的组织Id列表
+                roleIds: [],              //需要查询的角色Id列表
+                exceptOrgIds: [],         //需要排除的部门Id列表
+                exceptRoleIds: [],        //需要排除的角色Id列表
+                selectOrgCodes: null,     //已选中的组织Id列表
+                selectOrgNames: null,     //已选中的组织名称列表
+                selectRoleIds: null,      //已选中的角色Id列表
+                selectRoleNames: null,    //已选中的角色名称列表
+                selectUserIds: null,      //已选中的人员Id列表
+                selectUserNames: null,    //已选中的人员名称列表
+                selectExceptUserIds: null,
+                selectExceptUserNames: null,
+                isSingleSelect: true,
+                referenceId: null,
+                callback: function (data) {
+                    if (data.users === 0)
+                        return;
+
+                    //debugger;
+                    let orgs = data.orgs;
+                    let roles = data.roles;
+                    let users = data.users;
+                    let exceptUsers = data.exceptUsers;
+
+                    let user = users[0];
+
+                    $("#ContactId").val(user.userId);
+                    $('#ContactName').textbox("setValue", user.displayName);
+                    $('#ContactQQ').textbox("setValue", user.contactQQ);
+                    $('#ContactEmail').textbox("setValue", user.email);
+                    $('#ContactPhone').textbox("setValue", user.phoneNumber);
+
+                    //$.messager.confirm('确认选择<span style="color:red">' + user.displayName + '</span>为门户的联系人?',
+                    //    function (flag) {
+                    //        if (flag) {
+                    //            organization.HideDialog();
+                    //        }
+                    //    });
+                }
+            });
+        }
+    </script>
+    <!--相关事件-->
+    <script type="text/javascript">
+    //获取商品默认选中图片Blob对象的Json字符串
+    let getImageBlob = function (imageWebUploader) {
+        if (imageWebUploader == undefined || imageWebUploader == null)
+            return null;
+        let selectBlob = null;
+        let blobJsonString = '';
+        let imageBlobs = imageWebUploader.getAllBlobs();
+        if (imageBlobs !== undefined && imageBlobs != null && imageBlobs.length > 0) {
+            if (imageWebUploader.options != undefined
+                && imageWebUploader.options.fileNumLimit == 1) {
+                $.each(imageBlobs, function (i, blob) {
+                    selectBlob = blob;
+                    blobJsonString = JSON.stringify(blob);
+                    return blobJsonString;
+                });
+            } else {
+                return JSON.stringify(imageBlobs);
+            }
+        }
+
+        return blobJsonString;
+    };
+
+    const formId = '#saveform';
+    const saveFormUrl = '@Url.Action(ActionName.PortalInfo.SaveWebSiteInfo, ControllerName.PortalInfo)';
+    let SaveForm = function () {
+        let validate = $(formId).form("enableValidation").form("validate");
+        if (!validate) {
+            let errorMsg = '';
+            let invalidComps = $(formId).find(".validatebox-invalid");
+            $.each(invalidComps, function (i, invalidComp) {
+                errorMsg += 'id=' + invalidComp.id + ', ';
+            });
+            console.error("---验证失败的组件Id：" + errorMsg);
+            return;
+        }
+
+        //debugger;
+        let postData = $(formId).form("getData");
+
+        //let jsonData = JSON.stringify(postData);
+        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+        $.ajax({
+            //async: true,
+            url: saveFormUrl,
+            type: "post",
+            dataType: "json",
+            //contentType: "application/json;charset=UTF-8",
+            //data: jsonData,
+            contentType:"application/x-www-form-urlencoded;charset=UTF-8",
+            data: postData,
+            success: function (data) {
+                if (data.success) {
+                    if (data.result) {
+                        $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        setTimeout(function () { location.reload(); }, 2000);
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message);
+                    }
+                } else {
+                    $.messager.showInfoTopCenter('系统提示', data.message);
+                }
+            },
+            complete: function () {
+                $.easyui.loaded();
+            }
+        });
+    }
+
+    const existPortalNameUrl = '@Url.Action(ActionName.PortalInfo.ExistPortalName, ControllerName.PortalInfo)';
+    function existPortalName(id) {
+        $.post(existPortalNameUrl, { id: id, name: $("#Name").val() }, function(data) {
+            if (data == "result") {
+                $.messager.showInfoTopCenter('系统提示', '站点名称【' + $("#Name").val() + '】已存在,请重新输入。');
+                $("#Name").val("");
+            }
+            if (data == "result1") {
+                $.messager.showInfoTopCenter('系统提示', '站点名称【' + $("#Name").val() + '】正在审批中，请重新输入');
+                $("#Name").val("");
+
+            }
+        }, 'json');
+    }
+
+    </script>
+}
+
+

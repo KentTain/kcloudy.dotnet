@@ -1,0 +1,37 @@
+﻿
+@using KC.Service.DTO.Portal
+@{
+    var storeInfo = ViewBag.shopHomeDetails as ShopHomeDetailsDTO;
+    var companyName = string.Empty;
+
+    if (storeInfo != null && storeInfo.ShopInfoAll != null)
+    {
+        companyName = storeInfo.ShopInfoAll.CompanyName;
+    }
+    var homeOperateUrl = ViewBag.HomeOperateUrl as List<WebSiteLinkDTO>;
+}
+<div class="clear"></div>
+
+<div class="footer">
+    <div class="footer_nav clearfix">
+        <a href="/EnterpriseProfile">关于 @companyName</a> &nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="/Home/ContactWay">联系我们</a> &nbsp;&nbsp;&nbsp;&nbsp;
+        @if (homeOperateUrl != null && homeOperateUrl.Any())
+        {
+            <span>友情链接 ：</span>
+            foreach (var item in homeOperateUrl)
+            {
+                <a href="http://@item.Links" style="margin-right: 10px;" target="_blank">@item.Title</a>
+            }
+        }
+        else
+        {
+            <span>友情链接</span>
+        }
+    </div>
+
+    <p class="pb30">技术支持 ：财富共赢集团（深圳）有限公司&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;运营支持 ：大陆之星股份有限公司&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;服务电话 ：<span id="customerServicePhone" class="Logintips">400-788-8586</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;工作日（<span id="serviceDate">周一～周五</span>）：<span id="serviceTime">8:30-18:00</span> </p>
+
+</div>
+
+

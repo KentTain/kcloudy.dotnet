@@ -1,0 +1,104 @@
+﻿@using KC.Web.App.Constants
+@model KC.Service.DTO.App.DevTemplateDTO
+
+<form class="easyui-form" method="post" data-options="novalidate:true" id="saveform" action="@Url.Action(ActionName.DevSetting.SaveAppTemplate, ControllerName.DevSetting)">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.IsPublic)
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.IsDeleted)
+    @Html.HiddenFor(model => model.CreatedBy)
+    @Html.HiddenFor(model => model.CreatedName)
+    @Html.HiddenFor(model => model.CreatedDate)
+    @Html.HiddenFor(model => model.ModifiedBy)
+    @Html.HiddenFor(model => model.ModifiedName)
+    @Html.HiddenFor(model => model.ModifiedDate)
+    <table class="dialog-form-table">
+        <tbody>
+            <tr>
+                <td><label class="required">*</label><label for="Id">开发模板Id：</label></td>
+                <td>
+                    <input asp-for="@Model.Id" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,readonly:true,width:280,prompt:'请输入模板Id',
+                                validType:['length[1,36]','isSpace']" value="@Model.Id" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Name">开发模板名称：</label></td>
+                <td>
+                    <input asp-for="@Model.Name" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:280,prompt:'请输入开发模板名称',
+                                validType:['length[4,100]','isSpace','existName[\'@Url.Action(ActionName.DevSetting.ExistTemplateName, ControllerName.DevSetting)\',\'@Model.Id\',\'@Model.IsEditMode\',\'@Model.Name\',\'已存在该名称\']']" />
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Type">模板类型:</label></td>
+                <td>
+                    @Html.DropDownList("Type", (IEnumerable<SelectListItem>)ViewBag.TemplateTypeList,
+                            new { @id = "Type", @class = "easyui-combobox", @style = "width: 280px;" })
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="Version">模板版本号：</label></td>
+                <td>
+                    <input asp-for="@Model.Version" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:280,validType:'length[3,50]'" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="GitAddress">Git仓库地址：</label></td>
+                <td>
+                    <input asp-for="@Model.GitAddress" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:280,validType:'length[3,500]'" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="GitTagId">Git上TagId：</label></td>
+                <td>
+                    <input asp-for="@Model.GitTagId" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:280,validType:'length[3,64]'" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required">*</label><label for="GitShaId">Git上SHAId：</label></td>
+                <td>
+                    <input asp-for="@Model.GitShaId" class="easyui-validatebox easyui-textbox"
+                           data-options="required:true,width:280,validType:'length[3,64]'" />
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Index">Git是否公开：</label></td>
+                <td>
+                    <input id="sbIsPublic" class="easyui-switchbutton"
+                           data-options="onText:'是',offText:'否',checked:@Json.Serialize(Model.IsPublic)" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required"></label><label for="GitAccount">Git用户账号：</label></td>
+                <td>
+                    <input asp-for="@Model.GitAccount" class="easyui-validatebox easyui-textbox"
+                           data-options="width:280,validType:'length[3,50]'" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required"></label><label for="GitPassword">Git密码：</label></td>
+                <td>
+                    <input asp-for="@Model.GitPassword" class="easyui-validatebox easyui-textbox"
+                           data-options="width:280,validType:'length[6,256]'" />
+                </td>
+            </tr>
+            <tr>
+                <td><label class="required"></label><label for="GitToken">仓库Token：</label></td>
+                <td>
+                    <input asp-for="@Model.GitToken" class="easyui-validatebox easyui-textbox"
+                           data-options="width:280,validType:'length[3,500]'" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+<script>
+    $(function () {
+        initSwitchButton('sbIsPublic', 'IsPublic', @Json.Serialize(Model.IsPublic));
+    });
+</script>

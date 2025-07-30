@@ -1,0 +1,582 @@
+﻿@using KC.Web.Constants
+<style>
+    .divUserPartial .layout-panel-north .panel-body {
+        overflow: hidden;
+    }
+
+    #orgLayout .datagrid-body {
+        overflow: auto;
+    }
+
+    #roleLayout > div {
+        width: 48% !important;
+        height: 100% !important;
+        margin: 5px;
+        float: left;
+        border: 1px solid #ddd;
+    }
+
+    #roleLayout .datagrid-body {
+        overflow: auto;
+    }
+
+    #userLayout [id*='_easyui_tree'] {
+        height: 22px;
+    }
+
+    #userLayout > div {
+        width: 31% !important;
+        height: 100% !important;
+        margin: 5px;
+        float: left;
+        border: 1px solid #ddd;
+    }
+
+        #userLayout > div:first-child {
+            overflow-y: auto;
+        }
+
+    #userLayout .datagrid-body {
+        overflow: auto;
+    }
+
+    #roleLayout .panel-body,
+    #userLayout .panel-body,
+    div.panel-header.panel-title {
+        height: auto;
+        border-width: 0 0 1px 0;
+        border-color: #ddd;
+    }
+</style>
+<script type="text/javascript">
+    function OrganizationVM() {
+        let me = this;
+        let _selectedOrgs = [];
+        let _selectedRoles = [];
+        let _unSelectedRoles = [];
+        let _unSelectedRoleIds = [];
+        let _selectedUsers = [];
+        let _unSelectedUsers = [];
+        let _unSelectedUserIds = [];
+        const _orgLayoutId = '#orgLayout';
+        const _loadDataUrl = '@Url.Action(ActionNameBase.GetOrgsWithUsersByRoleIdsAndOrgids, ControllerNameBase.Account)';
+        let options = {
+            type: 7, //1:组织; 2:角色; 4; 用户; 3(1+2):组织+角色; 6(2+4):角色+用户; 7(1+2+4):所有
+            title: "选择用户",
+            selectUserUrl: _loadDataUrl,
+            orgIds: [],                 //需要查询的部门Id列表
+            roleIds: [],                //需要查询的角色Id列表
+            exceptOrgIds: [],           //需要排除的部门Id列表
+            exceptRoleIds: [],          //需要排除的角色Id列表
+            exceptUserIds: [],          //需要排除的用户Id列表
+            isSingleSelect: true,       //是否单选
+            allowClose: true,           //是否允许关闭
+            showUserName: true,         //是否显示用户名
+            showExceptUserBtn: false,   //是否显示排除用户设置（功能还未实现）
+            callback: null,             //回调函数
+            selectOrgIds: null,         //已选中的组织Id列表
+            selectOrgNames: null,       //已选中的组织名称列表
+            selectRoleIds: null,        //已选中的角色Id列表
+            selectRoleNames: null,      //已选中的角色名称列表
+            selectUserIds: null,        //已选中的人员Id列表
+            selectUserNames: null,      //已选中的人员名称列表
+            selectExceptUserIds: null,
+            selectExceptUserNames: null,
+            referenceId: null,
+            orgInfos: [],
+            roleInfos: [],
+        };
+        me._orgInfos = [];
+        me._roleInfos = [];
+        me.ShowDialog = function () {
+            let $layout = $('<div class="divUserPartial"  style="width:700px;height:500px;margin: 0 5px;"></div>');
+
+            let useOrg = (1 & options.type) == 1;
+            let useRole = (2 & options.type) == 2;
+            let useUser = (4 & options.type) == 4;
+            //选择结果
+            let $inputDiv = $('<div class="divSelect"></div>');
+            let $inputDiv1 = $('<div style="margin:5px 40px">' +
+                '<input id="txtSelectedOrgNames" class="easyui-textbox" name="name" style="width:95%" data-options = "label:\'已选组织:\',readonly:true" >' +
+                '</div>');
+            let $inputDiv2 = $('<div style="margin:5px 40px">' +
+                '<input id="txtSelectedRoleNames" class="easyui-textbox" name="email" style="width:95%" data-options="label:\'已选角色: \',readonly:true">' +
+                '</div>');
+            let $inputDiv3 = $('<div style="margin:5px 40px">' +
+                '<input id="txtSelectedUserNames" class="easyui-textbox" name="email" style="width:95%" data-options="label:\'已选用户: \',readonly:true">' +
+                '</div>');
+            let $inputDiv4 = $('<div style="margin:5px 40px">' +
+                '<input id="txtSelectedExceptUserNames" class="easyui-textbox" name="email" style="width:95%" data-options="label:\'排除用户: \',readonly:true">' +
+                '' +
+                '</div>');
+            let showInputCount = 0;
+            if (useOrg) {
+                showInputCount++;
+                $inputDiv1.appendTo($inputDiv);
+            }
+            if (useRole) {
+                showInputCount++;
+                $inputDiv2.appendTo($inputDiv);
+            }
+            if (useUser) {
+                showInputCount++;
+                $inputDiv3.appendTo($inputDiv);
+            }
+            if (options.showExceptUserBtn) {
+                showInputCount++;
+                $inputDiv4.appendTo($inputDiv);
+            }
+
+            //下方Tab页签设置
+            var $tabs = $('<div class="easyui-tabs"></div>');
+            //选择组织
+            let $orglayout = $('<table id="orgLayout" style="width:610px;margin: 5px;"></table>');
+
+            //选择角色
+            let $roleLayout = $('<div id="roleLayout" style="height:340px;margin: 5px;overflow:unset;"></div>');
+            let $unselectedRole = $('<div><div class="panel-header panel-title">双击添加角色</div><table id="UnselectedRolesData" style="height:340px;"></table></div>');
+            let $selectedRole = $('<div><div class="panel-header panel-title">选中角色（双击移除角色）</div><table id="SelectedRolesData" style="height:340px;"></table></div>');
+            $unselectedRole.appendTo($roleLayout);
+            $selectedRole.appendTo($roleLayout);
+
+            //选择用户
+            let $userlayout = $('<div id="userLayout" style="height:340px;margin: 5px;overflow:unset;"></div>');
+            let $orgFilter = $('<div><ui id="selectOrgTree" style="height:340px;margin: 5px;"></ui></div>');
+            let $unselectedUser = $('<div><div class="panel-header panel-title">双击添加用户</div><div id="UnselectedUsersData"></div></div>');
+            let $selectedUser = $('<div><div class="panel-header panel-title">选中用户（双击移除用户）</div><div id="SelectedUsersData"></div></div>');
+            $orgFilter.appendTo($userlayout);
+            $unselectedUser.appendTo($userlayout);
+            $selectedUser.appendTo($userlayout);
+
+            $tabs.tabs({
+                fit: true,
+                tabWidth: 130,
+                closable: false,
+                refreshable: false,
+            });
+            if (useOrg) {
+                $tabs.tabs('add', {
+                    title: '选择组织',
+                    content: $orglayout,
+                    closable: false,
+                    refreshable: false,
+                    fit: true,
+                });
+            }
+            if (useRole) {
+                $tabs.tabs('add', {
+                    title: '选择角色',
+                    content: $roleLayout,
+                    closable: false,
+                    refreshable: false,
+                    fit: true,
+                });
+            }
+            if (useUser) {
+                $tabs.tabs('add', {
+                    title: '选择用户',
+                    content: $userlayout,
+                    closable: false,
+                    refreshable: false,
+                    fit: true,
+                });
+            }
+
+            let inputDivHeight = 41 * showInputCount;
+            $layout.layout();
+            $layout.layout('add', {
+                region: 'north',
+                content: $inputDiv,
+                split: true,
+                height: inputDivHeight,
+                collapsible: false,
+                border: false
+            }).layout('add', {
+                region: 'center',
+                content: $tabs,
+                split: true,
+                collapsible: false,
+                border: false
+            });
+
+            $.easyui.showDialog({
+                title: options.title,
+                // 弹框top=滚动条到页面顶部的距离+（页面显示的高度-弹框的高度）/2
+                top: $(document).scrollTop() + 22,
+                width: 720,
+                height: 580,
+                modal: true,
+                topMost: false,
+                draggable: false,
+                enableHeaderContextMenu: false,
+                enableApplyButton: false,
+                content: $layout,
+                onOpen: function () {
+                    //设置Input值
+                    if (useOrg && options.selectOrgNames && options.selectOrgNames.length > 0)
+                        $('#txtSelectedOrgNames').textbox('setValue', options.selectOrgNames.join(','));
+                    if (useRole && options.selectRoleNames && options.selectRoleNames.length > 0)
+                        $('#txtSelectedRoleNames').textbox('setValue', options.selectRoleNames.join(','));
+                    if (useUser && options.selectUserNames && options.selectUserNames.length > 0)
+                        $('#txtSelectedUserNames').textbox('setValue', options.selectUserNames.join(','));
+                    if (useUser && options.selectExceptUserNames && options.selectExceptUserNames.length > 0)
+                        $('#txtSelectedExceptUserNames').textbox('setValue', options.selectUserNames.join(','));
+                },
+                onSave: function (d) {
+                    //var nodes = $(_orgLayoutId).tree('getChecked'); // 获取选中的节点
+                    options.callback({
+                        referenceId: options.referenceId,
+                        orgs: _selectedOrgs,
+                        roles: _selectedRoles,
+                        users: _selectedUsers
+                    }, d);
+                    if (!options.allowClose)
+                        return false;
+                },
+                onClose: function () {
+                    me.HideDialog();
+                }
+            });
+        };
+        me.HideDialog = function () {
+            $('#divSelectUser').hide();
+        };
+
+        me.InitializeData = function (opt) {
+            options = $.extend(options, opt);
+            if (options.orgInfos && options.orgInfos.length > 0)
+                me._orgInfos = options.orgInfos;
+            if (options.roleInfos && options.roleInfos.length > 0)
+                me._roleInfos = options.roleInfos;
+
+            me.ShowDialog();
+
+            if (me._orgInfos == undefined
+                || me._orgInfos == null
+                || me._orgInfos.length <= 0) {
+                $.easyui.loading({ msg: '正在载入数据，请稍等...' });
+                $.ajax({
+                    url: options.selectUserUrl,
+                    type: "POST",
+                    async: true,
+                    data: {
+                        'type': options.type,
+                        'orgIds': options.orgIds,
+                        'roleIds': options.roleIds,
+                        'exceptOrgIds': options.exceptOrgIds,
+                        'exceptRoleIds': options.exceptRoleIds,
+                        'exceptUserIds': options.exceptUserIds
+                    },
+                    success: function (data) {
+                        me._orgInfos = data.orgInfos;
+                        me._roleInfos = data.roleInfos;
+                        //加载选择组织UI数据
+                        initOrgTreeGrid();
+
+                        //加载选择角色UI数据
+                        loadRolesData(me._roleInfos);
+                        initUnselectedRoles();
+                        initSelectedRoles();
+
+                        //加载选择用户UI数据
+                        initOrgFilter();
+                        if (options.selectUserIds != null)
+                            loadUsersByUserId(me._orgInfos);
+
+                        initUnselectedUsers();
+                        initSelectedUsers();
+                    },
+                    error: function () {
+                        $.messager.showErrorTopCenter('', '载入组织用户数据失败，请重试。');
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+            } else {
+                _selectedUsers = [];
+                _selectedRoles = [];
+                //加载选择组织UI数据
+                initOrgTreeGrid();
+
+                //加载选择角色UI数据
+                loadRolesData(me._roleInfos);
+                initUnselectedRoles();
+                initSelectedRoles();
+
+                //加载选择用户UI数据
+                if (options.selectUserIds != null
+                    && options.selectUserIds.length > 0) {
+                    loadUsersByUserId(me._orgInfos);
+                }
+                initOrgFilter();
+                initUnselectedUsers();
+                initSelectedUsers();
+            }
+        };
+        //初始化UI：选择组织页签
+        let initOrgTreeGrid = function () {
+            let orgs = me._orgInfos;
+            setSelectedTreeNode(orgs, options.selectOrgIds);
+            //debugger;
+            let $dataGrid = $(_orgLayoutId).tree({
+                data: orgs,
+                idField: 'id',
+                treeField: 'text',
+                striped: true,
+                pagination: false,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: false,
+                nowrap: false,
+                fit: true,
+                lines: true,
+                showFooter: false,
+                checkbox: true,
+                cascadeCheck: false,
+                columns: [
+                    [
+                        { field: 'checked', checkbox: true, title: 'checked', align: 'left' },
+                        { field: 'text', title: '角色名称', width: '20%', align: 'left' },
+                        { field: 'organizationTypeString', title: '描述', width: '40%', align: 'left' }
+                    ]
+                ],
+                onLoadSuccess: function (row, data) {
+                    if (data.length > 0) {
+                        if (_selectedOrgs !== undefined && _selectedOrgs !== null && _selectedOrgs.length > 0) {
+                            for (let i = 0; i < _selectedOrgs.length; i++) {
+                                //找到第一个元素
+                                var n = $(_orgLayoutId).tree('find', _selectedOrgs[i].id);
+                                //调用选中事件
+                                $(_orgLayoutId).tree('check', n.target);
+                            }
+                        }
+                    }
+                },
+                onLoadError: function () {
+                },
+                onClick: function (row) {
+                    if (row.checked) {
+                        $dataGrid.tree('uncheck', row.target);
+                    } else {
+                        $dataGrid.tree('check', row.target);
+                    }
+                },
+                onCheck: function (row, checked) {
+                    if (checked) {
+                        if (!$.array.contains(_selectedOrgs, row, function (a, b) {
+                            return a.id == b.id;
+                        })) {
+                            _selectedOrgs.push(row);
+                        }
+                    } else {
+                        //jquery.extension.coreArray.remove(arr,item, function compare(a,b){return true;})
+                        $.array.remove(_selectedOrgs, row, function (a, b) {
+                            return a.id == b.id;
+                        });
+                    }
+                    let names = _selectedOrgs.map(function (r, index, arr) { return r.text; }).join(',');
+                    $('#txtSelectedOrgNames').textbox('setValue', names);
+                }
+            });
+        };
+        let setSelectedTreeNode = function (orgs, selectOrgIds) {
+            if (orgs !== undefined && orgs !== null && orgs.length > 0) {
+                for (let i = 0; i < orgs.length; i++) {
+                    let org = orgs[i];
+                    let orgId = org.id;
+                    let orgCode = org.organizationCode;
+                    let index = $.inArray(orgId, selectOrgIds);
+                    let index1 = $.inArray(orgCode, selectOrgIds);
+                    if (index !== -1 || index1 !== -1) {
+                        org.checked = true;
+                        _selectedOrgs.push(org);
+                    }
+
+                    if (org.children && org.children.length > 0) {
+                        setSelectedTreeNode(org.children, selectOrgIds);
+                    }
+                }
+            }
+        };
+
+        //初始化UI：选择角色页签
+        let initUnselectedRoles = function () {
+            $('#UnselectedRolesData').datalist({
+                data: _unSelectedRoles,
+                valueField: 'roleId',
+                textField: 'displayName',
+                fit: true,
+                fitColumns: true,
+                singleSelect: true,
+                onDblClickRow: function (index, row) {
+                    if (options.isSingleSelect) {
+                        _unSelectedRoles.push(_selectedRoles[0]);
+                        _selectedRoles = [];
+                    }
+                    _selectedRoles.push(row);
+                    _unSelectedRoles.splice(index, 1);
+                    let names = _selectedRoles.map(function (r, index, arr) { return r.displayName; }).join(',');
+                    $('#txtSelectedRoleNames').textbox('setValue', names);
+                    initUnselectedRoles();
+                    initSelectedRoles();
+                },
+                textFormatter: function (value, row, index) {
+                    return value;
+                }
+            });
+        };
+        let initSelectedRoles = function () {
+            $('#SelectedRolesData').datalist({
+                data: _selectedRoles,
+                valueField: 'roleId',
+                textField: 'displayName',
+                fit: true,
+                fitColumns: true,
+                singleSelect: true,
+                onDblClickRow: function (index, row) {
+                    _selectedRoles.splice(index, 1);
+                    _unSelectedRoles.push(row);
+                    //$.array.remove(options.selectUserIds, row.roleId);
+                    let names = _selectedRoles.map(function (r, index, arr) { return r.displayName; }).join(',');
+                    $('#txtSelectedRoleNames').textbox('setValue', names);
+                    initUnselectedRoles();
+                    initSelectedRoles();
+                }, textFormatter: function (value, row, index) {
+                    return value;
+                }
+            });
+        };
+        let loadRolesData = function (roles) {
+            _unSelectedRoles = [];
+            _unSelectedRoleIds = [];
+
+            if (roles !== undefined && roles !== null && roles.length > 0) {
+                for (let j = 0; j < roles.length; j++) {
+                    let roleId = roles[j].roleId;
+                    //let roleId = $.trim(roles[j].roleId.toLowerCase());
+                    let index = $.inArray(roleId, options.selectRoleIds);
+                    if (index !== -1) {
+                        _selectedRoles.push(roles[j]);
+                    } else {
+                        _unSelectedRoles.push(roles[j]);
+                        _unSelectedRoleIds.push(roleId);
+                    }
+                }
+            }
+        }
+
+        //初始化UI：选择用户页签
+        let initOrgFilter = function () {
+            $('#selectOrgTree').tree({
+                data: me._orgInfos,
+                height: 340,
+                onClick: function (node) {
+                    initUnselectedUsers();
+                }
+            });
+        };
+        let initUnselectedUsers = function () {
+            _unSelectedUsers = [];
+            _unSelectedUserIds = [];
+            let selectedOrg = $("#selectOrgTree").tree('getSelected');
+            selectedOrg == null ? getAllOrgsNestedUsers(me._orgInfos) : getAllOrgsNestedUsers([selectedOrg]);
+            for (let j = 0; j < _selectedUsers.length; j++) {
+                let userId = _selectedUsers[j].userId;
+                //let userId = $.trim(_selectedUsers[j].userId.toLowerCase());
+                for (let k = 0; k < _unSelectedUserIds.length; k++) {
+                    if (userId === _unSelectedUserIds[k]) {
+                        _unSelectedUsers.splice(k, 1);
+                        _unSelectedUserIds.splice(k, 1);
+                    }
+                }
+            }
+            $('#UnselectedUsersData').datalist({
+                data: _unSelectedUsers,
+                valueField: 'userId',
+                textField: 'displayName',
+                fit: true,
+                fitColumns: true,
+                singleSelect: true,
+                onDblClickRow: function (index, row) {
+                    if (options.isSingleSelect) {
+                        _selectedUsers = [];
+                    }
+                    _selectedUsers.push(row);
+                    let names = _selectedUsers.map(function (r, index, arr) { return r.displayName; }).join(',');
+                    $('#txtSelectedUserNames').textbox('setValue', names);
+                    initUnselectedUsers();
+                    initSelectedUsers();
+                },
+                textFormatter: function (value, row, index) {
+                    if (options.showUserName)
+                        return value + "(" + row.userName + ")";
+                    return value;
+                }
+            });
+        };
+        let initSelectedUsers = function () {
+            $('#SelectedUsersData').datalist({
+                data: _selectedUsers,
+                valueField: 'userId',
+                textField: 'displayName',
+                fit: true,
+                fitColumns: true,
+                singleSelect: true,
+                onDblClickRow: function (index, row) {
+                    _selectedUsers.splice(index, 1);
+                    let names = _selectedUsers.map(function (r, index, arr) { return r.displayName; }).join(',');
+                    $('#txtSelectedUserNames').textbox('setValue', names);
+                    initUnselectedUsers();
+                    initSelectedUsers();
+                }, textFormatter: function (value, row, index) {
+                    if (options.showUserName)
+                        return value + "(" + row.userName + ")";
+                    return value;
+                }
+            });
+        };
+        let getAllOrgsNestedUsers = function (orgsWithUsers) {
+            if (orgsWithUsers === undefined || orgsWithUsers === null || orgsWithUsers.length === 0)
+                return;
+            for (let i = 0; i < orgsWithUsers.length; i++) {
+                let org = orgsWithUsers[i];
+                if (org == undefined || org == null
+                    || org.users == undefined || org.users == null)
+                    continue;
+                for (let j = 0; j < org.users.length; j++) {
+                    let userId = org.users[j].userId;
+                    //let userId = $.trim(org.users[j].userId.toLowerCase());
+                    let index = $.inArray(userId, _unSelectedUserIds);
+                    if (index === -1) {
+                        _unSelectedUsers.push(org.users[j]);
+                        _unSelectedUserIds.push(userId);
+                    }
+                }
+                getAllOrgsNestedUsers(org.children);
+            }
+        };
+        let loadUsersByUserId = function (org) {//筛选初始化选中的数据
+            if (options.selectUserIds.length === 0)
+                return;
+            if (org === undefined || org === null || org.length === 0)
+                return;
+            for (let i = 0; i < org.length; i++) {
+                loadUsersByUserId(org[i].children);
+                if (org[i].users == null)
+                    continue;
+                for (let j = 0; j < org[i].users.length; j++) {
+                    let userId = org[i].users[j].userId;
+                    //let userId = $.trim(org[i].users[j].userId.toLowerCase());
+                    let index = $.inArray(userId, options.selectUserIds);
+                    if (index !== -1) {
+                        _selectedUsers.push(org[i].users[j]);
+                        options.selectUserIds.splice(index, 1);
+                        if (options.selectUserIds.length === 0)
+                            return;
+                    }
+                }
+            }
+        };
+    }
+</script>

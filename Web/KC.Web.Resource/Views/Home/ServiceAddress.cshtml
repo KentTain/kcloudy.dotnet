@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "OIDC服务地址";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="main">
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+        <legend>OIDC服务地址</legend>
+    </fieldset>
+    <div>
+    服务器地址：<a href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)api/GlobalConfigApi/GetData">@(KC.Framework.Base.GlobalConfig.ResWebDomain)api/GlobalConfigApi/GetData</a>;
+    </div>
+    <br />
+    <pre id="result">
+    </pre>
+    <br />
+</div>
+
+
+@section Scripts {
+    <script>
+        $(function () {
+            getAddressData();
+        });
+        let serviceAddressUrl = "/api/GlobalConfigApi/GetData";
+        let getAddressData = function () {
+            $.ajax({
+                async: true,
+                cache: true,
+                url: serviceAddressUrl,
+                type: "get",
+                dataType: "json",
+                contentType: "application/json;charset=UTF-8",
+                success: function (result) {
+                    let addressJson = JSON.stringify(result, null, 4)
+                    $('#result').text(addressJson);
+                },
+                error: function () {
+                }
+            });
+        }
+    </script>
+}

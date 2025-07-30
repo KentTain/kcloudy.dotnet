@@ -1,0 +1,164 @@
+﻿@using KC.Web.Account.Constants
+@using KC.Framework.Extension
+@model KC.Service.DTO.Account.UserDTO
+
+<form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.User.SaveUser, ControllerName.User)">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.UserId)
+    @Html.HiddenFor(model => model.IsEditMode)
+    @Html.HiddenFor(model => model.MemberId)
+    @Html.HiddenFor(model => model.EmailConfirmed)
+    @Html.HiddenFor(model => model.EmailConfirmedExpired)
+    @Html.HiddenFor(model => model.EmailConfirmedDate)
+    @Html.HiddenFor(model => model.PhoneNumberConfirmed)
+    @Html.HiddenFor(model => model.Password)
+    @Html.HiddenFor(model => model.LockoutEnabled)
+    @Html.HiddenFor(model => model.LockoutEndDateUtc)
+    @Html.HiddenFor(model => model.SecurityStamp)
+    @Html.HiddenFor(model => model.TwoFactorEnabled)
+    @Html.HiddenFor(model => model.AccessFailedCount)
+    @Html.HiddenFor(model => model.CreateDate)
+    @Html.HiddenFor(model => model.OpenId)
+    @*@Html.HiddenFor(model => model.RoleIds)*@
+    <table class="dialog-form-table">
+        @*<tr>
+                <td><label class="required">*</label><label for="UserCode">用户编号：</label></td>
+                <td><input id="MemberId" name="MemberId" class="easyui-validatebox easyui-textbox" data-options="required:true,validType: ['length[2,30]'],width:200" value="@(null != Model ? Model.MemberId : string.Empty)" readonly="readonly" /></td>
+
+            </tr>*@
+        <tr>
+            <td><label class="required">*</label><label for="UserName">用户名：</label></td>
+            @*<td><input id="UserName" name="UserName" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,validType:['length[2,30]', 'isSpace']" onblur="existUserName($('#UserId').val())" value="@(null != Model ? Model.UserName : string.Empty)" /></td>*@
+
+            <td>
+                @*<input id="UserName" name="UserName" class="easyui-textbox"
+                    data-options="width: 200,required:true,validType:['engNum','minLength[6]',]"
+                    value="@(null != Model ? Model.UserName : string.Empty)" />*@
+
+                <input id="UserName" name="UserName" class="easyui-textbox"
+                       data-options="required:true,width:200,delay:500,validateOnBlur:true,prompt:'请输入用户名',validType: {length:[5,15],existName:['@Url.Action(ActionName.User.ExistUserName, ControllerName.User, new { area = ""  })','@Model.UserId','@Model.IsEditMode','@(Model.UserName??"")','该用户名已存在']}"
+                       value="@(null != Model ? Model.UserName : string.Empty)" />
+            </td>
+        </tr>
+        <tr>
+            <td><label class="required">*</label><label for="OrganizationId">所属部门：</label></td>
+            <td><input id="OrganizationId" name="OrganizationId" class="easyui-textbox" style="width: 200px;"></td>
+        </tr>
+        <tr>
+            <td><label class="required">*</label><label for="DisplayName">姓名：</label></td>
+            <td>
+                <input id="DisplayName" name="DisplayName" class="easyui-textbox"
+                       data-options="required:true,width:200,prompt:'请输入用户姓名',validType:['length[2,15]']"
+                       value="@(null != Model ? Model.DisplayName : string.Empty)" />
+            </td>
+        </tr>
+        <tr>
+
+            <td><label class="required">*</label><label for="Email">邮箱：</label></td>
+            <td>
+                <input id="Email" name="Email" class="easyui-validatebox easyui-textbox"
+                       data-options="required:true,width:200,delay:500,validateOnBlur:true,prompt:'请输入用户邮箱',validType:{email:'email',existName:['@Url.Action(ActionName.User.ExistUserEmail, ControllerName.User, new { area = "" })','@Model.UserId','@Model.IsEditMode','@(Model.Email??"")','该邮箱已存在']}"
+                       value="@(null != Model ? Model.Email : string.Empty)" />
+            </td>
+        </tr>
+        <tr>
+            <td><label class="required">*</label><label for="PhoneNumber">手机号：</label></td>
+            @*<td><input id="PhoneNumber" name="PhoneNumber" class="easyui-validatebox easyui-textbox" data-options="required:true,width:200,invalidMessage:'手机号必须是正确的手机格式', validType:{mobile:'mobile'}" onblur="existUserPhone($('#UserId').val())" value="@(null != Model ? Model.PhoneNumber : string.Empty)" /></td>*@
+            <td>
+                <input id="PhoneNumber" name="PhoneNumber" class="easyui-validatebox easyui-textbox"
+                       data-options="required:true,width:200,delay:500,validateOnBlur:true,prompt:'请输入手机号',validType:{mobile:'mobile',existName:['@Url.Action(ActionName.User.ExistUserPhone, ControllerName.User, new { area = "" })','@Model.UserId','@Model.IsEditMode','@(Model.PhoneNumber??"")','系统已存在该手机号']}"
+                       value="@(null != Model ? Model.PhoneNumber : string.Empty)" />
+            </td>
+        </tr>
+        <tr>
+            <td><label for="Telephone">座机号：</label></td>
+            <td>
+                <input id="Telephone" name="Telephone" class="easyui-validatebox easyui-textbox" placeholder="分机号格式：82680051-801"
+                       data-options="width:200,validType:['tel','length[6,15]']"
+                       value="@(null != Model ? Model.Telephone : string.Empty)" />
+            </td>
+        </tr>
+
+        <tr>
+            <td><label class="required"></label><label for="ContactQQ">联系人QQ：</label></td>
+            <td>
+                <input id="ContactQQ" name="ContactQQ" class="easyui-validatebox easyui-textbox"
+                       data-options="width:200,validType: ['qq']"
+                       value="@(null != Model ? Model.ContactQQ : string.Empty)" />
+            </td>
+        </tr>
+        <tr>
+            <td><label class="required">*</label><label for="PositionLevel">员工类型：</label></td>
+            <td>
+                @*https://docs.microsoft.com/en-us/aspnet/core/mvc/views/working-with-forms?view=aspnetcore-5.0#the-select-tag-helper*@
+                <select id="PositionLevel" name="PositionLevel" class="easyui-combobox"
+                        data-options="width:200,editable: false, required:true,"
+                        asp-items="ViewBag.PositionLevels" panelHeight="auto"></select>
+            </td>
+        </tr>
+
+
+        @*<tr>
+                    <td><label for="IsDefaultMobile">手机是否为默认通话方式:</label></td>
+                    <td>
+                        @if (Model == null || Model.IsDefaultMobile == false)
+                    {
+                        <input type="radio" name="IsDefaultMobile" value="True" /><label>是</label>
+                        <input type="radio" name="IsDefaultMobile" value="False" checked="checked" /><label>否</label>
+                }
+                else
+                {
+                    <input type="radio" name="IsDefaultMobile" value="True" checked="checked" /><label>是</label>
+                    <input type="radio" name="IsDefaultMobile" value="False" /><label>否</label>
+            }
+                    </td>
+                </tr>*@
+
+    </table>
+
+</form>
+
+<script type="text/javascript">
+    $(function () {
+
+        //$("#UserName").validatebox({
+        //    required: true,
+        //    validType: {
+        //        engNum: true,
+        //        minLength: [6],
+        //        remote: ['', '', '该用户名已存在']
+        //    }
+        //});
+        //$('.textbox').bind('blur', function () {
+        //    $(this).validatebox('enableValidation').validatebox('validate');
+        //});
+        $('#OrganizationId').combotree({
+            multiple: true,
+            url: '@Url.Action(ActionName.Organization.LoadOrganizationTree, ControllerName.Organization)',
+            queryParams: {
+                name: null,
+                excludeId: null,
+                selectedId: null,
+                hasAll: false,
+                hasRoot: false,
+                maxLevel: 3
+            },
+            required: true,
+            cascadeCheck: false,
+            prompt: '请选择所属部门'
+        });
+        var organizationName = $('#OrganizationId').combotree('getValues');
+        $('#OrganizationId').combotree('setValues', [@(null != Model ? Model.OrganizationIds.ToCommaSeparatedStringByFilter(m => m.ToString()) : null)]);
+
+        if ($("#IsEditMode").val() == "True") {
+            $('.userName').attr('disabled', true);
+        }
+        $("#PositionLevel").combobox({
+            editable: false,
+           required:true
+        })
+    })
+
+
+</script>
+

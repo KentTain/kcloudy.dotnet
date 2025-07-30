@@ -1,0 +1,698 @@
+﻿@using KC.Enums.CRM
+@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@using KC.Web.Util
+
+@model int
+@{
+    var model = (CompanyType)Model;
+    var controllerName = ControllerName.CustomerInfo;
+    var changelogAction = ActionName.CustomerInfo.CustomerChangeLogList;
+    var tracingAction = ActionName.CustomerInfo.CustomerTracingLogList;
+
+    <!--配置管理-删除配置属性-->
+    var canOpenChangeLog = false;
+    //if ((await AuthorizationService.AuthorizeAsync(User, "8542C34A-C616-4534-A17F-615B873C5A46")).Succeeded)
+    {
+        canOpenChangeLog = true;
+    }
+    <!--配置管理-删除配置属性-->
+    var canOpenTracingLog = false;
+    //if ((await AuthorizationService.AuthorizeAsync(User, "8542C34A-C616-4534-A17F-615B873C5A46")).Succeeded)
+    {
+        canOpenTracingLog = true;
+    }
+}
+@functions
+{
+public string GetDisplayName()
+{
+    string displayName = "客户";
+    var customerType = (CompanyType)Model;
+    if (customerType == CompanyType.Supplier)
+        displayName = "企业";
+    if (customerType == CompanyType.Institute)
+        displayName = "机构";
+    return displayName;
+}
+}
+@* ReSharper disable once UsageOfPossiblyUnassignedValue *@
+<script type="text/javascript">
+    var defaultGuid = 0;
+    var canOpenChange = '@canOpenChangeLog' === 'True';
+    var canOpenTracing = '@canOpenTracingLog' === 'True';
+
+    //move to com.common.js
+    $(function() {
+        $('#CompanyType_@(model)').combobox({ editable: false });
+        $('#CustomerSource_@(model)').combobox({ editable: false });
+
+        //客户类型
+        $('#ClientType_@(model)').combobox(
+        {
+            editable: false,
+            onSelect: function() {
+                //searchData_@(model)();
+            }
+        });
+        //地区
+        $('#area_@(model)').textbox('textbox').bind('keydown', function(e) {
+            if (e.keyCode === 13)
+                searchData_@(model)();
+        });
+        //客服经理
+        @*$('#CustomerManangeName_@(model)').textbox('textbox').bind('keydown', function(e) {
+            if (e.keyCode === 13)
+                searchData_@(model)();
+        });*@
+        
+        //经营范围
+        @*$('#fanwei_@(model)').textbox('textbox').bind('keydown', function(e) {
+            if (e.keyCode === 13)
+                searchData_@(model)();
+        });*@
+        //开始时间
+        $('#startTime_@(model)').bind('keydown', function(e) {
+            if (e.keyCode === 13)
+                searchData_@(model)();
+        });
+        //结束时间
+        $('#endTime_@(model)').bind('keydown', function(e) {
+            if (e.keyCode === 13)
+                searchData_@(model)();
+        });
+
+        //首次只加载机构客户
+        if ('@(model==CompanyType.Customer)' == 'True') {
+            InitDataGrid_@(CompanyType.Supplier)();
+        }
+
+        InitInsertFromExcelUploader_@(model)();
+
+         //单击tab加载客户和样式
+        var hadLoadPersonalCustomer = false;
+        var hadLoadOrganizationCustomer = false;
+        var hadLoadCompanyCustomer = false;
+        $('#customerInfoTab').tabs({
+            onSelect: function (title, index) {
+                if (index === 0)
+                    if (!hadLoadCompanyCustomer) {
+                        InitDataGrid_@(CompanyType.Customer)();
+                        hadLoadCompanyCustomer = true;
+                    }
+                    $('#datagrid_Company').datagrid("fixRowHeight"); //固定行高
+                if (index === 1) {
+                    if (!hadLoadOrganizationCustomer) {
+                        InitDataGrid_@(CompanyType.Institute)();
+                        hadLoadOrganizationCustomer = true;
+                    }
+                    $('#datagrid_Organization').datagrid("fixRowHeight"); //固定行高
+                }
+                if (index === 2) {
+                    if (!hadLoadPersonalCustomer) {
+                        InitDataGrid_@(CompanyType.Customer)();
+                        hadLoadPersonalCustomer = true;
+                    }
+                    $('#datagrid_Personal').datagrid("fixRowHeight"); //固定行高
+                }
+
+                removeSearchBtn();
+            }
+        });
+        $('#customerInfoTab').tabs('select', @ViewBag.InitTabIndex);
+
+        removeSearchBtn();
+    });
+
+    function removeSearchBtn() {
+        var searchBtn = $('.textbox .searchbox .textbox-addon easyui-textbox-addon-right');
+        //searchBtn.remove();
+    }
+
+    var insertUploader_@(model) = null;
+    var insertFromExcelUrl_@(model) = '@Url.Action(ActionName.CustomerInfo.UploadExcelTemplate, ControllerName.CustomerInfo)';
+    function InitInsertFromExcelUploader_@(model)() {
+        insertUploader_@(model) = cfwinUploader({
+            baseUrl: '/Scripts/webuploader/',
+            postUrl: insertFromExcelUrl_@(model),
+            btnAddFile: $('#insertFromExcel_@(model)'),
+            //btnContinueAddFile: $('#continueAddFile'),
+            //fileList: $('.uploadPicList'),
+            type: 1,
+            fileNumLimit: 10,
+            params: { tenatName: '', blobId: '' },
+            configure: {
+                fileMaxSize: 15,
+                fileExt: 'xlsx'
+            },
+            callback: {
+                uploadProgress: function(file, percentage) {
+                    $.easyui.loading({ msg: '正在导入数据，请稍等...' });
+                    $("#" + file.id + ".progress-bar").css('width', (percentage * 100).toFixed(2) + "%");
+                },
+                uploadComplete: function(file) { //不管成功或者失败，文件上传完成时触发
+                },
+                uploadSuccess: function(file, data) {
+                    if (data) {
+                        var message = '';
+                        var errorCount = 0;
+                        if (data.message.length > 0)
+                            message = data.message;
+                        if (data.result) {
+                            if (data.result.message.length > 0) {
+                                message = data.result.message.split('！');
+                                var newMessage = '';
+                                if (data.result.number !== 0) {
+                                    var number = data.result.number;
+                                    newMessage += "您已成功导入到第" + number + "条数据。";
+                                }
+                                if (data.result.number !== 0 && message.length > 0) {
+                                    newMessage += "其中：<br/>";
+                                }
+                                for (var i = 0; i < message.length; i++) {
+                                    newMessage +=  message[i] + '<br/>';
+                                }
+                                errorCount = message.length;
+                                message = newMessage;
+                            }
+                        }
+                        $.messager.showErrorTopCenter('系统提示', message, 5000 + (errorCount * 1000), 380, 100 + 15 *errorCount);
+                    } else {
+                        $.messager.showErrorTopCenter('系统提示', '数据导入失败！');
+                    }
+
+                    $('#datagrid_@(model)').datagrid('reload');
+                    $('#' + file.id).remove();
+                    $.easyui.loaded();
+                },
+                uploadError: function(file, reason) {
+                    $.messager.showErrorTopCenter('系统提示', '上传文件失败，失败原因：' + reason);
+                },
+                onFileQueued: function(file) {
+                    //$('#insertFromExcel').hide();
+                    insertUploader_@(model).upload();
+                }
+            }
+        });
+    }
+
+    var getdetailUrl_@(model) = '@Url.Action(ActionName.CustomerInfo.CustomerDetailInfo, ControllerName.CustomerInfo)';
+    var loadDataUrl_@(model) = '@Url.Action(ActionName.CustomerInfo.LoadCustomerInfoList, ControllerName.CustomerInfo)';
+
+    function InitDataGrid_@(model)() {
+        var $dataGrid = $('#datagrid_@(model)').datagrid({
+            url: loadDataUrl_@(model) + "?customerType=@(Model)",
+            method: 'get',
+            idField: 'CustomerId',
+            toolbar: '#toolbar_@(model)',
+            striped: true,
+            fitColumns:true,
+            rowNumbers: true,
+            singleSelect: false,
+            nowrap: false,
+            fit: true,
+            pagination: true,
+            pageList: [10, 20, 50, 100],
+            columns: [
+                [
+                    { field: 'Checker', title: '选中', checkbox: true, width: 10, align: 'left' },
+                    { field: 'CustomerName', title: '@(GetDisplayName())名称', width: 150, align: 'left'
+                        @*formatter: function (value, row, index) {
+                            return '<a href="##" class="btnUsers" onclick="opentModuleForm(\'' + row.CustomerId + '\',\'' + row.CustomerName + '\',\'' + getdetailUrl_@(model) + '\',\'详细信息\')">' + value + '</a>';
+                        }*@
+                    },
+                { field: 'CustomerId', title: '客户Id', hidden: true },
+                { field: 'CompanyTypeStr', title: '客户类型', width: 50, align: 'left' },
+                { field: 'ClientTypeStr', title: '客户分类', width: 60, align: 'left', formatter: setEmptyIf },
+                { field: 'CustomerLevelStr', title: '客户等级', width: 60, align: 'left', formatter: setEmptyIf },
+                { field: 'CustomerSourceStr', title: '客户来源', width: 60, align: 'left', formatter: setEmptyIf },
+                { field: 'ContactName', title: '联系人', width: 60, align: 'left' },
+                { field: 'ContactPhoneNumber', title: '联系人手机', width: 90, align: 'left' },
+                { field: 'ContactEmail', title: '联系人邮箱', width: 120, align: 'left' },
+                { field: 'ContactQQ', title: '联系人QQ', width: 100, align: 'left' },
+                { field: 'RecommandedUserName', title: '创建人', width: 60, align: 'left' }
+                ]
+            ],
+            onBeforeLoad: function (param) {
+            },
+            onLoadSuccess: function (data) {
+                removeSearchBtn();
+                $('#datagrid_@(model)').datagrid('unselectAll');
+                $('#datagrid_@(model)').datagrid('uncheckAll');
+                $(".btnUsers").linkbutton({ plain: true, iconCls: 'icon-standard-user-suit' });
+                $(".btnLogs").linkbutton({ plain: true, iconCls: 'icon-standard-page-white-text' });
+                $('#datagrid_@(model)').datagrid("fixRowHeight"); //固定行高
+            },
+            onLoadError: function () {
+
+            },
+            view: detailview,
+            detailFormatter: function (index, row) {
+                return '<div style="padding:2px;"><table id="ddv"></table></div>';
+            },
+            onExpandRow: function (index, row) {
+                loadCustomerManagers(index, row, '#datagrid_@(model)');
+            }
+        });
+        $('#txtSearchbox_@(model)').searchbox({
+            menu: '#divSearchMenu_@(model)',
+            prompt: '请输入查询值',
+            searcher: searchData_@(model),
+            onLoadSuccess: function (data) {
+                removeSearchBtn();
+            }
+        });
+    }
+
+    //查询
+    function reloadDatagrid_@(model)() {
+        searchData_@(model)();
+    }
+
+    //刷新
+    function refreshSearch_@(model)() {
+        $("#ClientType_@(model)").combobox('setValue', '');
+        $('#area_@(model)').val('');
+        $('#startTime_@(model)').val('');
+        $('#endTime_@(model)').val('');
+        $("#searchbox_@(model)").searchbox('setValue', '');
+        reloadDatagrid_@(model)();
+    }
+
+    function registeredAssetsFormatter(value) {
+        if (value)
+            return value + "万元";
+        return value;
+    }
+
+    function setEmptyIf(value) {
+        if (value==="-1")
+            return ""
+        return value;
+    }
+
+    function convertBoolean(value) {
+        if (value === "true") return true;
+        if (value === "false") return false;
+        return false;
+    }
+
+    //获取tab index
+    function getTabIndex() {
+        var tab = $('#customerInfoTab').tabs('getSelected');
+        var index = $('#customerInfoTab').tabs('getTabIndex', tab);
+        return index;
+    }
+
+    function searchData_@(model)(value, name) {
+        $('#datagrid_@(model)').datagrid('unselectAll');
+        $('#datagrid_@(model)').datagrid('uncheckAll');
+        $("#searchKey_@(model)").val(name);
+        $("#searchValue_@(model)").val(value);
+        var customerType = "@Model";
+        var clientType = $("#ClientType_@(model)").combobox("getValue");
+        var customerLevel = "";
+        var customerSource = "";
+        var startTime = $('#startTime_@(model)').val();
+        var endTime = $('#endTime_@(model)').val();
+        //var businessScope=$('#fanwei_@(model)').val();//经营范围
+        var area=$('#area_@(model)').val();//地区
+
+        $("#updateFromExcel_@(model)").attr("href", "/CustomerInfo/UsersToExcel?searchKey=" + name + "&searchValue=" + value + "&customerType=" + customerType + "&clientType=" + clientType + "&customerLevel=" + customerLevel + "&customerSource=" + customerSource + "");
+
+        $('#datagrid_@(model)').datagrid('load', {
+            "searchKey": name,
+            "searchValue": value,
+            "customerType": customerType,
+            "clientType": clientType,
+            "customerLevel": customerLevel,
+            "customerSource": customerSource,
+            "onlyShowClientSerivce": true,
+            //"customerManangeName": $("#CustomerManangeName_@(model)").textbox('getValue'),
+            "startTime":startTime,
+            "endTime":endTime,
+            //"businessScope":businessScope,
+            "area":area
+        });
+    }
+
+    var CustomerChangeLogUrl = '@Url.Action(ActionName.CustomerInfo.CustomerChangeLogList, ControllerName.CustomerInfo)';
+    var CustomerTracingLogListUrl = '@Url.Action(ActionName.CustomerInfo.CustomerTracingLogList, ControllerName.CustomerInfo)';
+
+    function addApplicationButton_@(model)(value, row, index) {
+        //var tdContext = '<a href="##" class="btnLogs" onclick="opentTracingForm(\'' + row.CustomerId + '\',\'' + row.CustomerName + '\')">新增跟踪信息</a>';
+        //var tdContext = "";
+        var tdContext= '<a href="##" class="btnUsers" onclick="opentModuleForm(\'' + row.CustomerId + '\',\'' + row.CustomerName + '\',\'' + getdetailUrl_@(model) + '\',\'联系人\')">更多联系人</a>';
+        if (canOpenChange)
+            tdContext += '<a href="##"  class="btnLogs" onclick="opentModuleForm(\'' + row.CustomerId + '\',\'' + row.CustomerName + '\',\'' + CustomerChangeLogUrl + '\',\'变更日志\')">查看变更日志</a>';
+        //if (canOpenTracing)
+        //tdContext += '<a href="##"  class="btnLogs" onclick="opentModuleForm(\'' + row.CustomerId + '\',\'' + row.CustomerName + '\',\'' + CustomerTracingLogListUrl + '\',\'跟踪信息\')">跟踪信息</a>';
+        return tdContext;
+    }
+    function urlFormatter(value,row,index) {
+        if (row.CompanyWebsite) {
+            return '<a href="http://'+row.CompanyWebsite+'" target="_blank">'+row.CompanyWebsite+'</a>';
+        }
+    }
+
+    function opentModuleForm(id, name, url, str) {
+        showMaxDialog((name == null ? "" : name + "的") + str, url + "?customerId=" + id + "&isoperate=1");
+        //parent.window.mainpage.mainTabs.addModule((name == null ? "" : name + "的") + str, url + "?customerId=" + id + "&isoperate=1", null, true, true, false, true);
+    }
+
+    //新增编辑客户信息
+    var getFormUrl_@(model) = '@Url.Action(ActionName.CustomerInfo.GetCustomerInfoForm, ControllerName.CustomerInfo)';
+    var saveFormUrl_@(model) = '@Url.Action(ActionName.CustomerInfo.SaveCustomerInfoForm, ControllerName.CustomerInfo)';
+
+    function opentForm_@(model)(id) {
+        var title = "";
+        var tabIndex = getTabIndex();
+        var gridHeigth = 550;
+        var customerPrefix = "机构客户";
+        if (tabIndex === 1) {
+            customerPrefix = "个人客户";
+            gridHeigth = 400;
+        }
+        if (tabIndex === 2)
+            customerPrefix = "企业客户";
+        if (id === 0) {
+            title = "新增" + customerPrefix;
+        } else {
+            title = "编辑" + customerPrefix;
+        }
+
+        var result = false;
+        var dialog = $.easyui.showDialog({
+            title: title,
+            width: 800,
+            height: gridHeigth,
+            href: getFormUrl_@(model) + "?id=" + id + "&tabIndex=" + getTabIndex(),
+            modal: true,
+            topMost: false,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onSave: function (d) {
+                var validate = d.form("enableValidation").form("validate");
+                if (validate&&validCity()) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: saveFormUrl_@(model),
+                        data: AddAntiForgeryToken(d.form("getData")),
+                        success: function (data) {
+                            if (data.success) {
+                                result = true;
+                                d.window('close');
+                                if (data.result) {
+                                    $('#datagrid_@(model)').datagrid('clearSelections');
+                                    $('#datagrid_@(model)').datagrid('reload');
+                                    $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                } else {
+                                    $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                                }
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                            }
+                        },
+                        complete: function () {
+                            $.easyui.loaded();
+                        }
+                    });
+                    return false;
+                } else {
+                    return false;
+                }
+            },
+            onBeforeClose: function() {
+                if (!result) {
+                    $.messager.confirm("系统提示", "你确定要关闭窗口吗?",
+                        function(r) {
+                            if (r) {
+                                result = true;
+                                dialog.dialog("close", true);
+                            }
+                        });
+                }
+                return result;
+            },
+            onLoad: function () {
+                var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                f.form("disableValidation").form("enableValidation");
+                return ret;
+            }
+        });
+    }
+
+    function validCity() {
+        if ($('#ProviceID').val() > 0) {
+            if ($('#CityId').val()==='选择市') {
+                $.messager.showErrorTopCenter('错误消息', '请选择市。', 1000);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function addDatabasePool_@(model)() {
+        opentForm_@(model)(defaultGuid);
+    }
+
+    function editDatabasePool_@(model)() {
+        var rows = $('#datagrid_@(model)').datagrid('getChecked');
+        if (rows && rows.length == 1) {
+            opentForm_@(model)(rows[0].CustomerId);
+        } else {
+            $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行编辑！', 2000);
+        }
+    }
+
+    //删除客户
+    var removeUrl_@(model) = '@Url.Action(ActionName.CustomerInfo.RemoveCustomerInfo, ControllerName.CustomerInfo)';
+
+    function removeDatabasePool_@(model)() {
+        var ids = [];
+        var rows = $('#datagrid_@(model)').datagrid('getChecked');
+        for (var i = 0; i < rows.length; i++) {
+            ids.push(rows[i].CustomerId);
+            //$('#datagrid').datagrid('unselectRow', $('#datagrid').datagrid('getRowIndex', rows[i]));
+        }
+
+        if (ids.length < 1) {
+            $.messager.showErrorTopCenter('错误消息', '请选择一条记录进行删除！', 2000);
+            return;
+        }
+
+        $.messager.confirm('系统提示', '是否确定删除该条记录?', function (r) {
+            if (r) {
+                $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                $.ajax({
+                    async: true,
+                    type: "post",
+                    dataType: "json",
+                    url: removeUrl_@(model),
+                    data: { idList: ids },
+                    success: function (data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $('#datagrid_@(model)').datagrid('clearSelections');
+                                $('#datagrid_@(model)').datagrid('reload');
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+            }
+        });
+    }
+
+    //客户跟踪信息
+    var ueditorRemark_@(model) = null;
+    var getTracingFormUrl_@(model) = '@Url.Action(ActionName.CustomerInfo.CustomerTracingLogForm, ControllerName.CustomerInfo)';
+    var saveTracingFormUrl_@(model) = '@Url.Action(ActionName.CustomerInfo.SaveCustomerTracingLog, ControllerName.CustomerInfo)';
+
+    function opentTracingForm(customerId, customerName) {
+        var result = false;
+        var dialog = $.easyui.showDialog({
+            title: "新增跟踪信息",
+            width: 1000,
+            height: 500,
+            href: getTracingFormUrl_@(model) + "?id=0&customerId=" + customerId + "&customerName=" + customerName,
+            modal: true,
+            topMost: false,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onSave: function(d) {
+                var validate = d.form("enableValidation").form("validate");
+                var contData = d.form("getData");
+                if (contData.Remark == '') {
+                    $.messager.showErrorTopCenter('错误消息', '客户跟踪信息内容为空，请填入内容后再重试！', 2000);
+                    return false;
+                }
+                if (validate) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.ajax({
+                        async: true,
+                        type: "post",
+                        dataType: "json",
+                        url: saveTracingFormUrl_@(model),
+                        data: AddAntiForgeryToken(contData),
+                        success: function(data) {
+                            if (data) {
+                                if (data.success) {
+                                    result = true;
+                                    d.window('close');
+                                    $.messager.showInfoTopCenter('系统提示', data.message > 0 ? '修改客户日志成功。' : '客户日志添加成功。');
+                                } else {
+                                    $.messager.showErrorTopCenter('系统提示', data.message);
+                                }
+                                $('#datagrid_@(model)').datagrid('reload');
+                            } else {
+                                $.messager.showErrorTopCenter('系统提示', '客户日志保存数失败。');
+                            }
+                        },
+                        complete: function() {
+                            $.easyui.loaded();
+                        }
+                    });
+                    return false;
+                } else {
+                    return false;
+                }
+            },
+            onLoad: function() {
+                ueditorRemark_@(model) = UE.getEditor('Remark', {
+                    serverUrl: '/Home/Upload'
+                });
+                var f = $(this), ret = $.fn.dialog.defaults.onLoad();
+                f.form("disableValidation").form("enableValidation");
+                return ret;
+            },
+            onBeforeClose: function() {
+                if (!result) {
+                    $.messager.confirm("系统提示", "你确定要关闭窗口吗?",
+                        function(r) {
+                            if (r) {
+                                result = true;
+                                dialog.dialog("close", true);
+                            }
+                        });
+                }
+                return result;
+            },
+            onClose: function() {
+                if (ueditorRemark_@(model) != null)
+                    ueditorRemark_@(model).destroy();
+            }
+        });
+    }
+
+    //定制客户字段
+    var getCustomerFieldCustomForm_@(model) = '@Url.Action(ActionName.CustomerInfo.GetCustomerFieldCustomForm, ControllerName.CustomerInfo)';
+    var saveCustomerFieldCustom_@(model) = '@Url.Action(ActionName.CustomerInfo.SaveCustomerFieldCustom, ControllerName.CustomerInfo)';
+
+    function customerFieldCustomForm_@(model)() {
+        var tabIndex = getTabIndex();
+        var title = "机构客户自定义显示列";
+        var height = 470;
+        if (tabIndex === 1) {
+            title = "个人客户自定义显示列";
+            height = 350;
+        }
+        if (tabIndex === 2)
+            title = "企业客户自定义显示列";
+
+        var result = false;
+        var dialog = $.easyui.showDialog({
+            title: title,
+            width: 500,
+            height: height,
+            href: getCustomerFieldCustomForm_@(model) + "?tabIndex=" + getTabIndex(),
+            modal: true,
+            topMost: false,
+            enableHeaderContextMenu: false,
+            enableApplyButton: false,
+            onSave: function(d) {
+                $.easyui.loading({ msg: '正在为您更新列...' });
+                $.ajax({
+                    async: true,
+                    type: "post",
+                    dataType: "json",
+                    url: saveCustomerFieldCustom_@(model),
+                    data: AddAntiForgeryToken(d.form("getData")),
+                    success: function(data) {
+                        if (data.success) {
+                            result = true;
+                            d.window('close');
+                            debugger;
+                            if (data.result) {
+                                $('#datagrid_@(model)').datagrid('clearSelections');
+                                $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 200);
+                                  var url = '@Url.Action(ActionName.Index, ControllerName.CustomerInfo)' + "?initTabIndex=" + getTabIndex();
+                                window.location.href = url;
+                                //parent.window.mainpage.reloadTab(url);
+                       } else {
+                                $.messager.showErrorTopCenter('错误消息', '保存数据失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                    },
+                    complete: function() {
+                        $.easyui.loaded();
+                    }
+                });
+                return false;
+            },
+            onBeforeClose: function() {
+                if (!result) {
+                    $.messager.confirm("系统提示", "你确定要关闭窗口吗?",
+                        function(r) {
+                            if (r) {
+                                result = true;
+                                dialog.dialog("close", true);
+                            }
+                        });
+                }
+                return result;
+            }
+        });
+    }
+
+    //移至部门公海
+    function transferCustomerToSeas_@(model)() {
+        var transferUrl = "@Url.Action(ActionName.CustomerSea.TransferCutomerToSeas, ControllerName.CustomerSea)";
+        var rows = $('#datagrid_@(model)').datagrid('getChecked');
+        var customerIds = [];
+        for (var i = 0; i < rows.length; i++) {
+            customerIds.push(rows[i].CustomerId);
+        }
+        if (customerIds.length > 0) {
+            $.messager.confirm('系统提示', '确定将客户移至公海？', function(r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(transferUrl, { customerIds: customerIds }, function(result) {
+                        if (result.success) {
+                            $('#datagrid_@(model)').datagrid('clearSelections');
+                            $('#datagrid_@(model)').datagrid('reload');
+                            $.messager.showInfoTopCenter('系统提示', '转移客户成功。', 1000);
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', result.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            });
+        } else {
+            $.messager.showErrorTopCenter('错误消息', "请选择需要移至公海的客户。", 1000);
+        }
+    }
+</script>

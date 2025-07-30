@@ -1,0 +1,255 @@
+﻿@using KC.Web.App.Constants
+@using KC.Framework.Base
+@using Microsoft.AspNetCore.Authorization
+@model KC.Service.DTO.App.ApplicationDTO
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewBag.Title = "应用设置";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--应用设置-保存应用设置-->
+    var canSave = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "AC66039E-42F2-4566-9D62-F445D17D90CE")).Succeeded)
+    {
+        canSave = true;
+    }
+}
+<form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.AppSetting.SaveAppSetting, ControllerName.AppSetting)">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="@Model.IsEditMode" />
+    <input type="hidden" asp-for="@Model.Description" />
+    <input type="hidden" asp-for="@Model.ApplicationId" />
+    <input type="hidden" asp-for="@Model.ApplicationName" />
+    <input type="hidden" asp-for="@Model.IsDeleted" />
+    <input type="hidden" asp-for="@Model.CreatedBy" />
+    <input type="hidden" asp-for="@Model.CreatedName" />
+    <input type="hidden" asp-for="@Model.CreatedDate" />
+    <input type="hidden" asp-for="@Model.ModifiedBy" />
+    <input type="hidden" asp-for="@Model.ModifiedName" />
+    <input type="hidden" asp-for="@Model.ModifiedDate" />
+    <div class="easyui-layout" data-options="width:'100%'">
+        <table class="table table-bordered table-form tr-col2">
+            <tbody>
+                <tr>
+                    <td><label class="required">*</label><label for="Code">应用编码：</label></td>
+                    <td>
+                        <input asp-for="@Model.ApplicationCode" class="easyui-validatebox easyui-textbox"
+                               data-options="required:true,readonly:true,width:'100%', prompt:'请输入配置编码'" />
+                    <td><label class="required">*</label><label for="ApplicationId">应用名称：</label></td>
+                    <td>
+                        <input asp-for="@Model.ApplicationName" class="easyui-validatebox easyui-textbox"
+                               data-options="required:true,readonly:true,width:'100%'" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        @for (var i = 0; i < Model.AppSettings.Count; i++)
+        {
+            <div class="easyui-panel" data-options="width:'100%'" title="@(Model.AppSettings[i].DisplayName + "：" + Model.AppSettings[i].Name + "-" + @Model.AppSettings[i].Code)">
+                <input type="hidden" asp-for="@Model.AppSettings[i].IsEditMode" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].PropertyId" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].Code" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].Name" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].DisplayName" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].Description" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].CanEdit" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].IsRequire" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].ApplicationId" />
+
+                <input type="hidden" asp-for="@Model.AppSettings[i].IsDeleted" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].CreatedBy" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].CreatedName" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].CreatedDate" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].ModifiedBy" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].ModifiedName" />
+                <input type="hidden" asp-for="@Model.AppSettings[i].ModifiedDate" />
+                <table class="table table-bordered table-form tr-col2">
+                    <tbody>
+                        <tr>
+                            @for (var j = 0; j < Model.AppSettings[i].PropertyAttributeList.Count; j++)
+                            {
+                                <td>
+                                    <label style="display:@(Model.AppSettings[i].PropertyAttributeList[j].IsRequire ? "inline" : "none")" class="required">*</label>
+                                    <label for="DisplayName">@(Model.AppSettings[i].PropertyAttributeList[j].DisplayName + "[" + Model.AppSettings[i].PropertyAttributeList[j].Name + "]")：</label>
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].PropertyAttributeId" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Name" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].DisplayName" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Description" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].DataType" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].AppSettingId" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].AppSettingCode" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].AppSettingName" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].CanEdit" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].IsRequire" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Ext1" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Ext2" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Ext3" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Index" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].IsDeleted" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].CreatedBy" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].CreatedName" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].CreatedDate" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].ModifiedBy" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].ModifiedName" />
+                                    <input type="hidden" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].ModifiedDate" />
+                                    <input type="hidden" id="hidden-i-j" value="PropertyAttributeList-@i-@j" />
+
+                                </td>
+                                <td>
+                                    @switch (Model.AppSettings[i].PropertyAttributeList[j].DataType)
+                                    {
+                                        case AttributeDataType.Bool:
+                                            <input type="hidden" id="hidden-value-@i-@j" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Value" />
+                                            <input id="sb-bool-@i-@j" class="sbBoolean easyui-switchbutton" data-options="onText:'是',offText:'否',">
+                                            break;
+                                        case AttributeDataType.Int:
+                                            <input asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Value" class="easyui-numberspinner"
+                                   data-options="required:@Json.Serialize(Model.AppSettings[i].PropertyAttributeList[j].IsRequire),width:'100%'">
+                                            break;
+                                        case AttributeDataType.Decimal:
+                                            <input asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Value" class="easyui-numberbox"
+                                   data-options="required:@Json.Serialize(Model.AppSettings[i].PropertyAttributeList[j].IsRequire),width:'100%',precision:4">
+                                            break;
+                                        case AttributeDataType.DateTime:
+                                            <input asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Value" class="easyui-datetimebox"
+                                   data-options="required:@Json.Serialize(Model.AppSettings[i].PropertyAttributeList[j].IsRequire),width:'100%',showSeconds:false">
+                                            break;
+                                        case AttributeDataType.Text:
+                                            <input asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Value" class="easyui-validatebox easyui-textbox"
+                                   data-options="required:@Json.Serialize(Model.AppSettings[i].PropertyAttributeList[j].IsRequire),width:'100%',multiline:true,height:60">
+                                            break;
+                                        case AttributeDataType.List:
+                                            <input type="hidden" id="hidden-value-@i-@j" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Value" />
+                                            <input type="hidden" id="hidden-ext1-@i-@j" asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Ext1" />
+                                            <input id="cmb-list-@i-@j" class="cmbList easyui-combobox"
+                                   data-options="required:@Json.Serialize(Model.AppSettings[i].PropertyAttributeList[j].IsRequire),width:'100%',panelHeight:'auto',editable:false">
+                                            break;
+                                        default:
+                                            <input asp-for="@Model.AppSettings[i].PropertyAttributeList[j].Value" class="easyui-validatebox easyui-textbox"
+                                   data-options="required:@Json.Serialize(Model.AppSettings[i].PropertyAttributeList[j].IsRequire),width:'100%', prompt:'请输入配置属性值'" />
+                                            break;
+                                    }
+                                </td>
+                                @if (j % 2 == 1)
+                                {
+                                    @Html.Raw("</tr><tr>")
+                                }
+                            }
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        }
+        <div style="height:50px;">
+        </div>
+        <div class="bottom">
+            <!--新增/编辑应用配置定义-保存应用配置定义-->
+            @if ((await AuthorizationService.AuthorizeAsync(User, "AC66039E-42F2-4566-9D62-F445D17D90CE")).Succeeded)
+            {
+                <a href="javascript:void(0)" class="easyui-linkbutton btnSave" iconcls="fa fa-plus" onclick="saveForm()">保存</a>
+            }
+        </div>
+    </div>
+</form>
+@section scripts
+    {
+<script type="text/javascript">
+    $(function () {
+        initSwitchButton();
+
+        initCombobox();
+    })
+
+    let initSwitchButton = function () {
+        $(".sbBoolean").each(function () {
+            let hiddenValId = this.id.replace('sb-bool-', 'hidden-value-');
+            let checked = $('#' + hiddenValId).val();
+            $(this).switchbutton({
+                checked: checked,
+                onChange: function (checked) {
+                    $('#' + hiddenValId).val(checked);
+                }
+            });
+        });
+    }
+    let initCombobox = function () {
+        $(".cmbList").each(function () {
+            let hiddenValId = this.id.replace('cmb-list-', 'hidden-value-');
+            let hiddenExt1Id = this.id.replace('cmb-list-', 'hidden-ext1-');
+            let jsonString = $('#' + hiddenExt1Id).val();
+            let data = eval("(" + jsonString + ")");
+            $(this).combobox({
+                valueField: 'id',
+                textField: 'name',
+                data: data,
+                onLoadSuccess: function (){
+                    let selectId = $('#' + hiddenValId).val();
+                    if(selectId){
+                        $(this).combobox('select', selectId);
+                    } else if (data.length > 0) {
+                        $(this).combobox('select', data[0].id);
+                    }
+                },
+                onSelect: function (record) {
+                    $('#' + hiddenValId).val(record.id);
+                }
+            });
+        });
+    }
+</script>
+<!--保存应用配置定义-->
+<script type="text/javascript">
+    const formId = "#saveform";
+    const indexUrl = '@Url.Action(ActionName.Index, ControllerName.Application)';
+    const saveFormUrl = '@Url.Action(ActionName.Application.SaveAppSetting, ControllerName.Application)';
+    let saveForm = function () {
+        //验证
+        let validate = $(formId).form("enableValidation").form("validate");
+        if (!validate) {
+            let errorMsg = '';
+            let invalidComps = $(formId).find(".validatebox-invalid");
+            $.each(invalidComps, function (i, invalidComp) {
+                errorMsg += 'id=' + invalidComp.id + ', ';
+            });
+            console.error("---验证失败的组件Id：" + errorMsg);
+            return;
+        }
+
+        //debugger;
+        //获取表单数据
+        let formData = $(formId).form("getData");
+        let postData = AddAntiForgeryToken(formData);
+        //console.log(postData);
+        $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+        $.ajax({
+            async: true,
+            url: saveFormUrl,
+            type: 'POST',
+            dataType: 'json',
+            data: postData,
+            success: function (data) {
+                if (data.success) {
+                    if (data.result) {
+                        $('#IsEditMode').val('true');
+                        //$.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                        //MainPage_PostMessage("refreshPage", indexUrl);
+                        setTimeout("closePage()", 50);
+                    } else {
+                        $.messager.showErrorTopCenter('错误消息', data.message);
+                    }
+                } else {
+                    $.messager.showInfoTopCenter('系统提示', data.message);
+                }
+            },
+            complete: function () {
+                $.easyui.loaded();
+            }
+        });
+    }
+
+    const getSettingFormUrl = '@Url.Action(ActionName.Application.AppSettingForm, ControllerName.Application)';
+    let closePage = function () {
+        MainPage_PostMessage("closeSubPage", getSettingFormUrl);
+    };
+</script>
+}

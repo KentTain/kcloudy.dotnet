@@ -1,0 +1,1084 @@
+﻿@using KC.Framework.Extension
+@using KC.Web.Workflow.Constants
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.Workflow.DTO.WorkflowDefinitionDTO
+@{
+    ViewBag.Title = "流程定义管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+    <!--流程定义-流程定义详情-->
+    var canSaveDefinition = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "4A5ADE5F-19F8-4DC7-8731-850605BFCD39")).Succeeded)
+    {
+        canSaveDefinition = true;
+    }
+    var canRemoveField = true;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "6BDD72EA-9B03-4FC1-832F-24F8AD351A21")).Succeeded)
+    {
+        canRemoveField = true;
+    }
+}
+
+@section styles{
+    <style>
+        .datagrid-row td {
+            text-align: center !important;
+        }
+
+        .datagrid-btable > tbody > tr:nth-child(odd) {
+            background-color: #f5f5f5;
+        }
+
+        .datagrid-btable > tbody > tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+
+        .table.table-bordered.datagrid-btable,
+        .table.table-bordered.datagrid-itable {
+            width: 99%;
+            margin: 5px;
+            color: #444;
+        }
+
+            .table.table-bordered.datagrid-itable tr td {
+                color: #444;
+                /*border: 1px solid #f0f0f0;*/
+            }
+    </style>
+}
+
+<div class="easyui-layout" style="width:100%;">
+    <div class="easyui-panel" title="流程基本信息">
+        <form class="easyui-form" method="post" id="saveform" action="@Url.Action(ActionName.WorkflowDefinition.SaveWorkflowDefinition, ControllerName.WorkflowDefinition)">
+            @Html.AntiForgeryToken()
+            <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+            @*@Html.HiddenFor(model => model.Id)*@
+            @Html.HiddenFor(model => model.IsEditMode)
+            @Html.HiddenFor(model => model.Status)
+
+            @Html.HiddenFor(model => model.SecurityType)
+            @Html.HiddenFor(model => model.AuthKey)
+            @Html.HiddenFor(model => model.AuthSecret)
+            @Html.HiddenFor(model => model.AuthScope)
+            @Html.HiddenFor(model => model.AuthAddress)
+            @Html.HiddenFor(model => model.AuthAddressParams)
+
+            @Html.HiddenFor(model => model.WorkflowFormType)
+            @Html.HiddenFor(model => model.AppFormDetailApiUrl)
+            @Html.HiddenFor(model => model.AppFormDetailQueryString)
+            @Html.HiddenFor(model => model.AppAuditSuccessApiUrl)
+            @Html.HiddenFor(model => model.AppAuditReturnApiUrl)
+            @Html.HiddenFor(model => model.AppAuditQueryString)
+
+            @Html.HiddenFor(model => model.DefMessageTemplateCode)
+            @Html.HiddenFor(model => model.DefDeadlineInterval)
+            @Html.HiddenFor(model => model.CategoryName)
+
+            @Html.HiddenFor(model => model.IsDeleted)
+            @Html.HiddenFor(model => model.CreatedBy)
+            @Html.HiddenFor(model => model.CreatedName)
+            @Html.HiddenFor(model => model.CreatedDate)
+            @Html.HiddenFor(model => model.ModifiedBy)
+            @Html.HiddenFor(model => model.ModifiedName)
+            @Html.HiddenFor(model => model.ModifiedDate)
+            <table class="table table-bordered table-form tr-col2">
+                <tbody>
+                    <tr>
+                        <td><label class="required"></label><label for="Code">流程编码：</label></td>
+                        <td>
+                            <input id="Code" name="Code" class="easyui-validatebox easyui-textbox"
+                                   data-options="width:'100%'" readonly="readonly"
+                                   value="@(null != Model ? Model.Code : string.Empty)" />
+                        </td>
+                        <td><label class="required"></label><label for="Version">流程版本：</label></td>
+                        <td>
+                            <input id="Version" name="Version" class="easyui-validatebox easyui-textbox"
+                                   data-options="width:'100%'" readonly="readonly"
+                                   value="@(null != Model ? Model.Version : string.Empty)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label class="required"></label><label for="CategoryId">流程分类：</label></td>
+                        <td>
+                            <input id="CategoryId" name="CategoryId" class="easyui-validatebox easyui-textbox"
+                                   data-options="width:'100%'"
+                                   value="@(null != Model ? Model.CategoryId : null)" />
+                        </td>
+                        <td><label class="required">*</label><label for="Name">流程名称：</label></td>
+                        <td>
+                            <input id="Name" name="Name" class="easyui-validatebox easyui-textbox"
+                                   data-options="width:'100%',required:true,"
+                                   value="@(null != Model ? Model.Name : string.Empty)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label class="required"></label><label for="Description">流程描述：</label></td>
+                        <td colspan="3">
+                            <input id="Description" name="Description" class="easyui-textbox"
+                                   data-options="multiline:true" style="height:60px; width: 100%;"
+                                   value="@(null != Model ? Model.Description : string.Empty)">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+
+    <div class="easyui-panel" title="调用外部接口的安全认证设置（请选择其中一种进行设置）">
+        <div id="securityTabs" class="easyui-tabs" style="height:200px">
+            <div id="securityTab_0" title="请求地址键值对（QueryString）" style="padding:10px" data-options="refreshable:false">
+                <table class="table table-bordered table-form tr-col2">
+                    <tbody>
+                        <tr>
+                            <td colspan="4" style="font-size:14px;text-align:left;">
+                                <p>在回调地址后添加安全验证设置的QueryString，例如：http://api.kcloudy.com/AccountApiService/Get?{安全设置的键}={安全设置的值}</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label class="required">*</label><label for="tab_0_AuthKey">QueryString的键：</label></td>
+                            <td>
+                                <input id="tab_0_AuthKey" name="tab_0_AuthKey" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%',required:true"
+                                       value="@(null != Model ? Model.AuthKey : string.Empty)" />
+                            </td>
+                            <td><label class="required">*</label><label for="tab_0_AuthSecret">QueryString的值：</label></td>
+                            <td>
+                                <input id="tab_0_AuthSecret" name="tab_0_AuthSecret" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%',required:true"
+                                       value="@(null != Model ? Model.AuthSecret : string.Empty)" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="securityTab_1" title="请求安全头（Request Header）" style="padding:10px" data-options="refreshable:false">
+                <table class="table table-bordered table-form tr-col2">
+                    <tbody>
+                        <tr>
+                            <td colspan="4" style="font-size:14px;text-align:left;">
+                                <p>在回调地址后添加安全验证设置的请求头（Request Header），例如：http://api.kcloudy.com/AccountApiService/Get</p>
+                                <p>
+
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label class="required">*</label><label for="tab_1_AuthKey">Header的键：</label></td>
+                            <td>
+                                <input id="tab_1_AuthKey" name="tab_1_AuthKey" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%',required:true"
+                                       value="@(null != Model ? Model.AuthKey : string.Empty)" />
+                            </td>
+                            <td><label class="required">*</label><label for="tab_1_AuthSecret">Header的值：</label></td>
+                            <td>
+                                <input id="tab_1_AuthSecret" name="tab_1_AuthSecret" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%',required:true"
+                                       value="@(null != Model ? Model.AuthSecret : string.Empty)" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="securityTab_2" title="OAuth设置" style="padding:10px" data-options="refreshable:false">
+                <table class="table table-bordered table-form tr-col2">
+                    <tbody>
+                        <tr>
+                            <td colspan="4" style="font-size:14px;text-align:left;">
+                                <p>在回调地址后添加安全验证，例如：http://api.kcloudy.com/AccountApiService/Get?{安全设置的键}={安全设置的值}</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label class="required">*</label><label for="tab_2_AuthAddress">OAuth认证的地址：</label></td>
+                            <td>
+                                <input id="tab_2_AuthAddress" name="tab_2_AuthAddress" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%',required:true"
+                                       value="@(null != Model ? Model.AuthAddress : string.Empty)" />
+                            </td>
+                            <td><label class="required">*</label><label for="tab_2_AuthScope">OAuth认证的Scope：</label></td>
+                            <td>
+                                <input id="tab_2_AuthScope" name="tab_2_AuthScope" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%',required:true"
+                                       value="@(null != Model ? Model.AuthScope : string.Empty)" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label class="required">*</label><label for="tab_2_AuthKey">OAuth的Key：</label></td>
+                            <td>
+                                <input id="tab_2_AuthKey" name="tab_2_AuthKey" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%',required:true"
+                                       value="@(null != Model ? Model.AuthKey : string.Empty)" />
+                            </td>
+                            <td><label class="required">*</label><label for="tab_2_AuthSecret">OAuth的Secret：</label></td>
+                            <td>
+                                <input id="tab_2_AuthSecret" name="tab_2_AuthSecret" class="easyui-validatebox easyui-textbox"
+                                       data-options="width:'100%',required:true"
+                                       value="@(null != Model ? Model.AuthSecret : string.Empty)" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="securityTab_99" title="无安全设置" style="padding:10px" data-options="refreshable:false">
+                <table class="table table-bordered table-form tr-col2">
+                    <tbody>
+                        <tr>
+                            <td colspan="4" style="font-size:14px;text-align:left;">
+                                <p>外部接口可以匿名访问，无需设置安全认证相关数据</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="easyui-panel">
+            <table class="table table-bordered table-form tr-col2">
+                <tbody>
+                    <tr>
+                        <td><label class="required"></label><label for="AppAuditSuccessApiUrl">流程完成后的回调地址：</label></td>
+                        <td>
+                            <input id="AppAuditSuccessApiUrl" name="AppAuditSuccessApiUrl" class="easyui-validatebox easyui-textbox"
+                                   data-options="width:'100%'" 
+                                   value="@(null != Model ? Model.AppAuditSuccessApiUrl : string.Empty)" />
+                        </td>
+                        <td><label class="required"></label><label for="AppAuditReturnApiUrl">流程回退后的回调地址：</label></td>
+                        <td>
+                            <input id="AppAuditReturnApiUrl" name="AppAuditReturnApiUrl" class="easyui-validatebox easyui-textbox"
+                                   data-options="width:'100%'" 
+                                   value="@(null != Model ? Model.AppAuditReturnApiUrl : string.Empty)" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="easyui-panel" title="流程表单信息" style="height:300px;">
+        <div id="toolbarPlan">
+            <div class="panel-title required" style="margin-top:5px;">
+                表单定义（双击编辑表单）
+            </div>
+
+            <div>
+                <a href="javascript:void(0)" onclick="addEditRow()" class="easyui-linkbutton"
+                   data-options="iconCls:'fa fa-plus'">新增</a>
+                <a href="javascript:void(0)" onclick="openModelDefDialog() " class="easyui-linkbutton"
+                   data-options="iconCls:'fa fa-list-alt'">选择</a>
+            </div>
+        </div>
+        <table id="datagrid"></table>
+    </div>
+
+    <div style="height:50px;">
+    </div>
+
+    <div class="bottom">
+        <a href="javascript:void(0)" class="easyui-linkbutton btnSave" onclick="saveWorkflowBasicInfo(false)">保存</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" onclick="saveWorkflowBasicInfo(true)"
+           data-options="iconCls:'fa fa-chevron-right',iconAlign:'right'">下一步</a>
+    </div>
+
+</div>
+
+<!--dialog和dialog中的 datagrid -->
+<div id="dialogModelDef" class="easyui-dialog" data-options="title:'请选择已有表单定义',modal:true,closed:true,cache:false">
+    <div id="toolbarModelDef">
+        <div>
+        </div>
+        <div>
+            表单类型：
+            @Html.DropDownList("BusinessTypeList", (IEnumerable<SelectListItem>)ViewBag.BusinessTypeList, new { @id = "BusinessTypeList", @class = "easyui-combobox", @style = "width: 120px;height:26px;", @data_options = "editable: false" })
+            <input id="searchboxModelDefName" class="easyui-textbox" data-options="prompt:'请输入表单名称'" style="width:200px">
+            <a href="javascript:void(0)" onclick="reloadDatagridModelDef()" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'">查询</a>
+            <a href="javascript:void(0)" onclick="refreshSearchModelDef()" class="easyui-linkbutton" data-options="iconCls:'fa fa-refresh'">刷新</a>
+        </div>
+    </div>
+    <table id="dgModelDef"></table>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)lib/jquery-easyui/datagrid-detailview.js"></script>
+    <!--组件初始化-->
+    <script type="text/javascript">
+        var selectCategoryId = '@ViewBag.SelectCategoryId';
+        var canSaveDefinition = ('@canSaveDefinition' === 'True');
+        var canRemoveField = ('@canRemoveField' === 'True');
+        let loadCategoryTree = '@Url.Action(ActionName.WorkflowDefinition.LoadCategoryTree, ControllerName.WorkflowDefinition)';
+        $(function () {
+            let treeId = '#CategoryId';
+            $(treeId).combotree({
+                url: loadCategoryTree,
+                queryParams: {
+                    selectedId: "@Model.CategoryId",
+                    hasRoot: false,
+                    maxLevel: 3
+                },
+                //required: true,
+                editable: false,
+                valueField: 'id',
+                textField: 'text',
+                cache: false,
+                onLoadSuccess: function (node, data) {
+                    $(treeId).combotree('tree').tree('expandAll');
+                    let categoryId = '@(Model != null && Model.CategoryId != null ? Model.CategoryId : 0)';
+                    if (categoryId && categoryId != '-1' && categoryId != '0') {
+                        //编辑时，设置模型中的值（Model.MessageCategoryId）为选中值
+                        $(treeId).combotree('setValues', categoryId);
+                    } else if (selectCategoryId && selectCategoryId !== '-1' && selectCategoryId !== '0') {
+                        //主页面选中左侧分类后（selectCategoryId），设置弹出框中分类为其选中值
+                        $(treeId).combotree('setValues', selectCategoryId);
+                    } else if (data != null && data.length > 0) {
+                        //默认选中第一个
+                        $(treeId).combotree('setValue', { id: data[0].id, text: data[0].text });
+                    }
+                }
+            });
+
+            var securityType = $('#SecurityType').val();
+            var authKey = $('#AuthKey').val();
+            var authSecret = $('#AuthSecret').val();
+            var authAddress = $('#AuthAddress').val();
+            var authScope = $('#AuthScope').val();
+            console.log(securityType);
+            //debugger;
+            switch (securityType) {
+                case "SecurityKey":
+                    $(securityTabs).tabs('select', 0);
+                    $("#tab_0_AuthKey").textbox('setValue', authKey);
+                    $("#tab_0_AuthSecret").textbox('setValue', authSecret);
+                    $("#tab_1_AuthKey").textbox('setValue', '');
+                    $("#tab_1_AuthSecret").textbox('setValue', '');
+                    $("#tab_2_AuthAddress").textbox('setValue', '');
+                    $("#tab_2_AuthScope").textbox('setValue', '');
+                    $("#tab_2_AuthKey").textbox('setValue', '');
+                    $("#tab_2_AuthSecret").textbox('setValue', '');
+                    break;
+                case "HeaderKey":
+                    $(securityTabs).tabs('select', 1);
+                    $("#tab_0_AuthKey").textbox('setValue', '');
+                    $("#tab_0_AuthSecret").textbox('setValue', '');
+                    $("#tab_1_AuthKey").textbox('setValue', authKey);
+                    $("#tab_1_AuthSecret").textbox('setValue', authSecret);
+                    $("#tab_2_AuthAddress").textbox('setValue', '');
+                    $("#tab_2_AuthScope").textbox('setValue', '');
+                    $("#tab_2_AuthKey").textbox('setValue', '');
+                    $("#tab_2_AuthSecret").textbox('setValue', '');
+                    break;
+                case "OAuth":
+                    $(securityTabs).tabs('select', 2);
+                    $("#tab_0_AuthKey").textbox('setValue', '');
+                    $("#tab_0_AuthSecret").textbox('setValue', '');
+                    $("#tab_1_AuthKey").textbox('setValue', '');
+                    $("#tab_1_AuthSecret").textbox('setValue', '');
+                    $("#tab_2_AuthAddress").textbox('setValue', authAddress);
+                    $("#tab_2_AuthScope").textbox('setValue', authScope);
+                    $("#tab_2_AuthKey").textbox('setValue', authKey);
+                    $("#tab_2_AuthSecret").textbox('setValue', authSecret);
+                    break;
+                case "None":
+                    $(securityTabs).tabs('select', 3);
+                    $("#tab_0_AuthKey").textbox('setValue', '');
+                    $("#tab_0_AuthSecret").textbox('setValue', '');
+                    $("#tab_1_AuthKey").textbox('setValue', '');
+                    $("#tab_1_AuthSecret").textbox('setValue', '');
+                    $("#tab_2_AuthAddress").textbox('setValue', '');
+                    $("#tab_2_AuthScope").textbox('setValue', '');
+                    $("#tab_2_AuthKey").textbox('setValue', '');
+                    $("#tab_2_AuthSecret").textbox('setValue', '');
+                    break;
+            }
+
+            InitDataTreeForm();
+
+            InitModelDefDialog();
+        })
+
+        let stepTo = function(index) {
+            var currentIndex = index - 1;
+            let $app = $('.app-item')
+            let stepContents = ["流程基本信息", "流程设计", "确认完成"];
+            for (let key in stepContents) {
+                let iKey = parseInt(key);
+                //var stepContent = stepContents[key];//获得元素的值
+                if (iKey == currentIndex) {
+                    $('li:eq(' + iKey + ')', $app).removeClass('step-done').removeClass('step-reject').addClass('step-active');
+                    $("#tab-" + (iKey + 1)).panel('open', true);
+                    //$("#tab-" + (iKey + 1)).panel().fadeIn(2000);
+                } else if (iKey < currentIndex) {
+                    $('li:eq(' + iKey + ')', $app).removeClass('step-active').removeClass('step-reject').addClass('step-done');
+                    $("#tab-" + (iKey + 1)).panel('close', true);
+                    //$("#tab-" + (iKey + 1)).panel().fadeOut(2000);
+                } else {
+                    $('li:eq(' + iKey + ')', $app).removeClass('step-active').removeClass('step-reject').removeClass('step-done');
+                    $("#tab-" + (iKey + 1)).panel('close', true);
+                    //$("#tab-" + (iKey + 1)).panel().fadeOut(2000);
+                }
+            }
+        }
+
+    </script>
+    <!--弹出表单定义-->
+    <script>
+        const $dgModelDef = $('#dgModelDef');
+        let reloadDatagridModelDef = function () {
+            $dgModelDef.datagrid("reload", {
+                name: $("#searchboxModelDefName").searchbox("getValue"),
+                type: $('#BusinessTypeList').combobox("getValue"),
+            });
+        }
+        let refreshSearchModelDef = function () {
+            $("#searchboxModelDefName").searchbox('setValue', '');
+            $('#BusinessTypeList').combobox("setValue", '请选择');
+            reloadDatagrid();
+        }
+        function InitModelDefDataGrid() {
+            const loadDataUrl = '@Url.Action(ActionName.ModelDefinition.LoadModelDefinitionList, ControllerName.ModelDefinition)';
+            const loadModelDefFieldDataUrl = '@Url.Action(ActionName.ModelDefinition.LoadModelDefFieldList, ControllerName.ModelDefinition)';
+            $dgModelDef.datagrid({
+                view: detailview,
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'propertyId',
+                toolbar: "#toolbarModelDef",
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                pagination: true,
+                nowrap: false,
+                fit: true,
+                pageSize: 10,
+                pageList: [10, 20, 50, 100],
+                showFooter: false,
+                columns: [
+                    [
+                        //{ field: 'propertyId', title: 'Id', width: 20, align: 'left' },
+                        { field: 'name', title: '表单名称', width: 80, align: 'left' },
+                        { field: 'businessTypeString', title: '表单类型', width: 50, align: 'left' },
+                        { field: 'description', title: '表单描述', width: 200, align: 'left' },
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                },
+                onLoadSuccess: function(data) {
+                    CommonUtil.buttonStyle();
+
+                    $dgModelDef.datagrid('unselectAll');
+                    $dgModelDef.datagrid('clearSelections');
+                    $dgModelDef.datagrid("fixRowHeight");
+                },
+                onLoadError: function(data) {
+                },
+                onSelect: function (index, row) {
+                    var $expander = $(this).datagrid('getExpander', index);//获取行扩展对象
+                    $(this).datagrid("expandRow", index);
+                    //$(this).datagrid("collapseRow", index);
+                },
+                detailFormatter: function(index, row) {
+                    return '<div style="padding:2px;"><table class="ddv"></table></div>';
+                },
+                onExpandRow: function (index, row) {
+                    let parentId = row.propertyId;
+                    let ddv = $(this).datagrid('getRowDetail', index).find('table.ddv').attr('id', 'childGrid' + parentId);
+                    $(ddv).removeClass("tree" + index);
+                    $(ddv).addClass("tree" + index);
+                    ddv.datagrid({
+                        url: loadModelDefFieldDataUrl + '?id=' + parentId,
+                        fitColumns: true,
+                        singleSelect: true,
+                        rowNumbers: true,
+                        loadMsg: '',
+                        height: 'auto',
+                        columns: [
+                            [
+                                //{ field: 'propertyAttributeId', title: 'Id', width: 20 },
+                                { field: 'displayName', title: '显示名', width: 80, align: 'left' },
+                                { field: 'name', title: '属性名', width: 100, align: 'left' },
+                                { field: 'dataTypeString', title: '数据类型', width: 100, align: 'left' },
+                                { field: 'description', title: '说明', width: 200, align: 'left' },
+                                //{ field: 'createdBy', title: '创建人', width: 80, align: 'left' },
+                                //{ field: 'createdDate', title: '创建时间', width: 80, align: 'left' },
+                            ]
+                        ],
+                        onResize: function () {
+                            $dgModelDef.datagrid('fixDetailRowHeight', index);
+                        },
+                        onClickRow: function () {
+                            $(ddv).datagrid('clearSelections');
+                        },
+                        onLoadSuccess: function() {
+                            CommonUtil.buttonStyle();
+
+                            $(ddv).datagrid('unselectAll');
+                            $(ddv).datagrid('clearSelections');
+                            $(ddv).datagrid('fixRowHeight');
+
+                            setTimeout(function() {
+                                $dgModelDef.datagrid('fixDetailRowHeight', index);
+                            }, 0);
+                        }
+                    });
+                },
+            });
+        }
+
+        const $dialogModelDef = $('#dialogModelDef');
+        let openModelDefDialog = function (pId, level) {
+            InitModelDefDataGrid();
+            InitModelDefDialog(pId, level);
+            $dialogModelDef.window('open');
+        }
+        function InitModelDefDialog(pId, level) {
+            $dialogModelDef.dialog({
+                width: 660,
+                height: 550,
+                modal: true,
+                closed: true,
+                cache: false,
+                buttons: [
+                    {
+                        text: '&nbsp;确&nbsp;&nbsp;定&nbsp;',
+                        iconCls: 'icon-save',
+                        handler: function () {
+                            var row = $dgModelDef.datagrid('getSelected');
+                            //debugger;
+                            if (row) {
+                                let defId = $('#Id').val();
+                                let index = $dgModelDef.datagrid('getRowIndex', row);
+                                let ddv = $dgModelDef.datagrid('getRowDetail', index).find('table.ddv');
+                                let detailRows = ddv.datagrid('getRows');
+                                for (var i = 0; i < detailRows.length; i++) {
+                                    let defField = {
+                                        id: 0,
+                                        editing: true,
+                                        workflowDefId: defId,
+                                        text: detailRows[i].name,
+                                        dataType: detailRows[i].dataType,
+                                        displayName: detailRows[i].displayName,
+                                        description: detailRows[i].description,
+                                        isPrimaryKey: detailRows[i].isPrimaryKey,
+                                        isExecutor: detailRows[i].isExecutor,
+                                        isCondition: detailRows[i].isCondition,
+                                        canEdit: detailRows[i].canEdit,
+                                        index: detailRows[i].index,
+                                        leaf: true,
+                                        parentId: pId && pId > 0 ? pId : null,
+                                        level: level && level > 0 ? level : 1,
+                                    };
+                                    if (pId && pId !== 0) {
+                                        $dataGridPlan.treegrid('append', {
+                                            parent: pId,
+                                            data: [defField]
+                                        });
+                                    } else {
+                                        $dataGridPlan.treegrid('append', {
+                                            parent: null,
+                                            data: [defField]
+                                        });
+                                    }
+                                }
+                            }
+
+                            CommonUtil.buttonStyle();
+                            $dialogModelDef.window('close');
+                        }
+                    },
+                    {
+                        text: '&nbsp;关&nbsp;&nbsp;闭&nbsp;',
+                        iconCls: 'icon-cancel',
+                        handler: function () {
+                            $dialogModelDef.window('close');
+                        }
+                    }
+                ],
+                onClose: function () {
+                    //$(this).dialog('destroy');
+                    $dgModelDef.datagrid('unselectAll');
+                    $dgModelDef.datagrid('clearSelections');
+                },
+                onLoad: function () {
+                },
+                onBeforeOpen: function () {
+                    //dialog展示之前，使它绝对居中
+                    $dialogModelDef.dialog("center");
+                }
+            });
+        }
+    </script>
+    <!--流程定义表单-->
+    <script>
+        const $dataGridPlan = $('#datagrid');
+        let loadDatagridDataUrl = '@Url.Action(ActionName.WorkflowDefinition.LoadWorkflowFieldList, ControllerName.WorkflowDefinition)';
+        function InitDataTreeForm() {
+            var dataType = '@ViewBag.DataTypeList'.replace(new RegExp('&quot;', "gm"), '"');//json格式
+            var dataTypeList = [{ "value": "0", "text": "字符串" },
+                { "value": "1", "text": "布尔型" },
+                { "value": "2", "text": "整型" },
+                { "value": "3", "text": "数值型" },
+                { "value": "4", "text": "金额" },
+                { "value": "5", "text": "日期型" },
+                { "value": "6", "text": "文本型" },
+                { "value": "7", "text": "列表" }];//json格式
+
+            let id = $('#Id').val();
+            if (id == undefined || id == null || id == "")
+                id = defaultGuid;
+            $dataGridPlan.treegrid({
+                url: loadDatagridDataUrl + "?id=" + id,
+                method: 'get',
+                idField: 'id',
+                treeField: 'text',
+                toolbar: '#toolbarPlan',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                selectOnCheck: true,
+                checkOnSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: false,
+                showFooter: false,
+                columns: [[
+                    //{ field: 'id', title: '是否启用', width: 60, checkbox: true },
+                    {
+                        field: 'text', title: '字段名称', width: 100, align: 'left',
+                        editor: {
+                            type: 'textbox',
+                            options: {
+                                text: true,
+                                required: true,
+                            }
+                        }
+                    },
+                    {
+                        field: 'displayName', title: '字段显示名称', width: 120, align: 'left',
+                        editor: {
+                            type: 'textbox',
+                            options: {
+                                text: true,
+                                required: true,
+                            }
+                        }
+                    },
+                    {
+                        field: 'dataType', title: '数据类型', width: 60, align: 'left',
+                        formatter: function (value, row, index) {
+                            if (value === undefined || value === null || value === '') {
+                                return "";
+                            }
+                            switch (value) {
+                                case 0:
+                                case "0":
+                                    return "字符串";
+                                case 1:
+                                case "1":
+                                    return "布尔型";
+                                case 2:
+                                case "2":
+                                    return "整型";
+                                case 3:
+                                case "3":
+                                    return "数值型";
+                                case 4:
+                                case "4":
+                                    return "金额";
+                                case 5:
+                                case "5":
+                                    return "日期型";
+                                case 6:
+                                case "6":
+                                    return "文本型";
+                                case 7:
+                                case "7":
+                                    return "列表";
+                            }
+                        },
+                        editor: {
+                            type: 'combobox',
+                            options: {
+                                data: dataTypeList,
+                                valueField: "value",
+                                textField: "text",
+                                panelHeight: 'auto',
+                                editable: false,
+                                required: true,
+                                onChange: function (newValue, oldValue) {
+                                    //debugger
+                                    let selectRow = $dataGridPlan.treegrid('getSelected');
+                                    if (selectRow) {
+                                        let selectedId = selectRow.id;
+                                        if (newValue && newValue === '7') {
+                                            $('#btnAddSubObject-' + selectedId).css('display', 'inline-block');
+                                            $('#btnSelectSubObject-' + selectedId).css('display', 'inline-block');
+                                        } else {
+                                            $('#btnAddSubObject-' + selectedId).css('display', 'none');
+                                            $('#btnSelectSubObject-' + selectedId).css('display', 'none');
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        field: 'isPrimaryKey', title: '是否为主键字段', width: 60, align: 'center', formatter: FormatterUtil.BoolFormatter,
+                        editor: {
+                            type: 'checkbox',
+                            align: 'center',
+                            options: {
+                                on: '1',
+                                off: '0'
+                            }
+                        }
+                    },
+                    {
+                        field: 'isExecutor', title: '是否为审批人字段', width: 60, align: 'center', formatter: FormatterUtil.BoolFormatter,
+                        editor: {
+                            type: 'checkbox',
+                            align: 'center',
+                            options: {
+                                on: '1',
+                                off: '0'
+                            }
+                        }
+                    },
+                    {
+                        field: 'isCondition', title: '是否为条件判断字段', width: 60, align: 'center', formatter: FormatterUtil.BoolFormatter,
+                        editor: {
+                            type: 'checkbox',
+                            align: 'center',
+                            options: {
+                                on: '1',
+                                off: '0'
+                            }
+                        }
+                    },
+                    {
+                        field: 'description', title: '描述', width: 160, align: 'left',
+                        editor: { type: 'textbox', }
+                    },
+                    {
+                        field: 'operator', title: '操作', width: 180, align: 'center',
+                        formatter: function (value, row, index) {
+                            let id = row.id;
+                            let type = row.dataType;
+                            let level = row.level;
+                            if (id === undefined || id === null || id === "")
+                                id = "";
+                            //debugger;
+                            let tdContext = '';
+                            //List：列表类型可以添加子对象
+                            if (canSaveDefinition) {
+                                if (type === 7) {
+                                    tdContext += '<a id="btnAddSubObject-' + id + '" class="btnAdd" style="cursor:pointer" onclick="addEditRow(' + id + ', ' + level + ')" >添加子对象</a>';
+                                    tdContext += '<a id="btnSelectSubObject-' + id + '"  class="btnList" style="cursor:pointer" onclick="openModelDefDialog(' + id + ', ' + level + ')" >选择子对象</a>';
+                                } else {
+                                    tdContext += '<a id="btnAddSubObject-' + id + '" class="btnAdd" style="cursor:pointer;display:none;" onclick="addEditRow(' + id + ', ' + level + ')" >添加子对象</a>';
+                                    tdContext += '<a id="btnSelectSubObject-' + id + '"  class="btnList" style="cursor:pointer;display:none;" onclick="openModelDefDialog(' + id + ', ' + level + ')" >选择子对象</a>';
+                                }
+                            }
+                            if (canRemoveField) {
+                                tdContext += '<a class="btnDelete" style="cursor:pointer" onclick="removeField(' + id + ')" >删除</a>';
+                            }
+
+
+                            return tdContext;
+                        }
+                    }
+                ]],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    CommonUtil.buttonStyle();
+                    $dataGridPlan.treegrid('unselectAll');
+                    $dataGridPlan.treegrid('clearSelections');
+                    $dataGridPlan.treegrid('fixRowHeight');
+                },
+                onLoadError: function () {
+                },
+                onSelect: function (index, row) {
+                    //$dataGridPlan.treegrid('unselectAll');
+                    //$dataGridPlan.treegrid('clearSelections');
+                    //$(".datagrid-row-selected").removeClass("datagrid-row-selected");
+                },
+                onDblClickRow: function (row) {
+                    let id = row.id;
+                    if (id && id !== 0) {
+                        $(this).treegrid('beginEdit', id);
+                        editIndex = id;
+                    }
+
+                    CommonUtil.buttonStyle();
+                },
+                onBeforeEdit: function (row) {
+                    //let tt = $(this).treegrid('getColumnOption', 'specName'); //通过列名获得此列
+                    //tt.editor = {type:'textarea'}; //设置此列的编辑属性 如果禁用编辑 则设置 tt.editor={}
+                    if (row) {
+                        row.editing = true;
+                    }
+                },
+                onAfterEdit: function (row, changes) {
+                    if (row) {
+                        row.editing = false;
+                    }
+                },
+                onCancelEdit: function (row) {
+                    row.editing = false;
+                    let id = row.id;
+                    if (id && id !== 0) {
+                        $(this).treegrid('cancelEdit', id);
+                        editIndex = undefined;
+                    }
+
+                    CommonUtil.buttonStyle();
+                },
+                onEndEdit: function (index, row) {
+                    //debugger;
+                }
+            });
+        }
+
+        let newIndex = -1;
+        let editIndex = undefined;
+        let isEndEditing = function (dgId) {
+            if (editIndex === undefined) {
+                return true
+            }
+            if ($dataGridPlan.treegrid('validateRow', editIndex)) {
+                $dataGridPlan.treegrid('endEdit', editIndex);
+                editIndex = undefined;
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        //获取行
+        let getRowIndex = function (target) {
+            let tr = $(target).closest('tr.datagrid-row');
+            return parseInt(tr.attr('datagrid-row-index'));
+        };
+        //新增一行
+        let addEditRow = function (pId, level) {
+            var newId = newIndex;
+            newIndex -= 1;
+            if (pId && pId !== 0) {
+                $dataGridPlan.treegrid('append', {
+                    parent: pId,
+                    data: [{ editing:true, id: newId, text: '', parentId: pId, level: level + 1 }]
+                });
+            } else {
+                $dataGridPlan.treegrid('append', {
+                    parent: null,
+                    data: [{ editing: true, id: newId, text: '', parentId: null, level: 1 }]
+                });
+            }
+            $dataGridPlan.treegrid('selectRow', newId);
+            $dataGridPlan.treegrid('beginEdit', newId);
+            editIndex = newId;
+            CommonUtil.buttonStyle();
+
+            let edText = $dataGridPlan.treegrid('getEditor', { index: newId, field: 'text' });
+            if (edText)
+                $(edText.target).focus();
+            let edDataType = $dataGridPlan.treegrid('getEditor', { index: newId, field: 'dataType' });
+            if (edDataType)
+                $(edDataType.target).combobox({
+                    onChange: function (newValue, oldValue) {
+                        //debugger
+                        if (newValue && newValue === '7') {
+                            //let oper = $dataGridPlan.treegrid('getColumnOption', 'operator');
+                            $('#btnAddSubObject-' + newId).css('display', 'inline-block');
+                            $('#btnSelectSubObject-' + newId).css('display', 'inline-block');
+                        } else {
+                            $('#btnAddSubObject-' + newId).css('display', 'none');
+                            $('#btnSelectSubObject-' + newId).css('display', 'none');
+                        }
+                    }
+                });
+
+        }
+        //取消编辑
+        let rejectEditRow = function () {
+            $dataGridPlan.treegrid('rejectChanges');
+            editIndex = undefined;
+        }
+        //获取列表数据
+        let getFieldData = function () {
+            let fields = [];
+            let defId = $('#Id').val();
+            let rows = $dataGridPlan.treegrid('getData');
+            //debugger;
+            for (let i = 0; i < rows.length; i++) {
+                let row = rows[i];
+                let id = row.id;
+                let cRows = row.children;
+                if (cRows) {
+                    for (let j = 0; j < cRows.length; j++) {
+                        let cRow = cRows[j];
+                        endTreeNodeEdit(defId, cRow);
+                    }
+                }
+
+                let isValid = $dataGridPlan.treegrid('validateRow', id);
+                if (isValid) {
+                    endTreeNodeEdit(defId, row);
+                    fields.push(row);
+                }
+            }
+            return fields;
+        }
+        let endTreeNodeEdit = function (defId, row) {
+            row.workflowDefId = defId;
+            let id = row.id;
+            let isEditing = row.editing;
+            let isValid = $dataGridPlan.treegrid('validateRow', id);
+            if (isValid && isEditing) {
+                let ed = $dataGridPlan.treegrid('getEditor', { index: id, field: 'dataType' });
+                if (ed) {
+                    //Dropdown重新赋值
+                    let dataType = $(ed.target).combobox('getValue');
+                    row.dataType = dataType;
+                }
+                //关闭第i行的编辑
+                $dataGridPlan.treegrid('selectRow', id).datagrid('endEdit', id);
+                //Checkbox重新赋值
+                row.isPrimaryKey = row.isPrimaryKey == '1' ? true : false;
+                row.isExecutor = row.isExecutor == '1' ? true : false;
+                row.isCondition = row.isCondition == '1' ? true : false;
+            }
+        }
+
+        //删除表单字段定义
+        var removeFieldUrl = '@Url.Action(ActionName.WorkflowDefinition.RemoveWorkflowField, ControllerName.WorkflowDefinition)';
+        let removeField = function (id) {
+            if (id === undefined || id === null || id === "" || id <= 0) {
+                $dataGridPlan.treegrid('deleteRow', id);
+                return;
+            }
+            $.messager.confirm('确认', '是否确定删除该表单字段?', function(r) {
+                if (r) {
+                    $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+                    $.post(removeFieldUrl, { id: id }, function(data) {
+                        if (data.success) {
+                            if (data.result) {
+                                $dataGridPlan.treegrid('clearSelections');
+                                $dataGridPlan.treegrid('reload'); // reload the user data
+                                $.messager.showInfoTopCenter('系统提示', '删除数据成功。', 1000);
+                            } else {
+                                $.messager.showErrorTopCenter('错误消息', '删除数据失败。', 1000);
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message, 1000);
+                        }
+                        $.easyui.loaded();
+                    }, 'json');
+                }
+            })
+            .panel('move', { right: '', top: document.body.scrollTop, bottom: '' });
+        }
+    </script>
+    <!--保存流程定义-->
+    <script type="text/javascript">
+        const formId = "#saveform";
+        const securityTabs = "#securityTabs";
+        const saveWfBasicInfoUrl = '@Url.Action(ActionName.WorkflowDefinition.SaveWorkflowBasicInfo, ControllerName.WorkflowDefinition)';
+        function saveWorkflowBasicInfo(isNext) {
+            //验证
+            let validate = $(formId).form("enableValidation").form("validate");
+            if (!validate) {
+                let errorMsg = '';
+                let invalidComps = $(formId).find(".validatebox-invalid");
+                $.each(invalidComps, function (i, invalidComp) {
+                    errorMsg += 'id=' + invalidComp.id + ', ';
+                });
+                console.error("---验证失败的组件Id：" + errorMsg);
+                return;
+            }
+
+            debugger;
+            //获取表单数据
+            let formData = $(formId).form("getData");
+            formData.WorkflowFields = getFieldData();
+            
+            //获取调用外部接口的安全设置
+            var tab = $(securityTabs).tabs('getSelected');
+            var index = $(securityTabs).tabs('getTabIndex', tab);
+            console.log(index);
+            switch (index) {
+                case 0:
+                    formData.SecurityType = "SecurityKey";
+                    formData.AuthKey = $("#tab_0_AuthKey").textbox('getValue');
+                    formData.AuthSecret = $("#tab_0_AuthSecret").textbox('getValue');
+                    break;
+                case 1:
+                    formData.SecurityType = "HeaderKey";
+                    formData.AuthKey = $("#tab_1_AuthKey").textbox('getValue');
+                    formData.AuthSecret = $("#tab_1_AuthSecret").textbox('getValue');
+                    break;
+                case 2:
+                    formData.SecurityType = "OAuth";
+                    formData.AuthScope = $("#tab_2_AuthScope").textbox('getValue');
+                    formData.AuthAddress = $("#tab_2_AuthAddress").textbox('getValue');
+                    formData.AuthKey = $("#tab_2_AuthKey").textbox('getValue');
+                    formData.AuthSecret = $("#tab_2_AuthSecret").textbox('getValue');
+                    break;
+                case 3:
+                    formData.SecurityType = "None";
+                    break;
+            }
+
+            let postData = AddAntiForgeryToken(formData);
+            //console.log(postData);
+            $.easyui.loading({ msg: '正在保存数据，请稍等...' });
+            $.ajax({
+                async: true,
+                url: saveWfBasicInfoUrl,
+                type: 'POST',
+                dataType: 'json',
+                data: postData,
+                success: function (data) {
+                    if (data.success) {
+                        if (data.result) {
+                            $('#IsEditMode').val('true');
+                            if (isNext) {
+                                $.messager.confirm('确认', '保存数据成功，是否继续进行流程设计阶段?',        function (r) {
+                                    if (r) {
+                                        redirectWfDesigner();
+                                    }
+                                }).panel('move', { right: '', top: document.body.scrollTop, bottom: '' });
+                            } else {
+                                //stepTo(2);
+                                $.messager.showInfoTopCenter('系统提示', '保存数据成功。', 1000);
+                                //MainPage_PostMessage("closeSubPage", getFormUrl);
+                                window.location.reload();
+                            }
+                        } else {
+                            $.messager.showErrorTopCenter('错误消息', data.message);
+                        }
+                    } else {
+                        $.messager.showInfoTopCenter('系统提示', data.message);
+                    }
+                },
+                complete: function () {
+                    $.easyui.loaded();
+                }
+            });
+        }
+
+        const redirectDeignerUrl = '@Url.Action(ActionName.WorkflowDefinition.WorkflowDesigner, ControllerName.WorkflowDefinition)';
+        let redirectWfDesigner = function () {
+            ////获取表单数据
+            //let formData = $(formId).form("getData");
+            //formData.WorkflowFields = getFieldData();
+            //let postData = AddAntiForgeryToken(formData);
+            ////携带表单数据，跳转值流程设计器
+            //$.redirectPost(redirectDeignerUrl, postData);
+
+            //debugger;
+            let id = $('#Id').val();
+            location.href = redirectDeignerUrl + "?id=" + id;
+
+        }
+    </script>
+}

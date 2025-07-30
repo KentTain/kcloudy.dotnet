@@ -1,0 +1,11 @@
+﻿<!--contact部分-->
+<div class="contact-content">
+    <div id="contact-service"><i class="fa fa-briefcase fa-3x" aria-hidden="true"></i></div>
+    <div id="contact-wechat"><i class="fa fa-wechat fa-3x" aria-hidden="true"></i></div>
+    <div id="contact-qq"><a href="tencent://message/?uin=@(ViewBag.WebSiteInfo==null?"未设置":ViewBag.WebSiteInfo.ContactQQ)&Site=Sambow&Menu=yes"><i class="fa fa-qq fa-3x" aria-hidden="true"></i></a></div>
+    <div id="contact-phone"><i class="fa fa-phone fa-3x" aria-hidden="true"></i></div>
+    <div id="contact-email"><a href="mailto:@(ViewBag.WebSiteInfo==null?"未设置":ViewBag.WebSiteInfo.ContactEmail)"><i class="fa fa-envelope fa-3x" aria-hidden="true"></i></a></div>
+    <div id="contact-up"><i class="fa fa-arrow-up fa-3x" aria-hidden="true"></i></div>
+    @*<div id="contact-webchat"><i class="fa fa-address-card fa-3x" aria-hidden="true"></i></div>*@
+</div>
+

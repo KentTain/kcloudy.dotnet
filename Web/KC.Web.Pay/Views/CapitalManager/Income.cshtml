@@ -1,0 +1,142 @@
+﻿@using KC.Web.Pay.Constants
+@{
+    ViewBag.Title = "资金管理-收入管理";
+    Layout = "~/Views/Shared/_ListLayout.cshtml";
+}
+<div class="easyui-tabs" data-options="fit:true,plain:true, border: true" id="tab">
+    <div title="现金收入流水" data-options="refreshable: false">
+        <div id="toolbar" style="padding:5px;height:auto">
+            <div>
+                <label>时间范围：</label>
+                <input class="easyui-datetimebox" name="startDate" style="width:180px;height:26px">
+                <label>-</label>
+                <input class="easyui-datetimebox" name="endDate" style="width:180px;height:26px">
+                <a href="javascript:void(0)" class="textbox-icon searchbox-button" icon-index="0" tabindex="-1" style="width: 18px; height: 24px;" onclick="searchData()"></a>
+                <label style="margin-left: 10px;">总计金额(元)：</label><label id="countMoney" style="color: #ff0000">0</label>
+            </div>
+        </div>
+        <table id="datagrid" title="现金收入流水" data-options=" iconCls: 'icon-standard-text-list-bullets'"></table>
+    </div>
+    <div title="信用额度收入流水" data-options="refreshable: false">
+        <div id="toolbarCreditIncome" style="padding:5px;height:auto">
+            <div>
+                <label>时间范围：</label>
+                <input class="easyui-datetimebox" name="startDateCreditIncome" style="width:180px;height:26px">
+                <label>-</label>
+                <input class="easyui-datetimebox" name="endDateCreditIncome" style="width:180px;height:26px">
+                <a href="javascript:void(0)" class="textbox-icon searchbox-button" icon-index="0" tabindex="-1" style="width: 18px; height: 24px;" onclick="searchCreditIncomeData()"></a>
+                <label style="margin-left: 10px;">总计金额(元)：</label><label id="countMoneyCreditIncome" style="color: #ff0000">0</label>
+            </div>
+        </div>
+        <table id="datagridCreditIncome" title="信用额度收入流水" data-options="iconCls: 'icon-standard-text-list-bullets'"></table>
+    </div>
+</div>
+@section scripts
+    {
+    <script type="text/javascript">
+        var isLoad = 0;
+        $(function () {
+            InitCashDataGrid();
+            $('#tab').tabs({
+                border: false,
+                onSelect: function (title, index) {
+                    debugger;
+                    if (index == 1&&!isLoad) {
+                        isLoad = 1;
+                        InitCreditIncomeDataGrid();
+                    }
+                }
+            });
+        });
+        ///现金收入流水
+        var loadDataUrl = '@Url.Action(ActionName.CapitalManager.GetCashIncomeData, ControllerName.CapitalManager)';
+        function InitCashDataGrid() {
+            $('#datagrid').datagrid({
+                url: loadDataUrl,
+                method: 'get',
+                idField: 'Id',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                showFooter: false,
+                columns: [[
+                        { field: 'ReferenceId', title: '订单号', width: '19%', align: 'center' },
+                        { field: 'ConsumptionMoneyStr', title: '金额（元）', width: '19%', align: 'center' },
+                        { field: 'ConsumptionDate', title: '支付时间', width: '17%', align: 'center', formatter: FormatterUtil.DateTimeSecondFormatter },
+                        { field: 'PaymentCustomerDisplayName', title: '付款方', width: '19%', align: 'center' },
+                        { field: 'OfferingName', title: '产品', width: '19%', align: 'center' }
+                ]
+                ],
+                onBeforeLoad: function (param) {
+                },
+                onLoadSuccess: function (data) {
+                    $("#countMoney").html(data.countMoney);
+
+                },
+                onLoadError: function () {
+                },
+                toolbar: '#toolbar'
+            }
+            );
+        }
+
+        function searchData() {
+            $('#datagrid').datagrid('load', {
+                "startDate": $("[name='startDate']").val(),
+                "endDate": $("[name='endDate']").val()
+            });
+        }
+        ///信用额度收入流水
+        var loadCreditIncomeDataUrl = '@Url.Action(ActionName.CapitalManager.GetCreditIncomeData, ControllerName.CapitalManager)';
+        function InitCreditIncomeDataGrid() {
+            $('#datagridCreditIncome').datagrid({
+                url: loadCreditIncomeDataUrl,
+                method: 'get',
+                idField: 'Id',
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: true,
+                nowrap: false,
+                fit: true,
+                pagination: true,
+                showFooter: false,
+                columns: [[
+                        { field: 'OrderId', title: '订单号', width: '19%', align: 'center' },
+                        {
+                            field: 'ConsumptionMoneyStr',
+                            title: '金额（元）',
+                            width: '19%',
+                            align: 'center'
+                        },
+                        { field: 'ConsumptionDate', title: '支付时间', width: '17%', align: 'center', formatter: FormatterUtil.DateTimeSecondFormatter },
+                        { field: 'PaymentCustomerDisplayName', title: '付款方', width: '19%', align: 'center' },
+                        { field: 'OfferingName', title: '产品', width: '19%', align: 'center' }
+                ]
+                ],
+                onBeforeLoad: function (param) {
+
+                },
+                onLoadSuccess: function (data) {
+                    $("#countMoneyCreditIncome").html(data.countMoney);
+                },
+                onLoadError: function () {
+                },
+                toolbar: '#toolbarCreditIncome'
+            }
+            );
+        }
+
+        function searchCreditIncomeData() {
+            $('#datagridCreditIncome').datagrid('load', {
+                "startDate": $("[name='startDateCreditIncome']").val(),
+                "endDate": $("[name='endDateCreditIncome']").val()
+            });
+        }
+    </script>
+
+}

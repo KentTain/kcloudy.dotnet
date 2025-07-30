@@ -1,0 +1,101 @@
+﻿@using KC.Enums.CRM
+@using KC.Framework.Tenant
+@using KC.Web.Customer.Constants
+@using KC.Web.Util
+
+<div id="toolbarCustomerContact" title="客户联系人" style="padding: 5px; height: auto">
+    <div style="border: 1px solid #AED0EA; padding: 8px 8px 8px 15px;">
+        <span style="margin-top: 12px;">
+            <span style="margin-right: 10px">
+                客户类型：
+                @Html.DropDownList("CustomerType2", (IEnumerable<SelectListItem>)ViewBag.CustomerTypeList, new { @class = "easyui-combobox", @style = "width: 150px;height:26px;" })
+            </span>
+        </span>
+        <div style="margin-top: 10px; display:inline;">
+            <div id="divSearchMenu0" class="easyui-menu" style="width: 120px">
+                <div data-options="name:'AffiliatedCompany',selected:true">所属单位</div>
+                <div data-options="name:'ContactName'">联系人姓名</div>
+                <div data-options="name:'ContactPhoneNumber'">联系人手机</div>
+                <div data-options="name:'ContactEmail'">联系人邮箱</div>
+                <div data-options="name:'PositionName'">职务</div>
+            </div>
+            <input id="txtSearchbox0" class="easyui-searchbox" style="width: 300px" />
+        </div>
+    </div>
+</div>
+<table id="datagridCustomerContact" title="客户联系人列表" data-options="iconCls: 'icon-standard-text-list-bullets'"></table>
+
+
+<script type="text/javascript">
+    $(function() {
+        //客户类型
+        $('#CustomerType2').combobox(
+        {
+            editable: false,
+            onSelect: function() {
+                searchContact();
+            }
+        });
+    });
+
+    //初始化添加联系人Form中联系人列表
+    function InitCustomerContactGrid() {
+        var loadCustomerContact = '@Url.Action(ActionName.Notification.LoadCustomerContactInfos, ControllerName.Notification)';
+        var viewName = '@ViewBag.ViewName';
+        var customerContactGrid = $('#datagridCustomerContact').datagrid({
+            url: loadCustomerContact + "?viewName=" + viewName,
+            method: 'get',
+            idField: 'CustomerContactId',
+            striped: true,
+            fitColumns: true,
+            rowNumbers: true,
+            pagination: true,
+            nowrap: false,
+            fit: true,
+            pageSize: 10,
+            pageList: [10, 20, 30, 50, 100],
+            showFooter: false,
+            checkOnSelect: true,
+            selectOnCheck: true,
+            singleSelect: '@ViewBag.ViewName' === 'Manual',
+            columns: [
+                [
+                    { field: 'Checker', title: '选中', checkbox: true, width: 10, align: 'left' },
+                    { field: 'CustomerId', title: '客户Id', width: 10, align: 'left', hidden: true },
+                    { field: 'CustomerContactId', title: '联系人Id', width: 10, align: 'left', hidden: true },
+                    { field: 'CustomerTypeStr', title: '客户类型', width: 80, align: 'left' },
+                    { field: 'AffiliatedCompany', title: '所属单位', width: 120, align: 'left' },
+                    { field: 'ContactName', title: '联系人姓名', width: 120, align: 'left' },
+                    { field: 'ContactPhoneNumber', title: '联系人手机', width: 180, align: 'left', hidden: '@ViewBag.ViewName' === 'Email' },
+                    { field: 'ContactEmail', title: '联系人邮箱', width: 180, align: 'left', hidden: '@ViewBag.ViewName' === 'Sms' },
+                    { field: 'PositionName', title: '职务', width: 100, align: 'left' }
+                ]
+            ],
+            onBeforeLoad: function (param) {
+            },
+            onLoadSuccess: function (data) {
+                $('#datagridCustomerContact').datagrid('unselectAll');
+            },
+            onLoadError: function () {
+            },
+            toolbar: '#toolbarCustomerContact'
+        });
+
+        $('#txtSearchbox0').searchbox({
+            menu: '#divSearchMenu0',
+            prompt: '请输入查询值',
+            searcher: searchContact
+        });
+    }
+
+    function searchContact(value, name) {
+        $('#datagridCustomerContact').datagrid('unselectAll');
+        var customerType = $("#CustomerType2").combobox("getValue");
+        $('#datagridCustomerContact').datagrid('load', {
+            "searchKey": name,
+            "searchValue": value,
+            "customerType": customerType
+        });
+    }
+
+</script>

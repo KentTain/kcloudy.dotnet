@@ -1,0 +1,369 @@
+﻿@using KC.Web.Pay.Constants
+@using KC.Service.DTO.Pay
+@using KC.Enums.Pay
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    var orderId = string.IsNullOrWhiteSpace(ViewBag.OrderId) ? "" : ViewBag.OrderId.ToString();
+    var source = ViewBag.Source != null ? (PayableSource?)ViewBag.Source : null;
+    @*应收管理-导出应收账款：ExportPayables*@
+    var canExport = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canExport = true;
+    }
+    @*账户流水-添加支付记录：Purchase/AddPaymentRecod*@
+    var canPayment1 = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canPayment1 = true;
+    }
+    @*账户流水-支付取消：OnlinePayment/CancelPayment*@
+    var canPayment2 = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canPayment2 = true;
+    }
+    @*账户流水-创建支付日期：OnlinePayment/CreatePaymentData*@
+    var canPayment3 = false;
+    @if ((await AuthorizationService.AuthorizeAsync(User, "91C87FAF-3DFF-45DB-9D65-74FCE0ED0887")).Succeeded)
+    {
+        canPayment3 = true;
+    }
+    var canPayment = canPayment1 || canPayment2 || canPayment3;
+
+}
+@section styles{
+    <style>
+        .datagrid-cell-c1-Status {
+            position: relative
+        }
+
+        .input-daterange {
+            width: 210px
+        }
+
+        .showStatusDetails {
+            cursor: pointer;
+            color: #aaa
+        }
+
+        .tooltipster-sidetip .tooltipster-content {
+            padding: 20px 0 20px 20px
+        }
+
+        .statusDetailsList {
+            display: none
+        }
+
+            .statusDetailsList .progress {
+                margin: 0;
+                position: relative
+            }
+
+            .statusDetailsList .table {
+                margin: 0
+            }
+
+                .statusDetailsList .table tr td:first-child {
+                    width: 100px
+                }
+
+                .statusDetailsList .table > tbody > tr > td {
+                    padding: 6px
+                }
+
+        .progress_text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            color: #000
+        }
+
+        .logs {
+            display: none
+        }
+    </style>
+    <link href="~/Content/tooltipster/tooltipster.bundle.min.css" rel="stylesheet" />
+    <link href="~/Content/tooltipster/themes/tooltipster-sideTip-shadow.min.css" rel="stylesheet" />
+}
+
+<div class="easyui-tabs insideTab" style="width: 100%; height: auto" data-options="fit:true,border:false">
+    <div title="应付列表" data-options="refreshable:false">
+        <div class="search-filter">
+            <table class="mt5">
+                <tr>
+                    @*<td class="width150">
+                            @(Html.DropDownListForEnum<PayableType>("type",null,new {@class="easyui-combobox",editable="fasle", style="width: 150px"},"应付类型--全部"))
+                        </td>*@
+                    <td class="width150">
+                        @Html.DropDownList("source", ViewBag.SourceList as SelectList, new { @id = "source", @class = "easyui-combobox", @style = "width: 280px;height:30px;", @DropDownStyle = "DropDownList" })
+                    </td>
+                    <td class="pl10 width150">
+                        <input class="easyui-textbox" style="width: 150px;" type="text" id="orderId" data-options="prompt:'请输入订单编号'" value="@orderId" />
+                    </td>
+                    <td class="pl10">
+                        <div class="input-daterange input-group" id="datepicker">
+                            <input type="text" class="Wdate easyui-textbox" style="width:100px;height:28px !important;padding-left: 4px;" onclick="WdatePicker({ lang: 'zh-cn'})" id="startDate" name="StartDate" readonly="readonly" />
+                            <span class="input-group-addon">到</span>
+                            <input type="text" class="Wdate easyui-textbox" style="width:100px;height:28px !important;padding-left: 4px;" onclick="WdatePicker({ lang: 'zh-cn'})" id="endDate" name="EndDate" readonly="readonly" />
+                        </div>
+                    </td>
+                    <td class="pl10">
+                        <a href="javascript:search()" class="easyui-linkbutton" id="btnSearch" data-options="iconCls:'icon-search'">搜索</a>
+                        <a href="javascript:exportTable()" class="easyui-linkbutton @(canExport ? "" : "NoAuth")" id="btnExport"><i class="glyphicon glyphicon-export"></i> 导出</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <table id="datagrid" data-options="border:false"></table>
+    </div>
+    <div title="待处理" data-options="refreshable:false,border:false,iniframe:true,delayLoadIframe:'/Admin/CapitalManager/PendingPayables'">
+    </div>
+</div>
+
+<div class="statusDetailsList">
+    <table class="table table-bordered" style="width: 300px">
+        <tr>
+            <td>订单总额(元)</td>
+            <td class="list_amount">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+
+                    </div>
+                    <div class="progress_text"></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>已支付(元)</td>
+            <td class="list_paid">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+
+                    </div>
+                    <div class="progress_text"></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>已发货(元)</td>
+            <td class="list_shipped">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+
+                    </div>
+                    <div class="progress_text"></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>已收货(元)</td>
+            <td class="list_received_goods">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+
+                    </div>
+                    <div class="progress_text"></div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="logs">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <td style="width:16%">时间</td>
+                <td style="width:60%">内容</td>
+                <td style="width:24%">操作人</td>
+            </tr>
+        </thead>
+        <tbody id="logs"></tbody>
+    </table>
+</div>
+
+
+@section scripts{
+    <script src="~/js/tooltipster.bundle.min.js"></script>
+    <script src="~/js/My97DatePicker/WdatePicker.js"></script>
+    <script src="~/js/AssetSummary/index.js"></script>
+    <script>
+        var cancelPayableUrl = '@Url.Action(ActionName.CapitalManager.CancelPayable, ControllerName.CapitalManager)';
+        var loadLogsUrl = '@Url.Action(ActionName.CapitalManager.LoadLogs, ControllerName.CapitalManager)';
+        var $dataGrid = null,
+            //$type = $('#type'),
+            $source = $('#source'),
+            $startDate = $('#startDate'),
+            $endDate = $('#endDate'),
+            $orderId = $('#orderId'),
+            $dialog = null, rows = [];
+        pageName = 'Payables';
+        var canPayment = '@(canPayment? "" : "NoAuth")';
+        $(function() {
+            initData();
+            $('.insideTab').tabs({
+                onSelect: function(title,index) {
+                    $('.insideTab').tabs('updateIniframe',index);
+                }
+            });
+        });
+
+        var queryPayablesUrl = '@Url.Action(ActionName.CapitalManager.LoadPayables, ControllerName.CapitalManager)';
+        function initData() {
+            $dataGrid = $('#datagrid').datagrid({
+                toolbar: '.search-filter',
+                url: queryPayablesUrl,
+                method: 'get',
+                idField: 'Id',
+                autoRowHeight: false,
+                striped: true,
+                fitColumns: true,
+                rowNumbers: true,
+                singleSelect: false,
+                nowrap: false,
+                pageSize: 15,
+                fit: true,
+                pagination: true,
+                showFooter: true,
+                pageList: [15, 20, 50, 100],
+                columns: [
+                    [
+                        //{ field: 'TypeName', title: '应付类型', width: '6%', align: 'center', halign: 'center' },
+                        { field: 'SourceName', title: '应付来源', width: '7%', align: 'center', halign: 'center' },
+                        {
+                            field: 'OrderId',
+                            title: '关联订单号',
+                            width: '12%',
+                            align: 'center',
+                            halign: 'center',
+                            formatter: function (value, row, index) {
+                                if (row.Source === 2 || row.Source === 4 || row.Source === 8|| row.Source ===9)
+                                    return value === null ? '--' : value;;
+                                return '<a href="javascript:showPayableOrderInfo(\'' +
+                                    value +
+                                    '\',' +
+                                    row.Source +
+                                    ',' +
+                                    index +
+                                    ','+(row.Remark.indexOf('采购')>-1?false:true)+')">' +
+                                    value +
+                                    '</a>';
+                            }
+                        },
+                        { field: 'Customer', title: '收款人', width: '22%', align: 'center', halign: 'center' },
+                        {
+                            field: 'PayableAmount',
+                            title: '应付',
+                            width: '9%',
+                            align: 'center',
+                            halign: 'center',
+                            formatter: function(value, row, index) { return fmoney(value, 2); }
+                        },
+                        {
+                            field: 'UnPaidTotal',
+                            title: '未付',
+                            width: '9%',
+                            align: 'center',
+                            halign: 'center',
+                            formatter: function(value, row, index) { return fmoney(value, 2); }
+                        },
+                        {
+                            field: 'StartDateStr',
+                            title: '应付款日期',
+                            width: '9%',
+                            align: 'center',
+                            halign: 'center',
+                            sortable: true
+                        },
+                        { field: 'Remark', title: '备注', width: '17%', align: 'center', halign: 'center' },
+                        {
+                            field: 'Status',
+                            title: '付款状态',
+                            width: '8%',
+                            align: 'center',
+                            halign: 'center',
+                            formatter: function(value, row, index) {
+                                var s = '';
+                                if (row.Status === '未支付')
+                                    s = '<i class="statusDot start"></i>';
+                                else
+                                    s = '<i class="statusDot"></i>';
+                                if (row.Source === 4 || row.Source === 8 || row.Source === 9||  row.Source === 12)
+                                    return s + value;
+                                return s +
+                                    value +
+                                    ' <i class="glyphicon glyphicon-zoom-in showStatusDetails" data-orderNum="' +
+                                    row.OrderId +
+                                    '" ><i>';
+                            }
+                        },
+                        {
+                            field: 'opt',
+                            title: '操作',
+                            width: '6%',
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                var actions = '';
+                                if (row.Status !== '已支付')
+                                {
+                                    if (row.Source == 10 || row.Source == 11) {
+                                    } else {
+                                        actions = '<a class="' + canPayment + '" href="javascript:goPayment(' + row.Source + ',\'' + row.SourceName + '\',\'' + (row.Source === 4 ? row.PayableNumber : row.OrderId) + '\',' + row.Id + ',' + index + ')" title="付款">付款</a>';
+                                        if (row.Source === 4 || row.Source === 7)
+                                            actions += ' <a class="' + canPayment + '" href="javascript:cancelPayable(' + row.Id + ',' + row.Source + ',' + index + ')" title="取消">取消</a>';
+                                    }
+                                }
+                                actions += ' <a href="javascript:loadLogs(\'' + row.PayableNumber + '\',' + true + ',' + index + ',' + row.Source + ')" title="日志">日志</a>';
+                                return actions;
+                            }
+                        }
+                    ]
+                ],
+                onBeforeLoad: function(param) {
+                    //param.type = $type.combobox('getValue');
+                    param.source = $source.combobox('getValue');
+                    param.orderId = $orderId.val();
+                    param.startDate = $startDate.val();
+                    param.endDate = $endDate.val();
+                    $('#datagrid').datagrid('unselectAll');
+                },
+                onLoadSuccess: function (data) {
+                    rows = data.rows;
+                    showOrderStatusDetails();
+                }
+            });
+            var pg = $dataGrid.datagrid("getPager");
+            if (pg) {
+                $(pg).pagination({
+                    onBeforeRefresh: function() {
+                        $dataGrid.datagrid('unselectAll');
+                    }
+                });
+            }
+        }
+
+        function search() {
+            $dataGrid.datagrid('unselectAll');
+            $dataGrid.datagrid('load');
+        }
+
+        var exportUrl = '@Url.Action(ActionName.CapitalManager.ExportPayables, ControllerName.CapitalManager)';
+        function exportTable() {
+            window.open(exportUrl +
+                //'?type=' +
+                //$type.combobox('getValue') +
+                '?source=' +
+                $source.combobox('getValue') +
+                '&startDate=' +
+                $startDate.val() +
+                '&endDate=' +
+                $endDate.val());
+        }
+
+
+    </script>
+
+}

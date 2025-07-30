@@ -1,0 +1,662 @@
+﻿@using KC.Web.Contract.Constants
+@using KC.Enums.Contract
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model KC.Service.DTO.Contract.ElectronicOrganizationDTO
+@{
+    ViewBag.Title = "创建企业印章";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var str = ViewBag.str;
+
+ <!--合同管理-企业合同分页权限：GenerateVerfiyPhoneCode-->
+    var getPhoneNumber = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "473B720E-2E8B-402D-80FF-271C4D3F52FB")).Succeeded)
+    {
+        getPhoneNumber = true;
+    }
+ <!--合同管理-企业合同分页权限：SubmitSeal-->
+    var submit = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "473B720E-2E8B-402D-80FF-271C4D3F52FB")).Succeeded)
+    {
+        submit = true;
+    }
+ <!--合同管理-企业合同分页权限：SubmitSealPhone-->
+    var submitSealPhone = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "473B720E-2E8B-402D-80FF-271C4D3F52FB")).Succeeded)
+    {
+        submitSealPhone = true;
+    }
+ <!--合同管理-企业合同分页权限：DeleteSealAccount-->
+    var deleteSealAccount = false;
+    if ((await AuthorizationService.AuthorizeAsync(User, "473B720E-2E8B-402D-80FF-271C4D3F52FB")).Succeeded)
+    {
+        deleteSealAccount = true;
+    }
+}
+@section styles{
+    <link href="~/css/process.css" rel="stylesheet" />
+    <link href="~/css/upload.css" rel="stylesheet" />
+    <link href="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.css" rel="stylesheet" />
+    <style>
+        /*tr {
+            height: 60px;
+        }*/
+
+        .basicTable td:nth-child(odd) {
+            width: 140px;
+            background-color: #F5F5F5;
+            text-align: right;
+        }
+
+        .basicTable {
+            width: 90%;
+            border-collapse: collapse;
+        }
+
+            .basicTable td {
+                padding: 5px;
+                border: 1px solid #ddd;
+            }
+
+        .btnUploadPdf, .btnUploadPdf1 {
+            height: 34px;
+            padding: 0;
+        }
+
+            .btnUploadPdf .webuploader-pick, .btnUploadPdf1 .webuploader-pick {
+                height: 34px;
+                background: 0 0;
+                padding-top: 6px;
+            }
+
+            .btnUploadPdf label, .btnUploadPdf1 label {
+                margin: 0;
+            }
+
+        .downloadPdf, .downloadPdf1 {
+            display: none;
+            float: left;
+            margin-right: 20px;
+            line-height: 30px;
+        }
+
+        .uploadPdfProgress, .uploadPdfProgress1 {
+            display: none;
+            margin-top: 5px;
+        }
+
+        #PdfName1, #PdfName {
+            min-width: 100px;
+        }
+
+        .input-group {
+            width: 100%;
+        }
+
+        .basicTable {
+            width: 100%;
+        }
+    </style>
+}
+<div id="main_content" class="maincontainer">
+    <!--  cell -->
+    <div class="cell">
+        <form id="from">
+            @Html.AntiForgeryToken()
+            <table data-options=" iconCls: 'icon-standard-text-list-bullets'" class="dialog-form-table basicTable">
+                <tr>
+                    <td style="width:  25%;"> <label style="float:right">当前印章状态：</label></td>
+                    <td colspan="3">
+                        <label style="color: red">@Model.StatusStr</label>
+                    </td>
+                </tr>
+                @if (!string.IsNullOrEmpty(Model.Remark))
+                {
+                <tr>
+                    <td style="width: 25%;"> <label style="float:right">印章退回说明： </label></td>
+                    <td colspan="3">
+                        <label>@Model.Remark </label>
+                    </td>
+                </tr>
+                }
+                <tr>
+                    <td style="width:  25%;"><label style="float:right">企业名称： </label></td>
+                    <td style="width: 25%;">
+
+                        @if (String.IsNullOrEmpty(Model.Name))
+                        {
+                        <a style="color: red" href='#'>请去平台完善企业信息</a>
+                        }
+                        else
+                        {
+                        @Model.Name
+                        }
+                    </td>
+                    <td style="width:  25%;"><label style="float:right">统一社会信用代码/组织机构代码： </label></td>
+                    <td>
+                        @if (String.IsNullOrEmpty(Model.OrgNumber))
+                        {
+                        <a style="color: red" href='#'>请去平台完善企业信息</a>
+                        }
+                        else
+                        {
+                        @Model.OrgNumber
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td><label style="float:right">下弦文：</label></td>
+                    <td colspan="2">
+                        <input disabled="disabled" class="form-control" type="text" value="@Model.QText">
+                    </td>
+                    <td rowspan="6" style="height:200px;text-align:center;background-color: white;">
+                        @if (String.IsNullOrEmpty(Model.Data))
+                        {
+                        <img title="印章示例图" src="~/images/seal.png" style="width: 200px;height:200px;" />
+                        }
+                        else
+                        {
+                        <img title="印章示例图" src="data:image/gif;base64,@Model.Data" style="width: 200px;height:200px;" />
+                        }
+                        <br />
+                        <label>印章示例图</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:  25%;"><label style="float:right">手机号码：</label></td>
+                    <td colspan="2">
+                        @if (String.IsNullOrEmpty(Model.Mobile))
+                        {
+                        <input class="form-control" type="text" id="Mobile" />
+                        }
+                        else
+                        {
+                            if (!Model.IsSync)
+                            {
+                        <input class="form-control" type="text" id="Mobile" value="@Model.Mobile" />
+                            }
+                            else
+                            {
+                        <input class="form-control" disabled="disabled" type="text" id="Mobile" value="@Model.Mobile" />
+                            }
+
+                        }
+
+                    </td>
+                </tr>
+
+                @if (!Model.IsSync)
+                {
+                @*<tr>
+                        <td><label style="float:right">图形验证码：</label></td>
+                        <td colspan="2" style="text-align: left">
+                            <input type="text" style="width:200px;float:left;margin-right: 10px;" class="form-control" id="VerificationCode" name="VerificationCode" />
+                            @Html.MvcCaptcha(new MvcCaptchaOptions { ValidationInputBoxId = "VerificationCode", CaptchaImageContainerId = "captchaImage", Width = 140 })
+                            <div id="captchaImage"></div>
+                        </td>
+                    </tr>*@
+                <tr>
+                    <td> <label style="float:right">手机验证码：</label></td>
+                    <td colspan="2">
+                        <div style="text-align: left">
+                            <input style="width:200px;float:left" type="text" class="form-control" id="MobileCode" name="MobileCode" />
+                            <a role="button" style="margin-left:10px;" onclick="sendPhoneCode();" class="easyui-linkbutton sendPhoneCode @(getPhoneNumber ? "" : "NoAuth")" href="##"><span class="default">获取短信验证码</span><span class="sending"></span></a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label style="float:right">上传企业授权书(加盖公章)： </label> </td>
+                    <td colspan="2">
+
+                        <div class="input-group">
+                            <input class="form-control" id="PdfName" data-val="true" data-val-maxlength="上传企业授权书(加盖公章):上传大小限制15MB。" placeholder="请上传企业授权书" readonly="readonly" type="text" value="">
+                            <div class="input-group-btn">
+                                <div class="btn btn-success btnUploadPdf">
+                                    <i class="glyphicon glyphicon-folder-open"></i> 点我上传
+                                </div>
+                            </div>
+                            <div class="input-group-btn">
+                                <div class="btn btn-primary btnDownloadPdf">
+                                    <i class="glyphicon glyphicon-download"></i><a href='~/excels/CfwinPowerofattorney.pdf' target='_blank' style="color:white;text-decoration: none;">查看企业授权书模板</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="progress uploadPdfProgress"><div class="progress-bar  progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0;"></div></div>
+                        <a href="###" target="_blank" class="downloadPdf" style=" "><i class="glyphicon glyphicon-download-alt"></i>点击下载查看</a>
+                        <span class="tips">
+                            规格：15MB以内，格式：jpg,jpeg,png,gif,bmp,pdf
+                        </span>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td><label style="float:right">上传受托人身份证复印件(加盖公章)：</label> </td>
+                    <td colspan="2">
+                        <div class="input-group">
+                            <input class="form-control" id="PdfName1" data-val="true" data-val-maxlength="上传受托人身份证复印件(加盖公章):上传大小限制15MB" placeholder="请上传受托人身份证复印件" readonly="readonly" type="text" value="">
+                            <div class="input-group-btn">
+                                <div class="btn btn-success btnUploadPdf1">
+                                    <i class="glyphicon glyphicon-folder-open"></i> 点我上传
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress uploadPdfProgress1"><div class="progress-bar  progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0;"></div></div>
+                        <a href="###" target="_blank" class="downloadPdf1" style=" "><i class="glyphicon glyphicon-download-alt"></i>点击下载查看</a>
+                        <span class="tips">
+                            规格：15MB以内，格式：jpg,jpeg,png,gif,bmp,pdf
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <div style="text-align:left;font-size: 15px">
+                            <input type="checkbox" id="IsAgree-1" disabled="disabled" /> <label for="IsAgree">同意：</label> <a onclick="ElectronicSignServiceClause(1)" style="text-decoration:underline; cursor: pointer;" id="read">E签宝电子签章服务条款</a>   <br />
+                            <label> 特别提醒：</label>您在注册本电子签章时所提交的全部资料均真实、合法、有效，如所填基本信息有任何变更，应及时在本系统中做相应更改，否则，由此引起的全部法律后果（包括本合同签署所产生的法律责任）由您自行承担。
+                            <br />
+
+                            若操作遇到问题，请联系客服。客服电话：400-788-8586（工作日8:30-18:00）
+                        </div>
+                        <br />
+                        <div style="text-align:center;margin-top:10px">
+                            @if (Model.Mobile != "")
+                                {
+                                    if (Model.Status == ElectronicSignStatus.Disagree)
+                                    {
+                            <button type="button" class="btn btn-primary btn-lg glyphicon glyphicon-retweet @(submit ? "" : "NoAuth")" id="btn_submit" onclick="SubmitSeal(0)" data-loading-text="提交中...">重新提交 </button>
+                                    }
+                                    else
+                                    {
+                            <button type="button" class="btn btn-primary btn-lg glyphicon glyphicon-phone @(submitSealPhone ? "" : "NoAuth")" id="btn_submit" onclick="SubmitSeal(1)" data-loading-text="提交中...">修改手机号码 </button>
+                            <button type="button" style="margin-left: 20px;" onclick="DeleteAccount()" id="btn_DeleteAccount" class="btn btn-primary btn-lg glyphicon glyphicon-off @(deleteSealAccount ? "" : "NoAuth")" data-loading-text="注销中...">注销印章 </button>
+                                    }
+                                }
+                                else
+                                {
+                            <button type="button" class="btn btn-primary btn-lg glyphicon glyphicon-saved @(submit ? "" : "NoAuth")" id="btn_submit" onclick="SubmitSeal(0)" data-loading-text="提交中..."> 提 交 </button>
+                                }
+                        </div>
+                    </td>
+                </tr>
+                }
+
+
+            </table>
+        </form>
+
+    </div>
+</div>
+@section scripts{
+    <script src="~/js/layer/layer.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/md5.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/webuploader/webuploader.min.js"></script>
+    <script src="@(KC.Framework.Base.GlobalConfig.ResWebDomain)js/common/com.uploader.js"></script>
+    <script type="text/javascript">
+
+        var IsAgree = false, isRegister = true;
+        var str = '@str';
+        $(function () {
+            $('#tt').tabs({
+                border: false,
+                width:'100%',
+                onSelect: function (title) {
+                    if (title == "企业签章") {
+                        if (isRegister) {
+                            initForm();
+                            isRegister = false;
+                        }
+                    }
+                    if (title =="个人签章") {
+                        getcode();
+                    }
+                }
+            });
+            if (str != "") {
+                layer.alert(str, { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            }
+
+        });
+
+        var IsSeal = '@Url.Action(ActionName.ElectronicSign.IsSeal, ControllerName.ElectronicSign)';
+        function getcode() {
+            var $tips = $('#tips');
+            if ($tips.html() == "") {
+                $.easyui.loading({ locale: "#mainLayout", msg: '正在获取印章数据，请稍等...', topMost: true });
+                $.ajax({
+                    url: IsSeal,
+                    type: "post",
+                    data: { isPersonal: true },
+                    success: function (data) {
+                        $.easyui.loaded({ locale: "#mainLayout", topMost: true });
+                        if (data.result.result) {
+                            $('#tips').html("已开通");
+                            $('#Mobile').val(data.result.message);
+                            $("#signImg").attr("src", "data:image/gif;base64," + data.result.LogMessage);
+                        } else {
+                            $('#tips').html("尚未开通");
+                            //layer.alert(isGetSignImgMsg, { closeBtn: 2, icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                        }
+                    },
+                    complete: function () {
+                    }
+                });
+            }
+        }
+
+        var esignUrl = '@Url.Action(ActionName.ElectronicSign.GetElectronicSignServiceClause, ControllerName.ElectronicSign)';
+        function ElectronicSignatureServiceClause(type) {
+            $.get(esignUrl, { antiCaching: (new Date()).getTime() }, function (response) {
+                var index = layer.alert(response,
+                    {
+                        title: '“e签宝”注册协议',
+                        closeBtn: 1,
+                        area: ['850px', '450px'],
+                        btn: ['我已阅读并同意该条款', '不同意'],
+                        yes: function (d) {
+                            if (type == 1) {
+                                $("#IsAgree-" + type).prop('checked', true);
+                                IsAgree = true;
+                            }
+                            layer.close(index);
+                        },
+                        btn2: function () {
+                            if (type == 1) {
+                                $("#IsAgree-" + type).prop('checked', false);
+                                IsAgree = false;
+                            }
+                        }
+                    });
+            });
+        }
+
+        function initForm() {
+            initUploadPdfer1();
+            setTimeout(function () { initUploadPdfer(); }, 100);
+        }
+
+        var blobId = "", blobId1 = "";
+        var filename = "", filename1 = "";
+        function initUploadPdfer1() {
+            var count = 0;
+            var uploadPdfer1 = cfwinUploader({
+                componentName: 'uploadPdfer1',
+                btnAddFile: $('.btnUploadPdf1'),
+                type: 1,
+                fileNumLimit: 1,
+                params: { userId: "", blobId: "" },
+                isRegister: isRegister,
+                disableWidgets: ['uploadPdfer'],
+                configure: {
+                    fileMaxSize: 15,
+                    fileExt: 'jpg,jpeg,png,gif,bmp,pdf'
+                },
+                callback: {
+                    uploadProgress: function (file, percentage) {
+                        $('.uploadPdfProgress1').show();
+                        $(".uploadPdfProgress1 .progress-bar").css('width', (percentage * 100).toFixed(2) + "%");
+                    },
+                    uploadComplete: function (file) { //不管成功或者失败，文件上传完成时触发
+
+                    },
+                    uploadSuccess: function (file, response) {
+                        if (count == 0) {
+                            $('.uploadPdfProgress1').hide();
+                            uploadPdfer1.removeFile(file);
+                            if (!response.success) {
+                                //合并异常
+                                layer.msg('上传失败!', { icon: 2 });
+                                return;
+                            }
+                            $('#PdfName1').val(file.name);
+                            uploadPdfer1.options.formData.blobId = response.id;
+                            $('.downloadPdf1').show().attr('href', response.url);
+                            blobId1 = response.id;
+                            filename1 = file.name;
+                        }
+                        count++;
+                    },
+                    uploadError: function (file, reason) {
+
+                    },
+                    onFileQueued: function (file) {
+                        count = 0;
+                        uploadPdfer1.upload();
+                    }
+                }
+            });
+        }
+
+        function initUploadPdfer() {
+            var count = 0;
+            var uploadPdfer = cfwinUploader({
+                componentName: 'uploadPdfer',
+                btnAddFile: $('.btnUploadPdf'),
+                type: 1,
+                fileNumLimit: 1,
+                params: { userId: "", blobId: "" },
+                isRegister: isRegister,
+                disableWidgets: ['uploadPdfer1'],
+                configure: {
+                    fileMaxSize: 15,
+                    fileExt: 'jpg,jpeg,png,gif,bmp,pdf'
+                },
+                callback: {
+                    uploadProgress: function (file, percentage) {
+                        $('.uploadPdfProgress').show();
+                        $(".uploadPdfProgress .progress-bar").css('width', (percentage * 100).toFixed(2) + "%");
+                    },
+                    uploadComplete: function (file) { //不管成功或者失败，文件上传完成时触发
+
+                    },
+                    uploadSuccess: function (file, response) {
+                        if (count == 0) {
+                            $('.uploadPdfProgress').hide();
+                            uploadPdfer.removeFile(file);
+                            if (!response.success) {
+                                //合并异常
+                                layer.msg('上传失败!', { icon: 2 });
+                                return;
+                            }
+                            $('#PdfName').val(file.name);
+                            uploadPdfer.options.formData.blobId = response.id;
+                            $('.downloadPdf').show().attr('href', response.url);
+                            blobId = response.id;
+                            filename = file.name;
+                        }
+                        count++;
+                    },
+                    uploadError: function (file, reason) {
+
+                    },
+                    onFileQueued: function (file) {
+                        count = 0;
+                        uploadPdfer.upload();
+                    }
+                }
+            });
+        }
+
+    </script>
+
+    <script>
+    var IsAgree = false, isRegister = true;
+    var deleteUrl = '@Url.Action(ActionName.ElectronicSign.DeleteSealAccount, ControllerName.ElectronicSign)';
+    function DeleteAccount() {
+        var index = layer.alert("注销成功后该印章无法被使用，是否确认注销？",
+            {
+                title: '注销印章',
+                closeBtn: 1,
+                btn: ['确认', '取消'],
+                yes: function (d) {
+                    $.easyui.loading({ msg: '正在注销数据，请稍等•••' });
+                    $.ajax({
+                        url: deleteUrl,
+                        type: "post",
+                        success: function (data) {
+                            $.easyui.loaded();
+                            if (data.success) {
+                                layer.alert(data.message, { icon: 1, offset: ['200px'], title: '系统提示', time: 5000 });
+                                window.location.reload();
+                            } else {
+                                layer.alert(data.message, { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                            }
+                        },
+                        error: function () {
+                            window.tipError({ msg: "错误代码500" });
+                        },
+                        complete: function () {
+                            dialog.close();
+                        }
+                    });
+                    layer.close(index);
+                },
+                btn2: function () {
+                }
+            });
+    }
+
+    var submitSeal = '@Url.Action(ActionName.ElectronicSign.SubmitSeal, ControllerName.ElectronicSign)';
+    var submitSealPhone = '@Url.Action(ActionName.ElectronicSign.SubmitSealPhone, ControllerName.ElectronicSign)';
+    function SubmitSeal(obj) {
+        _reloadMvcCaptchaImage($("#_mvcCaptchaGuid").val());
+        var Agree = $("#IsAgree-1")[0].checked;
+        if (!Agree) {
+            layer.alert("请同意并阅读E签宝电子签章服务条款", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+        if (!IsAgree) {
+            layer.alert("请仔细阅读并同意E签宝电子签章服务条款", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+        var Mobile = $("#Mobile").val().trim();
+        if (Mobile == "") {
+            layer.alert("请输入正确的手机号码", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+        var reg = /^1\d{10}$/;
+        if (!reg.test(Mobile)) {
+            layer.alert("手机号码格式不正确", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+        if ($("#MobileCode").val().trim() == 0) {
+            layer.alert("请输入手机验证码", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+
+        if ($("#MobileCode").val().trim().length != 6) {
+            layer.alert("手机验证码错误", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+
+        if (blobId.length == 0) {
+            layer.alert("请上传企业授权书", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+        if (blobId1.length == 0) {
+            layer.alert("请上传受托人身份证复印件", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+            return;
+        }
+
+        layer.alert('审核成功后将自动生成企业印章，是否提交审核',
+        {
+            icon: 1,
+            closeBtn: 0,
+            offset: ['200px'],
+            title: '系统提示',
+            btn: ['确认', '取消'],
+            yes: function () {
+                //确认合同
+                $.easyui.loading({ msg: '正在提交数据，请稍等•••' });
+                $.ajax({
+                    url: obj > 0 ? submitSealPhone : submitSeal,
+                    type: "post",
+                    data: { "mobile": Mobile, code: $("#MobileCode").val(), blobId: blobId, IdCade: blobId1 },
+                    success: function (data) {
+                        $.easyui.loaded();
+                        if (data.success) {
+                            layer.alert(data.message, { icon: 1, offset: ['200px'], title: '系统提示', time: 3000 });
+                            window.location.reload();
+                        } else {
+                            layer.alert(data.message, { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                        }
+                    },
+                    error: function () {
+                        layer.alert("错误代码500", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                    },
+                    complete: function () {
+                        $.easyui.loaded();
+                    }
+                });
+            }
+        });
+    }
+
+    var countdown = 120;
+    function settime(itms) {
+        if (countdown == 0) {
+            itms.linkbutton({ disabled: false });
+            $(".default").html("重新获取短信验证码");
+            $(itms.find("samp")[0]).html("");
+            countdown = 10;
+            return;
+        } else {
+            itms.linkbutton({ disabled: true });
+            $(".default").html("(" + countdown + ")后重新发送");
+            countdown--;
+            if (countdown == 0) {
+                _reloadMvcCaptchaImage($("#_mvcCaptchaGuid").val());
+            }
+        }
+        setTimeout(function () {
+            settime(itms);
+        }, 1000);
+    }
+
+    var getPhoneCode = '@Url.Action(ActionName.ElectronicSign.GenerateVerfiyPhoneCode, ControllerName.ElectronicSign)';
+    function sendPhoneCode() {
+            var Mobile = $("#Mobile").val().trim();
+            if (Mobile == "") {
+                layer.alert("请输入正确的手机号码", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                return;
+            }
+            var reg = /^1\d{10}$/;
+            if (!reg.test(Mobile)) {
+                layer.alert("手机号码格式不正确", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                return;
+            }
+
+            var VerificationCode = $("#VerificationCode").val();
+            if (VerificationCode.trim().length == 0) {
+                layer.alert("请输入图形验证码", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                return;
+            }
+            $.easyui.loading({ msg: '正在获取验证码，请稍等•••' });
+            $.ajax({
+                url: getPhoneCode,
+                type: "post",
+                data: AddAntiForgeryToken({ mobile: Mobile, VerificationCode: VerificationCode, _MvcCaptchaGuid: $('#_mvcCaptchaGuid').val() }),
+                success: function (data) {
+                    $.easyui.loaded();
+                    if (data.success) {
+                        countdown = 120;
+                        settime($(".sendPhoneCode"));
+
+                    } else {
+                        if (data.message == "") {
+                            layer.alert("获取失败，请稍后再试", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                        } else {
+                            layer.alert(data.message, { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                        }
+                    }
+
+                },
+                error: function () {
+                    $.easyui.loaded();
+                    layer.alert("错误代码500", { icon: 2, offset: ['200px'], title: '系统提示', time: 3000 });
+                }
+            });
+        }
+    </script>
+}
+
