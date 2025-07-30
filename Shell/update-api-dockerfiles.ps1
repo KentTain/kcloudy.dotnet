@@ -4,11 +4,12 @@
 $ErrorActionPreference = "Stop"
 
 # Get the template Dockerfile content with correct encoding
-$templatePath = Join-Path $PSScriptRoot "Web\KC.Web.Resource\Dockerfile"
+$projectRoot = Split-Path -Path $PSScriptRoot -Parent
+$templatePath = Join-Path $projectRoot "Web\KC.Web.Resource\Dockerfile"
 $templateContent = [System.IO.File]::ReadAllText($templatePath, [System.Text.Encoding]::UTF8)
 
 # Get all web project directories
-$webProjects = Get-ChildItem -Path (Join-Path $PSScriptRoot "WebApi") -Directory | 
+$webProjects = Get-ChildItem -Path (Join-Path $projectRoot "WebApi") -Directory | 
     Where-Object { $_.Name -ne "KC.WebApi.Admin" -and (Test-Path (Join-Path $_.FullName "Dockerfile")) }
 
 foreach ($project in $webProjects) {

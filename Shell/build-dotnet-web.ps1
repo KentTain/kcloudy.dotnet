@@ -128,11 +128,11 @@ function Build-DotnetWeb {
         Remove-Item -Path "$webDir\*" -Recurse -Force
     }
 
-    # Check and create global.json if it doesn't exist
-    $globalJsonPath = Join-Path -Path $PSScriptRoot -ChildPath "global.json"
+    $projectRoot = Split-Path -Path $PSScriptRoot -Parent
+    $globalJsonPath = Join-Path -Path $projectRoot -ChildPath "global.json"
     if (-not (Test-Path -Path $globalJsonPath)) {
         Write-Info "Creating global.json with .NET 5.0.400 SDK"
-        dotnet new globaljson --force --sdk-version 5.0.400 --output $PSScriptRoot
+        dotnet new globaljson --force --sdk-version 5.0.400 --output $projectRoot
     }
 
     # Restore NuGet packages and publish project
@@ -143,7 +143,7 @@ function Build-DotnetWeb {
     dotnet publish $csprojDir -c Release -o $webDir /p:Version=$newVersion
     
     # Copy font files if they exist
-    $fontsSourceDir = "$PSScriptRoot\Fonts"
+    $fontsSourceDir = "$projectRoot\Fonts"
     $fontsDestDir = "$webDir\Fonts"
     if (Test-Path $fontsSourceDir) {
         Write-Info "Copying font files: from $fontsSourceDir to $fontsDestDir"
@@ -156,7 +156,7 @@ function Build-DotnetWeb {
     }
 
     # Copy nlog.config if it exists
-    $nlogSource = "$PSScriptRoot\$solutionType\$solutionName\nlog.config"
+    $nlogSource = "$projectRoot\$solutionType\$solutionName\nlog.config"
     if (Test-Path $nlogSource) {
         Write-Info "Copying nlog.config: from $nlogSource to $webDir"
         Copy-Item -Path $nlogSource -Destination $webDir -Force
@@ -165,7 +165,7 @@ function Build-DotnetWeb {
     }
     
     # Copy Dockerfile if it exists
-    $dockerfileSource = "$PSScriptRoot\$solutionType\$solutionName\Dockerfile"
+    $dockerfileSource = "$projectRoot\$solutionType\$solutionName\Dockerfile"
     if (Test-Path $dockerfileSource) {
         Write-Info "Copying Dockerfile: from $dockerfileSource to $webDir"
         Copy-Item -Path $dockerfileSource -Destination $webDir -Force
