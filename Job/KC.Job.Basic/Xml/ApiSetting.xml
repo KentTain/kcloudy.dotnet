@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KC.Job.Basic</name>
+    </assembly>
+    <members>
+        <member name="M:KC.Job.Basic.Controllers.ConfigApiController.GetSeedByType(System.String,System.Int32)">
+            <summary>
+            根据配置名称，获取系统生成的相关业务Id对象
+            </summary>
+            <param name="name">配置名称</param>
+            <param name="step">步长</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Job.Basic.Controllers.ConfigApiController.GetAllConfigs">
+            <summary>
+            获取所有的配置信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Job.Basic.Controllers.ConfigApiController.GetConfigById(System.Int32)">
+            <summary>
+            根据Id，获取配置对象
+            </summary>
+            <param name="id">配置Id</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Job.Basic.Controllers.ConfigApiController.GetConfigByType(KC.Framework.Base.ConfigType)">
+            <summary>
+            根据配置类型，获取配置对象
+            </summary>
+            <param name="type">配置类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:KC.Job.Basic.Controllers.ConfigApiController.GetConfigsByTypeAndSign(KC.Framework.Base.ConfigType,System.Int32)">
+            <summary>
+            根据配置类型，获取配置对象
+            </summary>
+            <param name="type">配置类型</param>
+            <param name="sign"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

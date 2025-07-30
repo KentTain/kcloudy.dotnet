@@ -1,0 +1,345 @@
+2021-10-22 08:35:27.3137 Info Message Template Auto Format enabled
+2021-10-22 08:35:27.3515 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 08:35:27.3631 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 08:35:27.4020 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 08:35:27.6567 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 08:35:27.6567 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 08:35:27.6756 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 08:35:27.6949 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 08:35:27.7418 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 08:35:27.7418 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 08:35:27.8089 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\NLog.config
+2021-10-22 08:35:27.8641 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 08:35:27.9364 Info Configuration initialized.
+2021-10-22 08:35:27.9379 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.7.11.13229. Product version: 4.7.11+33ed3a9f86277651e93ddf39cda64a046a06778b. GlobalAssemblyCache: False
+2021-10-22 08:35:28.0007 Info Configuring from an XML element in D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config...
+2021-10-22 08:35:28.0007 Info Message Template Auto Format enabled
+2021-10-22 08:35:28.0007 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 08:35:28.0007 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 08:35:28.0228 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 08:35:28.0228 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 08:35:28.0228 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 08:35:28.0228 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 08:35:28.0345 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 08:35:28.0345 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 08:35:28.0345 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 08:35:28.0345 Info Closing old configuration.
+2021-10-22 08:35:28.0644 Error BufferingWrapper(Name=ElasticSearch_wrapped): WrappedTarget is NULL
+2021-10-22 08:35:28.0794 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config
+2021-10-22 08:35:28.0794 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 10:45:17.8450 Info Message Template Auto Format enabled
+2021-10-22 10:45:17.8734 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 10:45:17.8734 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 10:45:17.8992 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 10:45:18.1148 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 10:45:18.1148 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 10:45:18.1327 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 10:45:18.1481 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 10:45:18.1781 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 10:45:18.1896 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 10:45:18.2266 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\NLog.config
+2021-10-22 10:45:18.2527 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 10:45:18.2527 Info Configuration initialized.
+2021-10-22 10:45:18.2527 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.7.11.13229. Product version: 4.7.11+33ed3a9f86277651e93ddf39cda64a046a06778b. GlobalAssemblyCache: False
+2021-10-22 10:45:18.2684 Info Configuring from an XML element in D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config...
+2021-10-22 10:45:18.2684 Info Message Template Auto Format enabled
+2021-10-22 10:45:18.2684 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 10:45:18.2684 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 10:45:18.3030 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 10:45:18.3030 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 10:45:18.3030 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 10:45:18.3030 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 10:45:18.3030 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 10:45:18.3030 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 10:45:18.3030 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 10:45:18.3030 Info Closing old configuration.
+2021-10-22 10:45:18.3211 Error BufferingWrapper(Name=ElasticSearch_wrapped): WrappedTarget is NULL
+2021-10-22 10:45:18.3369 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config
+2021-10-22 10:45:18.3369 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 10:49:50.2999 Info Message Template Auto Format enabled
+2021-10-22 10:49:50.3296 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 10:49:50.3296 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 10:49:50.4505 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 10:49:50.7428 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 10:49:50.8096 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 10:49:50.8242 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 10:49:50.8439 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 10:49:50.8899 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 10:49:50.8899 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 10:49:50.9717 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\NLog.config
+2021-10-22 10:49:51.0444 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 10:49:51.0808 Info Configuration initialized.
+2021-10-22 10:49:51.0808 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.7.11.13229. Product version: 4.7.11+33ed3a9f86277651e93ddf39cda64a046a06778b. GlobalAssemblyCache: False
+2021-10-22 10:49:51.1009 Info Configuring from an XML element in D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config...
+2021-10-22 10:49:51.1009 Info Message Template Auto Format enabled
+2021-10-22 10:49:51.1009 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 10:49:51.1009 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 10:49:51.1130 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 10:49:51.1257 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 10:49:51.1257 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 10:49:51.1257 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 10:49:51.1257 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 10:49:51.1257 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 10:49:51.1257 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 10:49:51.1257 Info Closing old configuration.
+2021-10-22 10:49:51.1455 Error BufferingWrapper(Name=ElasticSearch_wrapped): WrappedTarget is NULL
+2021-10-22 10:49:51.1725 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config
+2021-10-22 10:49:51.1906 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 10:57:32.4615 Info Message Template Auto Format enabled
+2021-10-22 10:57:32.4877 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 10:57:32.5080 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 10:57:32.5080 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 10:57:32.6451 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 10:57:32.6451 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 10:57:32.6611 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 10:57:32.6738 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 10:57:32.6952 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 10:57:32.6952 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 10:57:32.7504 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\NLog.config
+2021-10-22 10:57:32.7955 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 10:57:32.7997 Info Configuration initialized.
+2021-10-22 10:57:32.7997 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.7.11.13229. Product version: 4.7.11+33ed3a9f86277651e93ddf39cda64a046a06778b. GlobalAssemblyCache: False
+2021-10-22 10:57:32.8190 Info Configuring from an XML element in D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config...
+2021-10-22 10:57:32.8190 Info Message Template Auto Format enabled
+2021-10-22 10:57:32.8190 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 10:57:32.8190 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 10:57:32.8603 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 10:57:32.8603 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 10:57:32.8603 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 10:57:32.8769 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 10:57:32.8769 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 10:57:32.8769 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 10:57:32.8769 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 10:57:32.8769 Info Closing old configuration.
+2021-10-22 10:57:32.8919 Error BufferingWrapper(Name=ElasticSearch_wrapped): WrappedTarget is NULL
+2021-10-22 10:57:32.8919 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config
+2021-10-22 10:57:32.9064 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 10:58:28.8659 Info AppDomain Shutting down. Logger closing...
+2021-10-22 10:58:28.8659 Error BufferingWrapper(Name=ElasticSearch_wrapped): WrappedTarget is NULL
+2021-10-22 10:58:28.8790 Info Logger has been shut down.
+2021-10-22 11:07:19.4086 Info Message Template Auto Format enabled
+2021-10-22 11:07:19.5150 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 11:07:19.5150 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 11:07:19.6832 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 11:07:19.8541 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 11:07:19.8918 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 11:07:19.9094 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 11:07:19.9261 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 11:07:19.9658 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 11:07:19.9658 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 11:07:20.0266 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\NLog.config
+2021-10-22 11:07:20.0656 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 11:07:20.0656 Info Configuration initialized.
+2021-10-22 11:07:20.0656 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.7.11.13229. Product version: 4.7.11+33ed3a9f86277651e93ddf39cda64a046a06778b. GlobalAssemblyCache: False
+2021-10-22 11:07:20.1154 Info Configuring from an XML element in D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config...
+2021-10-22 11:07:20.1154 Info Message Template Auto Format enabled
+2021-10-22 11:07:20.1154 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 11:07:20.1154 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 11:07:20.1364 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 11:07:20.1364 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 11:07:20.1364 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 11:07:20.1364 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 11:07:20.1364 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 11:07:20.1414 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 11:07:20.1414 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 11:07:20.1414 Info Closing old configuration.
+2021-10-22 11:07:20.1414 Error BufferingWrapper(Name=ElasticSearch_wrapped): WrappedTarget is NULL
+2021-10-22 11:07:20.1725 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config
+2021-10-22 11:07:20.1725 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 11:08:49.3202 Info Message Template Auto Format enabled
+2021-10-22 11:08:49.3793 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 11:08:49.3793 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 11:08:49.4160 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 11:08:49.6946 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 11:08:49.6946 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 11:08:49.7092 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 11:08:49.7199 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 11:08:49.7509 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 11:08:49.7674 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 11:08:49.8197 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\NLog.config
+2021-10-22 11:08:49.8911 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
+2021-10-22 11:08:49.8911 Info Configuration initialized.
+2021-10-22 11:08:49.8911 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.7.11.13229. Product version: 4.7.11+33ed3a9f86277651e93ddf39cda64a046a06778b. GlobalAssemblyCache: False
+2021-10-22 11:08:49.9497 Info Configuring from an XML element in D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config...
+2021-10-22 11:08:49.9497 Info Message Template Auto Format enabled
+2021-10-22 11:08:49.9497 Info Loading assembly: NLog.Web.AspNetCore
+2021-10-22 11:08:49.9542 Info Loading assembly: NLog.Targets.ElasticSearch
+2021-10-22 11:08:49.9542 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Error loading extensions: NLog.Targets.ElasticSearch
+ ---> System.IO.FileNotFoundException: Could not load file or assembly 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+File name: 'NLog.Targets.ElasticSearch, Culture=neutral, PublicKeyToken=null'
+   at System.Reflection.RuntimeAssembly.InternalLoad(ObjectHandleOnStack assemblyName, ObjectHandleOnStack requestingAssembly, StackCrawlMarkHandle stackMark, Boolean throwOnFileNotFound, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack retAssembly)
+   at System.Reflection.RuntimeAssembly.InternalLoad(AssemblyName assemblyName, RuntimeAssembly requestingAssembly, StackCrawlMark& stackMark, Boolean throwOnFileNotFound, AssemblyLoadContext assemblyLoadContext)
+   at System.Reflection.Assembly.Load(String assemblyString)
+   at NLog.Internal.AssemblyHelpers.LoadFromName(String assemblyName)
+   at NLog.Config.LoggingConfigurationParser.ParseExtensionWithAssembly(String assemblyName, String prefix)
+   --- End of inner exception stack trace ---
+2021-10-22 11:08:49.9542 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create target type: ElasticSearch
+ ---> System.ArgumentException: Target cannot be found: 'ElasticSearch'
+   at NLog.Config.Factory`2.CreateInstance(String itemName)
+   at NLog.Config.LoggingConfigurationParser.CreateTargetType(String targetTypeName)
+   --- End of inner exception stack trace ---
+2021-10-22 11:08:49.9542 Info Adding target AsyncTargetWrapper(Name=ElasticSearch)
+2021-10-22 11:08:49.9542 Info Adding target AsyncTargetWrapper(Name=console)
+2021-10-22 11:08:49.9542 Info Adding target AsyncTargetWrapper(Name=file)
+2021-10-22 11:08:49.9542 Info Adding target AsyncTargetWrapper(Name=chainsaw)
+2021-10-22 11:08:49.9542 Info Adding target AsyncTargetWrapper(Name=blackhole)
+2021-10-22 11:08:49.9542 Info Closing old configuration.
+2021-10-22 11:08:49.9730 Error BufferingWrapper(Name=ElasticSearch_wrapped): WrappedTarget is NULL
+2021-10-22 11:08:49.9963 Info Validating config: Targets=5, ConfigItems=49, FilePath=D:\Project\KCloudy\KCludySaaS\Main\Source\Job\KC.Job.Basic\bin\Debug\net5.0\nlog.config
+2021-10-22 11:08:50.0022 Error BufferingWrapper Target[ElasticSearch_wrapped](): Error initializing target Exception: NLog.NLogConfigurationException: Required parameter 'WrappedTarget' on 'BufferingWrapper Target[ElasticSearch_wrapped]()' was not specified.
+   at NLog.Internal.PropertyHelper.CheckRequiredParameters(Object o)
+   at NLog.Targets.Target.Initialize(LoggingConfiguration configuration)
