@@ -19,17 +19,18 @@ build_dotnet_web() {
     local env=${5:-"Production"}
 
     # 定义变量
-    local csprojDir="./Web/${solutionName}/${solutionName}.csproj"
+    local csprojDir="../Web/${solutionName}/${solutionName}.csproj"
     local localNuget="http://nexus.kcloudy.com/repository/nuget-hosted/index.json"
+    local publicNuget="https://api.nuget.org/v3/index.json"
     local containerName=$(echo "$solutionName" | tr '[:upper:]' '[:lower:]')
     local acrName="kcloudy-netcore"  # ACR 名称
     local imageName="${acrName}/${containerName}"
     local newVersion="1.0.0.${versionNum}"
     local lastNum=$((versionNum - 1))
     local lastVersion="1.0.0.${lastNum}"
-    local webDir="D:/Publish/Release/${solutionName}/v-${newVersion}"
-    local oldwebDir="D:/Publish/Release/${solutionName}/v-${lastVersion}"
-    local archivesDir="D:/Publish/Release/archives"
+    local webDir="D:/Publish/DotNet/${solutionName}/v-${newVersion}"
+    local oldwebDir="D:/Publish/DotNet/${solutionName}/v-${lastVersion}"
+    local archivesDir="D:/Publish/DotNet/archives"
 
     echo "----kcloudy: 更新项目: ${solutionName} 从上一个版本: ${lastVersion} 到新版本: ${newVersion}"
 
@@ -39,8 +40,8 @@ build_dotnet_web() {
     rm -rf "${webDir:?}/"*
 
     # 还原 NuGet 包并发布项目
-    echo "----kcloudy: 还原 NuGet 包: dotnet restore ${csprojDir} -s ${localNuget} -s https://nuget.cnblogs.com/v3/index.json"
-    dotnet restore "${csprojDir}" -s "${localNuget}" -s "https://nuget.cnblogs.com/v3/index.json"
+    echo "----kcloudy: 还原 NuGet 包: dotnet restore ${csprojDir} -s ${localNuget} -s ${publicNuget}"
+    dotnet restore "${csprojDir}" -s "${localNuget}" -s "${publicNuget}"
 
     echo "----kcloudy: 发布项目: dotnet publish ${csprojDir} -c Release -o ${webDir} /p:Version=${newVersion}"
     dotnet publish "${csprojDir}" -c Release -o "${webDir}" /p:Version="${newVersion}"

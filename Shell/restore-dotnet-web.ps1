@@ -24,7 +24,7 @@ HTTPS port to run the container on, default is 0 (not specified)
 Deployment environment, default is "Production"
 
 .EXAMPLE
-.\build-dotnet-web.ps1 -solutionType "Web" -solutionName "KC.Web.Resource" -versionNum 1 -httpPort 9999 -httpsPort 10000 -env "Production"
+.\restore-dotnet-web.ps1 -solutionType "Web" -solutionName "KC.Web.Resource" -versionNum 1 -env "Production"
 #>
 
 param(
@@ -103,12 +103,12 @@ function Restore-DotnetWeb {
 
     # Define variables
     if ($solutionType -eq "UnitTest") {
-        $csprojDir = ".\Test\$solutionName\$solutionName.csproj"
+        $csprojDir = "..\Test\$solutionName\$solutionName.csproj"
     } else {
-        $csprojDir = ".\$solutionType\$solutionName\$solutionName.csproj"
+        $csprojDir = "..\$solutionType\$solutionName\$solutionName.csproj"
     }
     $localNuget = "https://nexus.kcloudy.com/repository/nuget-hosted/index.json"
-    $publicNuget = "https://nuget.cnblogs.com/v3/index.json"
+    $publicNuget = "https://api.nuget.org/v3/index.json"
     $containerName = $solutionName.ToLower()
     $acrUrl = "registry.cn-zhangjiakou.aliyuncs.com"
     $acrName = "kcloudy-netcore"  # Your ACR name
@@ -116,19 +116,8 @@ function Restore-DotnetWeb {
     $newVersion = "1.0.0.$versionNum"
     $lastNum = $versionNum - 1
     $lastVersion = "1.0.0.$lastNum"
-    $webDir = "D:\Publish\Release\$solutionName\v-$newVersion"
-    $oldwebDir = "D:\Publish\Release\$solutionName\v-$lastVersion"
-    $archivesDir = "D:\Publish\Release\archives"
 
     Write-Info "Update project: $solutionName from lastVersion: $lastVersion to newVersion: $newVersion"
-
-    # Create and clean publish directory
-    Write-Info "Publishing dotnetcore project: $solutionName to directory: $webDir"
-    if (!(Test-Path -Path $webDir)) {
-        New-Item -ItemType Directory -Path $webDir -Force | Out-Null
-    } else {
-        Remove-Item -Path "$webDir\*" -Recurse -Force
-    }
 
     # Check and create global.json if it doesn't exist
     $globalJsonPath = Join-Path -Path $PSScriptRoot -ChildPath "global.json"
@@ -140,11 +129,8 @@ function Restore-DotnetWeb {
     # Restore NuGet packages and publish project
     Write-Info "Restoring NuGet packages: dotnet restore $csprojDir -s $localNuget -s $publicNuget"
     dotnet restore $csprojDir -s $localNuget -s $publicNuget
-    
-    #Write-Info "Publishing project: dotnet publish $csprojDir -c Release -o $webDir /p:Version=$newVersion"
-    #dotnet publish $csprojDir -c Release -o $webDir /p:Version=$newVersion
 
-    Set-Location "D:\Project\kcloudy\core\dotnet\kcloudy.business\Main\Source"
+    Set-Location "D:\Project\kcloudy\dotnet\Shell"
     Write-Success "Deployment completed successfully!"
 }
 
@@ -155,8 +141,8 @@ try {
     Restore-DotnetWeb -solutionType "Job" -solutionName "Basic" -versionNum 1 -env "Production"
     
     # Test项目
-    dotnet restore .\Test\KC.Console.ApiTest\KC.Console.ApiTest.csproj -s https://nexus.kcloudy.com/repository/nuget-hosted/index.json -s https://nuget.cnblogs.com/v3/index.json
-    dotnet restore .\Test\KC.WebTest.Multitenancy\KC.WebTest.Multitenancy.csproj -s https://nexus.kcloudy.com/repository/nuget-hosted/index.json -s https://nuget.cnblogs.com/v3/index.json
+    #dotnet restore ..\Test\KC.Console.ApiTest\KC.Console.ApiTest.csproj -s https://nexus.kcloudy.com/repository/nuget-hosted/index.json -s https://api.nuget.org/v3/index.json
+    #dotnet restore ..\Test\KC.WebTest.Multitenancy\KC.WebTest.Multitenancy.csproj -s https://nexus.kcloudy.com/repository/nuget-hosted/index.json -s https://api.nuget.org/v3/index.json
 
     Restore-DotnetWeb -solutionType "UnitTest" -solutionName "Account" -versionNum 1 -env "Production"
     Restore-DotnetWeb -solutionType "UnitTest" -solutionName "Admin" -versionNum 1 -env "Production"
@@ -223,6 +209,6 @@ try {
     exit 0
 } catch {
     Write-Error "Script execution failed: $_"
-    Set-Location "D:\Project\kcloudy\core\dotnet\kcloudy.business\Main\Source"
+    Set-Location "D:\Project\kcloudy\dotnet\Shell"
     exit 1
 }

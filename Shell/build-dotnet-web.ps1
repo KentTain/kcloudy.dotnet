@@ -24,7 +24,7 @@ HTTPS port to run the container on, default is 0 (not specified)
 Deployment environment, default is "Production"
 
 .EXAMPLE
-.\build-dotnet-web.ps1 -solutionName "KC.Web.Resource" -versionNum 1 -httpPort 9999 -httpsPort 10000 -env "Production"
+.\build-dotnet-web.ps1 -solutionType "Web" -solutionName "KC.Web.Resource" -versionNum 1 -httpPort 9999 -httpsPort 10000 -env "Production"
 #>
 
 param(
@@ -104,8 +104,9 @@ function Build-DotnetWeb {
     )
 
     # Define variables
-    $csprojDir = ".\$solutionType\$solutionName\$solutionName.csproj"
+    $csprojDir = "..\$solutionType\$solutionName\$solutionName.csproj"
     $localNuget = "http://nexus.kcloudy.com/repository/nuget-hosted/index.json"
+    $publicNuget = "https://api.nuget.org/v3/index.json"
     $containerName = $solutionName.ToLower()
     $acrUrl = "registry.cn-zhangjiakou.aliyuncs.com"
     $acrName = "kcloudy-netcore"  # Your ACR name
@@ -135,8 +136,8 @@ function Build-DotnetWeb {
     }
 
     # Restore NuGet packages and publish project
-    Write-Info "Restoring NuGet packages: dotnet restore $csprojDir -s $localNuget -s https://nuget.cnblogs.com/v3/index.json"
-    dotnet restore $csprojDir -s $localNuget -s "https://nuget.cnblogs.com/v3/index.json"
+    Write-Info "Restoring NuGet packages: dotnet restore $csprojDir -s $localNuget -s $publicNuget"
+    dotnet restore $csprojDir -s $localNuget -s $publicNuget
     
     Write-Info "Publishing project: dotnet publish $csprojDir -c Release -o $webDir /p:Version=$newVersion"
     dotnet publish $csprojDir -c Release -o $webDir /p:Version=$newVersion
@@ -334,16 +335,17 @@ function Build-DotnetWeb {
         docker rmi -f "$imageName`:$newVersion" | Out-Null
     }
 
-    Set-Location "D:\Project\kcloudy\core\dotnet\kcloudy.business\Main\Source"
+    
     Write-Success "Deployment completed successfully!"
 }
 
 # Main script
 try {
     Build-DotnetWeb -solutionType $solutionType -solutionName $solutionName -versionNum $versionNum -httpPort $httpPort -httpsPort $httpsPort -env $env
+    Set-Location "D:\Project\kcloudy\dotnet\Shell"
     exit 0
 } catch {
     Write-Error "Script execution failed: $_"
-    Set-Location "D:\Project\kcloudy\core\dotnet\kcloudy.business\Main\Source"
+    Set-Location "D:\Project\kcloudy\dotnet\Shell"
     exit 1
 }
