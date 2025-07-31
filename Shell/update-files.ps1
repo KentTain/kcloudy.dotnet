@@ -136,9 +136,7 @@ function Update-Files {
         $utf8NoBom = New-Object System.Text.UTF8Encoding $false
         [System.IO.File]::WriteAllText($dockerfilePath, $content, $utf8NoBom)
         
-        Write-Info "-> Copied: $dockerfilePath"
-
-        break
+        Write-Info "---Copied---> $dockerfilePath"
     }
 
     Write-Success "All $fileName have been copied successfully!"
@@ -146,7 +144,13 @@ function Update-Files {
 
 # Main script
 try {
-    Update-Files -solutionType $solutionType -solutionName $solutionName -fileName $fileName -isLowercase $isLowercase
+    # copy the Dockerfile of the KC.Web.Resource to all Web/WebApi projects
+    Update-Files -solutionType "Web" -solutionName "KC.Web.Resource" -fileName "Dockerfile" -isLowercase $true
+    Update-Files -solutionType "WebApi" -solutionName "KC.Web.Resource" -fileName "Dockerfile" -isLowercase $true
+    
+    # copy the nlog.config of the KC.Web.Resource to all Web/WebApi projects
+    Update-Files -solutionType "Web" -solutionName "KC.Web.Resource" -fileName "nlog.config" -isLowercase $true
+    Update-Files -solutionType "WebApi" -solutionName "KC.Web.Resource" -fileName "nlog.config" -isLowercase $true
     Set-Location "D:\Project\kcloudy\dotnet\Shell"
     exit 0
 } catch {

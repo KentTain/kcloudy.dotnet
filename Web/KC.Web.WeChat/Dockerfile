@@ -55,4 +55,4 @@ EXPOSE ${PORT}
 #     CMD curl -f http://localhost/health || exit 1
 
 # 设置容器入口点
-ENTRYPOINT ["dotnet", "KC.Web.WeChat.dll"]
+ENTRYPOINT ["dotnet", "kc.web.wechat.dll"]
