@@ -40,6 +40,7 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.2.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="5.0.10" Condition="'$(Configuration)' == 'Debug'" />
 
 	</ItemGroup>

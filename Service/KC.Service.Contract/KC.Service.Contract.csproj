@@ -18,7 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\KC.Component\KC.Component.csproj" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Service\KC.Service.Component\KC.Service.Component.csproj" />
     <ProjectReference Include="..\..\Common\KC.Service\KC.Service.csproj" />
     <ProjectReference Include="..\..\Common\KC.Storage\KC.Storage.csproj" />
     <ProjectReference Include="..\..\Common\KC.ThirdParty\KC.ThirdParty.csproj" />
