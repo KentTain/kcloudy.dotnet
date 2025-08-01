@@ -13,15 +13,15 @@ Type of the solution to build, default is "Web"
 .PARAMETER solutionName
 Name of the solution need to copy
 
-.PARAMETER fileName
-Name of the stardard file need to copy
+.PARAMETER fileFullPath
+Abstract full path of the stardard file need to copy, such as "Dockerfile" or "src\main\resources\logback.xml"
 
 .PARAMETER isLowercase
 is lowecase the project name, default is "false"
 
 .EXAMPLE
-.\update-files.ps1 -solutionType "Web" -solutionName "KC.Web.Resource" -fileName "Dockerfile" -isLowercase $false
-.\update-files.ps1 -solutionType "Web" -solutionName "KC.Web.Resource" -fileName "nlog.config" -isLowercase $true
+.\update-files.ps1 -solutionType "Web" -solutionName "KC.Web.Resource" -fileFullPath "Dockerfile" -isLowercase $false
+.\update-files.ps1 -solutionType "Web" -solutionName "KC.Web.Resource" -fileFullPath "nlog.config" -isLowercase $true
 #>
 
 param(
@@ -32,7 +32,7 @@ param(
     [string]$solutionName,
     
     [Parameter(Mandatory=$false)]
-    [string]$fileName,
+    [string]$fileFullPath,
     
     [Parameter(Mandatory=$false)]
     [bool]$isLowercase = $false
@@ -78,34 +78,37 @@ function Update-Files {
         [string]$solutionName,
         
         [Parameter(Mandatory=$true)]
-        [string]$fileName,
+        [string]$fileFullPath,
     
         [Parameter(Mandatory=$false)]
         [bool]$isLowercase = $false 
     )
 
     # Get the template file content with correct encoding
+    $fileName = Split-Path -Path $fileFullPath -Leaf
+    $filePath = Split-Path -Path $fileFullPath -Parent
     $projectRoot = Split-Path -Path $PSScriptRoot -Parent
-    $templatePath = "$projectRoot\Web\$solutionName\$fileName"
-    $templateContent = [System.IO.File]::ReadAllText($templatePath, [System.Text.Encoding]::UTF8)
+    $copyFullPath = "$projectRoot\Web\$solutionName\$fileFullPath"
+    $copyFileContent = [System.IO.File]::ReadAllText($copyFullPath, [System.Text.Encoding]::UTF8)
 
     # Get all solutionType project directories
     $solutionProjects = Get-ChildItem -Path (Join-Path $projectRoot "$solutionType") -Directory | 
-        Where-Object { $_.Name -ne "$solutionName" -and (Test-Path (Join-Path $_.FullName "$fileName")) }
+        Where-Object { $_.Name -ne "$solutionName" -and (Test-Path (Join-Path $_.FullName "$fileFullPath")) }
 
     foreach ($project in $solutionProjects) {
-        $dockerfilePath = Join-Path $project.FullName "$fileName"
         $projectName = $project.Name
+        $lowcaseType = $solutionType.ToLower()
+        $pasteFullPath = Join-Path $project.FullName "$fileFullPath"
         $mainName = $projectName -replace "^KC\.$solutionType\.", ""
         
-        Write-Info "Copying $templatePath to $dockerfilePath in the project: $mainName of $projectName"
+        Write-Info "Copying $copyFullPath to $pasteFullPath in the project: $mainName of $projectName"
 
         # Customize the template for this project
         if ($isLowercase) {
-            $customizedContent = $templateContent -replace 'kc\.web\.resource', $projectName.ToLower()
+            $customizedContent = $copyFileContent -replace 'kc\.web\.resource', $projectName.ToLower()
             $customizedContent = $customizedContent -replace [regex]::Escape('resource-'), ($mainName.ToLower() + '-')
         } else {
-            $customizedContent = $templateContent -replace 'KC\.Web\.Resource', $projectName
+            $customizedContent = $copyFileContent -replace 'KC\.Web\.Resource', $projectName
             $customizedContent = $customizedContent -replace [regex]::Escape('Resource-'), ($mainName + '-')
         }
 
@@ -134,23 +137,23 @@ function Update-Files {
         
         # Save the updated Dockerfile with UTF-8 without BOM encoding
         $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-        [System.IO.File]::WriteAllText($dockerfilePath, $content, $utf8NoBom)
+        [System.IO.File]::WriteAllText($pasteFullPath, $content, $utf8NoBom)
         
-        Write-Info "---Copied---> $dockerfilePath"
+        Write-Info "---Copied---> $pasteFullPath"
     }
 
-    Write-Success "All $fileName have been copied successfully!"
+    Write-Success "All $fileFullPath have been copied successfully!"
 }
 
 # Main script
 try {
     # copy the Dockerfile of the KC.Web.Resource to all Web/WebApi projects
-    Update-Files -solutionType "Web" -solutionName "KC.Web.Resource" -fileName "Dockerfile" -isLowercase $true
-    Update-Files -solutionType "WebApi" -solutionName "KC.Web.Resource" -fileName "Dockerfile" -isLowercase $true
+    Update-Files -solutionType "Web" -solutionName "KC.Web.Resource" -fileFullPath "Dockerfile" -isLowercase $true
+    Update-Files -solutionType "WebApi" -solutionName "KC.Web.Resource" -fileFullPath "Dockerfile" -isLowercase $true
     
     # copy the nlog.config of the KC.Web.Resource to all Web/WebApi projects
-    Update-Files -solutionType "Web" -solutionName "KC.Web.Resource" -fileName "nlog.config" -isLowercase $true
-    Update-Files -solutionType "WebApi" -solutionName "KC.Web.Resource" -fileName "nlog.config" -isLowercase $true
+    Update-Files -solutionType "Web" -solutionName "KC.Web.Resource" -fileFullPath "nlog.config" -isLowercase $true
+    Update-Files -solutionType "WebApi" -solutionName "KC.Web.Resource" -fileFullPath "nlog.config" -isLowercase $true
     Set-Location "D:\Project\kcloudy\dotnet\Shell"
     exit 0
 } catch {
